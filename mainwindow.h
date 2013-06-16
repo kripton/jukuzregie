@@ -6,7 +6,7 @@
 #include "cambox.h"
 #include <phonon/VideoPlayer>
 #include <jackthread.h>
-#include <QProcess>
+#include "nanoKontrol2.h"
 
 namespace Ui {
 class MainWindow;

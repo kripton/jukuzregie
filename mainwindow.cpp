@@ -57,25 +57,20 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
     opacity = (float)c2 / (float)127;
 
     switch (c1) {
-      case 0x00:
-        // Fader 1
+      case KNK2_Fader1:
         ((CamBox*)ui->groupBox)->setVideoOpacity(opacity);
         return;
 
-      case 0x01:
-        // Fader 2
+      case KNK2_Fader2:
         ((CamBox*)ui->groupBox_2)->setVideoOpacity(opacity);
         return;
 
-      case 0x02:
-        // Fader 3
+      case KNK2_Fader3:
         ((CamBox*)ui->groupBox_3)->setVideoOpacity(opacity);
         return;
 
-    case 0x03:
-        // Fader 4
+      case KNK2_Fader4:
         ((CamBox*)ui->groupBox_4)->setVideoOpacity(opacity);
         return;
-        break;
     }
 }
