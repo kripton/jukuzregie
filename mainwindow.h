@@ -30,8 +30,11 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
-    QProcess *process;
+    QProcess* westonprocess;
+    QProcess* process;
     QStringList arguments;
+
+    void startupApplications();
 };
 
 #endif // MAINWINDOW_H

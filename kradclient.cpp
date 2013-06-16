@@ -7,9 +7,11 @@ KradClient::KradClient(QObject *parent) :
 
 void KradClient::anyCommand(QStringList params)
 {
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("XDG_RUNTIME_DIR", QString("%1/xdg").arg(QDir::homePath()));
     QProcess* process = new QProcess();
+    process->setProcessEnvironment(env);
     params.prepend("jukuz");
-    //arguments << "setport" << "3" << "180" << "40" << "160" << "120" << "0" << "0" << "160" << "120" << QString("%1").arg(opacity) << "0";
     qDebug() << params;
     process->start("/usr/bin/krad_radio", params);
     process->waitForFinished();
@@ -17,8 +19,20 @@ void KradClient::anyCommand(QStringList params)
     process = NULL;
 }
 
-void KradClient::startUp()
+void KradClient::launch()
 {
+    KradClient::kill();
+    KradClient::anyCommand(QStringList() << "launch");
+    QProcess* kProcess = new QProcess();
+    kProcess->start("sleep", QStringList() << "1");
+    kProcess->waitForFinished();
+}
+
+void KradClient::kill()
+{
+    QProcess* kProcess = new QProcess();
+    kProcess->start("killall", QStringList() << "-9" << "krad_radio_daemon");
+    kProcess->waitForFinished();
 }
 
 qint16 KradClient::playStream(QUrl streamUrl) {

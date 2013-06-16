@@ -6,6 +6,8 @@ MainWindow* wP;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setApplicationName("JuKuZRegie");
+
     MainWindow w;
 
     wP = &w;

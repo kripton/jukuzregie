@@ -7,6 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    startupApplications();
+
     // Start the JACK-thread
     QThread* thread = new QThread;
     worker = new JackThread();
@@ -24,7 +26,41 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    KradClient::kill();
+    westonprocess->kill();
     delete ui;
+}
+
+void MainWindow::startupApplications() {
+    if (!QDir().exists(QString("%1/xdg").arg(QDir::homePath()))) {
+        QDir().mkpath(QString("%1/xdg").arg(QDir::homePath()));
+    }
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("XDG_RUNTIME_DIR", QString("%1/xdg").arg(QDir::homePath()));
+
+    qDebug() << "Starting up weston ...";
+    westonprocess = new QProcess();
+    westonprocess->setProcessEnvironment(env);
+    westonprocess->start("weston", QStringList() << "--idle-time=0");
+    westonprocess->waitForStarted();
+    qDebug() << "Weston has been started";
+
+    qDebug() << "Starting up KRAD";
+    KradClient::launch();
+
+    if (!QDir().exists(QString("%1/kradlogs").arg(QDir::homePath()))) {
+        QDir().mkpath(QString("%1/kradlogs").arg(QDir::homePath()));
+    }
+    KradClient::anyCommand(QStringList() << "setdir" << QString("%1/kradlogs/").arg(QDir::homePath()));
+    KradClient::anyCommand(QStringList() << "res" << "960" << "540");
+    KradClient::anyCommand(QStringList() << "setres" << "960" << "540");
+    KradClient::anyCommand(QStringList() << "fps" << "25");
+    KradClient::anyCommand(QStringList() << "setfps" << "25");
+    KradClient::anyCommand(QStringList() << "rate" << "48000");
+    KradClient::anyCommand(QStringList() << "setrate" << "48000");
+    KradClient::anyCommand(QStringList() << "display");
+    KradClient::anyCommand(QStringList() << "output" << "jack");
+    qDebug() << "KRAD has been started";
 }
 
 void MainWindow::start() {
