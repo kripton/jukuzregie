@@ -176,3 +176,7 @@ plugin_commonU.def
 *.orig
 *.rej
 
+
+# Created binary
+videotest
+jukuzregie
