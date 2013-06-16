@@ -22,7 +22,8 @@ HEADERS  += mainwindow.h \
     cambox.h \
     audiometer.h \
     jackthread.h \
-    kradclient.h
+    kradclient.h \
+    nanoKontrol2.h
 
 FORMS    += mainwindow.ui \
     cambox.ui
