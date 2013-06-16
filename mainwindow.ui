@@ -6,65 +6,76 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>836</width>
-    <height>666</height>
+    <width>834</width>
+    <height>677</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>JuKuZ Livestreaming Regie</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="CamBox" name="groupBox">
+   <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>400</width>
-      <height>300</height>
+      <x>-1</x>
+      <y>9</y>
+      <width>831</width>
+      <height>621</height>
      </rect>
     </property>
-    <property name="title">
-     <string>GroupBox</string>
-    </property>
-   </widget>
-   <widget class="CamBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>10</y>
-      <width>400</width>
-      <height>300</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>GroupBox</string>
-    </property>
-   </widget>
-   <widget class="CamBox" name="groupBox_4">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>330</y>
-      <width>400</width>
-      <height>300</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>GroupBox</string>
-    </property>
-   </widget>
-   <widget class="CamBox" name="groupBox_3">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>330</y>
-      <width>400</width>
-      <height>300</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>GroupBox</string>
-    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <item row="0" column="0">
+      <widget class="CamBox" name="groupBox">
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="CamBox" name="groupBox_2">
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="CamBox" name="groupBox_3">
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="CamBox" name="groupBox_4">
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QPushButton" name="recordButton">
+       <property name="text">
+        <string>Aufnehmen</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="transmitButton">
+       <property name="text">
+        <string>Senden</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -72,7 +83,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>836</width>
+     <width>834</width>
      <height>17</height>
     </rect>
    </property>

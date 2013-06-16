@@ -8,7 +8,7 @@ KradClient::KradClient(QObject *parent) :
 void KradClient::anyCommand(QStringList params)
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("XDG_RUNTIME_DIR", QString("%1/xdg").arg(QDir::homePath()));
+    env.insert("XDG_RUNTIME_DIR", QString("%1/streaming/xdg").arg(QDir::homePath()));
     QProcess* process = new QProcess();
     process->setProcessEnvironment(env);
     params.prepend("jukuz");
@@ -40,14 +40,10 @@ qint16 KradClient::playStream(QUrl streamUrl) {
     bool parseOkay = false;
 
     // Play the stream
-    QStringList params;
-    params << "play" << streamUrl.host() << QString("%1").arg(streamUrl.port()) << streamUrl.path();
-    anyCommand(params);
+    anyCommand(QStringList() << "play" << streamUrl.host() << QString("%1").arg(streamUrl.port()) << streamUrl.path());
 
     QProcess* process = new QProcess();
-    params.clear();
-    params << "jukuz" << "ls";
-    process->start("/usr/bin/krad_radio", params);
+    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
     process->waitForFinished();
     foreach (QString line, process->readAll().split('\n')) {
         if (!line.contains(streamUrl.path())) continue;
@@ -69,4 +65,53 @@ bool KradClient::deleteStream(qint16 id)
     params <<  "rm" << QString("%1").arg(id);
     KradClient::anyCommand(params);
     return true;
+}
+
+qint16 KradClient::getRecordId()
+{
+    int retval = -1;
+    bool parseOkay = false;
+
+    QProcess* process = new QProcess();
+    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
+    process->waitForFinished();
+    foreach (QString line, process->readAll().split('\n')) {
+        if (!line.contains("record")) continue;
+        retval = line.split(':')[1].trimmed().split(' ')[0].toInt(&parseOkay);
+    }
+    if (!parseOkay) retval = -1;
+    process->~QProcess();
+    process = NULL;
+
+    return retval;
+}
+
+qint16 KradClient::getTransmitId()
+{
+    int retval = -1;
+    bool parseOkay = false;
+
+    QProcess* process = new QProcess();
+    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
+    process->waitForFinished();
+    foreach (QString line, process->readAll().split('\n')) {
+        if (!line.contains("transmit")) continue;
+        retval = line.split(':')[1].trimmed().split(' ')[0].toInt(&parseOkay);
+    }
+    if (!parseOkay) retval = -1;
+    process->~QProcess();
+    process = NULL;
+
+    return retval;
+}
+
+void KradClient::ls()
+{
+    QProcess* process = new QProcess();
+    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
+    process->waitForFinished();
+    qDebug() << "KRAD LS:" <<  process->readAll();
+
+    process->~QProcess();
+    process = NULL;
 }

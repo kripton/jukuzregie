@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include <QDateTime>
 #include "cambox.h"
 #include <phonon/VideoPlayer>
 #include <jackthread.h>
@@ -27,6 +28,10 @@ public:
 
 public slots:
     void midiEvent(char c0, char c1, char c2);
+
+private slots:
+    void recordButtonToggled(bool checked);
+    void transmitButtonToggled(bool checked);
 
 private:
     Ui::MainWindow *ui;

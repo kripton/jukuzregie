@@ -21,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(worker, SIGNAL(midiEvent(char, char, char)), this, SLOT(midiEvent(char, char, char)));
 
+    connect(ui->recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonToggled(bool)));
+    connect(ui->transmitButton, SIGNAL(toggled(bool)), this, SLOT(transmitButtonToggled(bool)));
+
     thread->start();
 }
 
@@ -32,11 +35,11 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::startupApplications() {
-    if (!QDir().exists(QString("%1/xdg").arg(QDir::homePath()))) {
-        QDir().mkpath(QString("%1/xdg").arg(QDir::homePath()));
+    if (!QDir().exists(QString("%1/streaming/xdg").arg(QDir::homePath()))) {
+        QDir().mkpath(QString("%1/streaming/xdg").arg(QDir::homePath()));
     }
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("XDG_RUNTIME_DIR", QString("%1/xdg").arg(QDir::homePath()));
+    env.insert("XDG_RUNTIME_DIR", QString("%1/streaming/xdg").arg(QDir::homePath()));
 
     qDebug() << "Starting up weston ...";
     westonprocess = new QProcess();
@@ -48,8 +51,8 @@ void MainWindow::startupApplications() {
     qDebug() << "Starting up KRAD";
     KradClient::launch();
 
-    if (!QDir().exists(QString("%1/kradlogs").arg(QDir::homePath()))) {
-        QDir().mkpath(QString("%1/kradlogs").arg(QDir::homePath()));
+    if (!QDir().exists(QString("%1/streaming/logs").arg(QDir::homePath()))) {
+        QDir().mkpath(QString("%1/streaming/logs").arg(QDir::homePath()));
     }
     KradClient::anyCommand(QStringList() << "setdir" << QString("%1/kradlogs/").arg(QDir::homePath()));
     KradClient::anyCommand(QStringList() << "res" << "960" << "540");
@@ -108,5 +111,46 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
       case KNK2_Fader4:
         ((CamBox*)ui->groupBox_4)->setVideoOpacity(opacity);
         return;
+    }
+}
+
+void MainWindow::recordButtonToggled(bool checked)
+{
+    if (checked) {
+        if (!QDir().exists(QString("%1/streaming/aufnahmen").arg(QDir::homePath()))) {
+            QDir().mkpath(QString("%1/streaming/aufnahmen").arg(QDir::homePath()));
+        }
+        KradClient::anyCommand(QStringList()
+                               << "record"
+                               << "audiovideo"
+                               << QString("%1/streaming/aufnahmen/%2.webm").arg(QDir::homePath()).arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
+                               << "vp8vorbis"
+                               << "960" << "540"
+                               << "400" << "0.9");
+        qDebug() << "Record id is" << KradClient::getRecordId();
+    } else {
+        KradClient::deleteStream(KradClient::getRecordId());
+    }
+}
+
+void MainWindow::transmitButtonToggled(bool checked)
+{
+    if (checked) {
+        if (!QDir().exists(QString("%1/streaming/aufnahmen").arg(QDir::homePath()))) {
+            QDir().mkpath(QString("%1/streaming/aufnahmen").arg(QDir::homePath()));
+        }
+        KradClient::anyCommand(QStringList()
+                               << "transmit"
+                               << "audiovideo"
+                               << "127.0.0.1"
+                               << "12000"
+                               << "/jukuz.webm"
+                               << "pass"
+                               << "vp8vorbis"
+                               << "960" << "540"
+                               << "400" << "0.9");
+        qDebug() << "Transmit id is" << KradClient::getTransmitId();
+    } else {
+        KradClient::deleteStream(KradClient::getTransmitId());
     }
 }

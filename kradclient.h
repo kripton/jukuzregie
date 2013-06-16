@@ -18,6 +18,9 @@ public:
     static void kill();
     static qint16 playStream(QUrl streamUrl);
     static bool deleteStream(qint16 id);
+    static qint16 getRecordId();
+    static qint16 getTransmitId();
+    static void ls();
 };
 
 #endif // KRADCLIENT_H
