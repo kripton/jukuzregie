@@ -51,12 +51,18 @@ public:
     ~CamBox();
     IcecastInfo iInfo;
 
+    QSlider* opacitySlider();
+    QSlider* volumeSlider();
+
 public slots:
     void setMountName(QString mountName);
     void setVideoOpacity(qreal opacity);
     void setKradVolume(qreal volume);
 
 private slots:
+    void _setVideoOpacity(qreal opacity);
+    void _setKradVolume(qreal volume);
+
     void opcatiyFaderChanged();
     void volumeFaderChanged();
     void updateKradPort();

@@ -43,16 +43,29 @@ CamBox::~CamBox()
 
 void CamBox::setVideoOpacity(qreal opacity) {
     ui->opacitySlider->setValue(opacity*1000);
+}
+
+void CamBox::setKradVolume(qreal volume) {
+    ui->volumeSlider->setValue(volume*10);
+}
+
+void CamBox::_setVideoOpacity(qreal opacity) {
+    ui->opacitySlider->setValue(opacity*1000);
+    if (vPort.opacity == opacity) return;
     vPort.opacity = opacity;
 
-    if (ui->volSync->isChecked()) setKradVolume(opacity*100.0);
+    if (ui->volSync->isChecked() && vPort.volume != opacity * 100.0) {
+        _setKradVolume(opacity*100.0);
+        return;
+    }
 
     updateKradPort();
     updateBackGround();
 }
 
-void CamBox::setKradVolume(qreal volume) {
+void CamBox::_setKradVolume(qreal volume) {
     ui->volumeSlider->setValue(volume*10);
+    if (vPort.volume == volume) return;
     vPort.volume = volume;
     updateKradPort();
     updateBackGround();
@@ -60,12 +73,14 @@ void CamBox::setKradVolume(qreal volume) {
 
 void CamBox::opcatiyFaderChanged()
 {
-    this->setVideoOpacity(ui->opacitySlider->value() / 1000.0);
+    if (vPort.opacity == ui->opacitySlider->value() / 1000.0) return;
+    _setVideoOpacity(ui->opacitySlider->value() / 1000.0);
 }
 
 void CamBox::volumeFaderChanged()
 {
-    this->setKradVolume(ui->volumeSlider->value() / 10.0);
+    if (vPort.volume == ui->volumeSlider->value() / 10.0) return;
+    _setKradVolume(ui->volumeSlider->value() / 10.0);
 }
 
 void CamBox::setMountName(QString mountName)
