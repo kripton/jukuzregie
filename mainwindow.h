@@ -32,6 +32,7 @@ public slots:
 private slots:
     void recordButtonToggled(bool checked);
     void transmitButtonToggled(bool checked);
+    void textButtonToggled(bool checked);
 
 private:
     Ui::MainWindow *ui;

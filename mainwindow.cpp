@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonToggled(bool)));
     connect(ui->transmitButton, SIGNAL(toggled(bool)), this, SLOT(transmitButtonToggled(bool)));
+    connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
 
     thread->start();
 }
@@ -54,7 +55,7 @@ void MainWindow::startupApplications() {
     if (!QDir().exists(QString("%1/streaming/logs").arg(QDir::homePath()))) {
         QDir().mkpath(QString("%1/streaming/logs").arg(QDir::homePath()));
     }
-    KradClient::anyCommand(QStringList() << "setdir" << QString("%1/kradlogs/").arg(QDir::homePath()));
+    KradClient::anyCommand(QStringList() << "setdir" << QString("%1/streaming/logs/").arg(QDir::homePath()));
     KradClient::anyCommand(QStringList() << "res" << "960" << "540");
     KradClient::anyCommand(QStringList() << "setres" << "960" << "540");
     KradClient::anyCommand(QStringList() << "fps" << "25");
@@ -152,5 +153,29 @@ void MainWindow::transmitButtonToggled(bool checked)
         qDebug() << "Transmit id is" << KradClient::getTransmitId();
     } else {
         KradClient::deleteStream(KradClient::getTransmitId());
+    }
+}
+
+void MainWindow::textButtonToggled(bool checked)
+{
+    if (checked) {
+        ui->textButton->setText("Text deaktivieren");
+        KradClient::anyCommand(QStringList()
+                               << "addsprite"
+                               << QString("%1/streaming/sprites/textsprite-960x540-scribble-alpha.png").arg(QDir::homePath())
+                               << "0" << "0"
+                               << "1"
+                               );
+        KradClient::anyCommand(QStringList()
+                               << "addtext"
+                               << "HELLO"
+                               << "155" << "385"
+                               << "4" << "80.0f" << "1.0f" << "0.0f"
+                               << "255" << "255" << "255"
+                               );
+    } else {
+        ui->textButton->setText("Text aktivieren");
+        KradClient::anyCommand(QStringList() << "rmsprite" << "0");
+        KradClient::anyCommand(QStringList() << "rmtext" << "0");
     }
 }

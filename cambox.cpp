@@ -18,10 +18,9 @@ CamBox::CamBox(QWidget *parent):
     dataOutput = new Phonon::AudioDataOutput(this);
     ui->AudioMeterSliderL->channel = Phonon::AudioDataOutput::LeftChannel;
     ui->AudioMeterSliderR->channel = Phonon::AudioDataOutput::RightChannel;
-    Phonon::createPath(ui->VideoPlayer->mediaObject(), dataOutput);
-    ui->VideoPlayer->mediaObject()->connect(dataOutput, SIGNAL(dataReady(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)),
+    connect(dataOutput, SIGNAL(dataReady(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)),
                                             ui->AudioMeterSliderL, SLOT(dataReceived(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)));
-    ui->VideoPlayer->mediaObject()->connect(dataOutput, SIGNAL(dataReady(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)),
+    connect(dataOutput, SIGNAL(dataReady(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)),
                                             ui->AudioMeterSliderR, SLOT(dataReceived(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)));
 
     // Set up timer to poll our icecast mount
