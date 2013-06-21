@@ -96,22 +96,36 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
     opacity = (float)c2 / (float)127;
 
-    switch (c1) {
-      case KNK2_Fader1:
-        ((CamBox*)ui->groupBox)->setVideoOpacity(opacity);
+
+    // Determine target by 2nd nibble
+    CamBox* box;
+    switch (c1 & 0x0f) {
+      case 0: box = (CamBox*)ui->groupBox; break;
+      case 1: box = (CamBox*)ui->groupBox_2; break;
+      case 2: box = (CamBox*)ui->groupBox_3; break;
+      case 3: box = (CamBox*)ui->groupBox_4; break;
+    }
+
+    // Determine action by 1st nibble
+    switch (c1 & 0xf0) {
+      case 0x00: // Fader
+        box->setVideoOpacity(opacity);
         return;
 
-      case KNK2_Fader2:
-        ((CamBox*)ui->groupBox_2)->setVideoOpacity(opacity);
+      case 0x10: // Knob
         return;
 
-      case KNK2_Fader3:
-        ((CamBox*)ui->groupBox_3)->setVideoOpacity(opacity);
+      case 0x20: // Solo
+        if (c2 == 0) return;
+        box->setPreListen(!box->getPreListen());
         return;
 
-      case KNK2_Fader4:
-        ((CamBox*)ui->groupBox_4)->setVideoOpacity(opacity);
+      case 0x30: // Mute
         return;
+
+      case 0x40: // Rec
+        return;
+
     }
 }
 

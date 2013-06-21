@@ -41,12 +41,22 @@ CamBox::~CamBox()
     delete ui;
 }
 
+bool CamBox::getPreListen()
+{
+    return ui->MonitorPushButton->isChecked();
+}
+
 void CamBox::setVideoOpacity(qreal opacity) {
     ui->opacitySlider->setValue(opacity*1000);
 }
 
 void CamBox::setKradVolume(qreal volume) {
     ui->volumeSlider->setValue(volume*10);
+}
+
+void CamBox::setPreListen(bool value)
+{
+    ui->MonitorPushButton->setChecked(value);
 }
 
 void CamBox::_setVideoOpacity(qreal opacity) {
