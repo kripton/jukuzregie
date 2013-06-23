@@ -16,6 +16,8 @@ public:
     static void anyCommand(QStringList params);
     static void launch();
     static void kill();
+    static qint16 addSprite(QString filename);
+    static bool delSprite(qint16 id);
     static qint16 playStream(QUrl streamUrl);
     static bool deleteStream(qint16 id);
     static qint16 getRecordId();

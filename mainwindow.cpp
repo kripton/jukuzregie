@@ -7,6 +7,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    logoSpriteId = -1;
+    textBgSpriteId = -1;
+    textSpriteId = -1;
+
     ui->groupBox->setMainWindow(this);
     ui->groupBox_2->setMainWindow(this);
     ui->groupBox_3->setMainWindow(this);
@@ -14,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     startUp = QDateTime::currentDateTime();
     QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
+    QDir().mkpath(QString("%1/streaming/%2/sprites/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
 
     startupApplications();
 
@@ -32,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonToggled(bool)));
     connect(ui->transmitButton, SIGNAL(toggled(bool)), this, SLOT(transmitButtonToggled(bool)));
     connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
+    connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
 
     thread->start();
 }
@@ -179,22 +185,35 @@ void MainWindow::textButtonToggled(bool checked)
 {
     if (checked) {
         ui->textButton->setText("Text deaktivieren");
-        KradClient::anyCommand(QStringList()
-                               << "addsprite"
-                               << QString("%1/streaming/sprites/textsprite-960x540-scribble-alpha.png").arg(QDir::homePath())
-                               << "0" << "0"
-                               << "1"
-                               );
-        KradClient::anyCommand(QStringList()
-                               << "addtext"
-                               << "HELLO"
-                               << "155" << "385"
-                               << "4" << "80.0f" << "1.0f" << "0.0f"
-                               << "255" << "255" << "255"
-                               );
+
+        // Render the text to image using imagemagick's convert
+        QString fileName = QString("%1/streaming/%2/sprites/%3.png")
+                .arg(QDir::homePath())
+                .arg(startUp.toString("yyyy-MM-dd_hh-mm-ss"))
+                .arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
+        QProcess* imProc = new QProcess();
+        imProc->start("convert", QStringList() <<
+                     "-size" << "960x540" << "canvas:transparent" <<
+                     "-font" << "Impact" << "-pointsize" << "48" <<
+                     "-fill" << "black" <<
+                      "-draw" << QString("text 180,440 '%1'").arg(ui->textEdit->text().replace("'", "\\'")) <<
+                     fileName);
+        imProc->waitForFinished();
+
+        textBgSpriteId = KradClient::addSprite(QString("%1/streaming/sprites/textsprite-960x540-scribble-alpha.png").arg(QDir::homePath()));
+        textSpriteId   = KradClient::addSprite(fileName);
     } else {
         ui->textButton->setText("Text aktivieren");
-        KradClient::anyCommand(QStringList() << "rmsprite" << "0");
-        KradClient::anyCommand(QStringList() << "rmtext" << "0");
+        KradClient::delSprite(textBgSpriteId);
+        KradClient::delSprite(textSpriteId);
+    }
+}
+
+void MainWindow::logoButtonToggled(bool checked)
+{
+    if (checked) {
+        logoSpriteId = KradClient::addSprite(QString("%1/streaming/sprites/bdv_logos.png").arg(QDir::homePath()));
+    } else {
+        KradClient::delSprite(logoSpriteId);
     }
 }

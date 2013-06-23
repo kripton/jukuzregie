@@ -35,6 +35,40 @@ void KradClient::kill()
     kProcess->waitForFinished();
 }
 
+qint16 KradClient::addSprite(QString filename)
+{
+    qint16 retval = -1;
+    bool parseOkay = false;
+
+    if (!QFile().exists(filename)) return retval;
+    KradClient::anyCommand(QStringList()
+                           << "addsprite"
+                           << filename
+                           << "0" << "0"
+                           << "1"
+                           );
+
+    QProcess* process = new QProcess();
+    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "lssprites");
+    process->waitForFinished();
+    foreach (QString line, process->readAll().split('\n')) {
+        if (!line.contains(filename)) continue;
+        retval = line.split(':')[1].trimmed().split(' ')[0].toInt(&parseOkay);
+        if (!parseOkay) retval = -1;
+    }
+    process->~QProcess();
+    process = NULL;
+
+    return retval;
+}
+
+bool KradClient::delSprite(qint16 id)
+{
+    if (id < 0) return false;
+    KradClient::anyCommand(QStringList() << "rmsprite" << QString("%1").arg(id));
+    return true;
+}
+
 qint16 KradClient::playStream(QUrl streamUrl) {
     qint16 retval = -1;
     bool parseOkay = false;
@@ -61,9 +95,7 @@ bool KradClient::deleteStream(qint16 id)
 {
     qDebug() << "deleteStream" << id;
     if (id < 0) return false;
-    QStringList params;
-    params <<  "rm" << QString("%1").arg(id);
-    KradClient::anyCommand(params);
+    KradClient::anyCommand(QStringList() << "rm" << QString("%1").arg(id));
     return true;
 }
 

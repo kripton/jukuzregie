@@ -33,12 +33,17 @@ private slots:
     void recordButtonToggled(bool checked);
     void transmitButtonToggled(bool checked);
     void textButtonToggled(bool checked);
+    void logoButtonToggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
     QProcess* westonprocess;
     QProcess* process;
     QStringList arguments;
+
+    qint16 logoSpriteId;
+    qint16 textBgSpriteId;
+    qint16 textSpriteId;
 
     void startupApplications();
 };
