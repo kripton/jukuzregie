@@ -24,6 +24,7 @@ public:
 
     Phonon::VideoPlayer* player;
     JackThread* worker;
+    QDateTime startUp;
 
 public slots:
     void midiEvent(char c0, char c1, char c2);

@@ -16,6 +16,7 @@
 #include <phonon/AudioOutput>
 #include "audiometer.h"
 #include "kradclient.h"
+#include "mainwindow.h"
 
 namespace Ui {
 class CamBox;
@@ -52,6 +53,7 @@ public:
     IcecastInfo iInfo;
 
     bool getPreListen();
+    void setMainWindow(QObject* mainWin);
 
 public slots:
     void setMountName(QString mountName);
@@ -81,6 +83,7 @@ private:
     QTimer timer;
     Phonon::AudioDataOutput* dataOutput;
     Phonon::MediaSource* mediaSource;
+    QObject* mainWin;
 
     // KRAD related stuff
     VideoPort vPort;
@@ -89,6 +92,7 @@ private:
     QNetworkAccessManager qnam;
     QNetworkRequest request;
     QNetworkReply* reply;
+    QProcess* icecastDumpProc;
 };
 
 #endif // CAMBOX_H

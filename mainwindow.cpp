@@ -7,6 +7,14 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->groupBox->setMainWindow(this);
+    ui->groupBox_2->setMainWindow(this);
+    ui->groupBox_3->setMainWindow(this);
+    ui->groupBox_4->setMainWindow(this);
+
+    startUp = QDateTime::currentDateTime();
+    QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
+
     startupApplications();
 
     // Start the JACK-thread
@@ -52,10 +60,10 @@ void MainWindow::startupApplications() {
     qDebug() << "Starting up KRAD";
     KradClient::launch();
 
-    if (!QDir().exists(QString("%1/streaming/logs").arg(QDir::homePath()))) {
-        QDir().mkpath(QString("%1/streaming/logs").arg(QDir::homePath()));
+    if (!QDir().exists(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
+        QDir().mkpath(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
     }
-    KradClient::anyCommand(QStringList() << "setdir" << QString("%1/streaming/logs/").arg(QDir::homePath()));
+    KradClient::anyCommand(QStringList() << "setdir" << QString("%1/streaming/%2/logs/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
     KradClient::anyCommand(QStringList() << "res" << "960" << "540");
     KradClient::anyCommand(QStringList() << "setres" << "960" << "540");
     KradClient::anyCommand(QStringList() << "fps" << "25");
@@ -132,13 +140,13 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 void MainWindow::recordButtonToggled(bool checked)
 {
     if (checked) {
-        if (!QDir().exists(QString("%1/streaming/aufnahmen").arg(QDir::homePath()))) {
-            QDir().mkpath(QString("%1/streaming/aufnahmen").arg(QDir::homePath()));
+        if (!QDir().exists(QString("%1/streaming/%2/aufnahmen").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
+            QDir().mkpath(QString("%1/streaming/%2/aufnahmen").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
         }
         KradClient::anyCommand(QStringList()
                                << "record"
                                << "audiovideo"
-                               << QString("%1/streaming/aufnahmen/%2.webm").arg(QDir::homePath()).arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
+                               << QString("%1/streaming/%2/aufnahmen/%3.webm").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")).arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
                                << "vp8vorbis"
                                << "960" << "540"
                                << "400" << "0.9");
@@ -151,9 +159,6 @@ void MainWindow::recordButtonToggled(bool checked)
 void MainWindow::transmitButtonToggled(bool checked)
 {
     if (checked) {
-        if (!QDir().exists(QString("%1/streaming/aufnahmen").arg(QDir::homePath()))) {
-            QDir().mkpath(QString("%1/streaming/aufnahmen").arg(QDir::homePath()));
-        }
         KradClient::anyCommand(QStringList()
                                << "transmit"
                                << "audiovideo"

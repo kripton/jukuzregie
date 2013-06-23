@@ -47,6 +47,11 @@ bool CamBox::getPreListen()
     return ui->MonitorPushButton->isChecked();
 }
 
+void CamBox::setMainWindow(QObject *mainWin)
+{
+    this->mainWin = mainWin;
+}
+
 void CamBox::setVideoOpacity(qreal opacity) {
     ui->opacitySlider->setValue(opacity*1000);
 }
@@ -162,6 +167,20 @@ void CamBox::sourceOnline() {
 
     iInfo.sourceOnline = true;
     updateBackGround();
+
+    // Record the stream to disk so it can be re-cut later
+    icecastDumpProc = new QProcess(this);
+    icecastDumpProc->start("gst-launch-1.0",
+                           QStringList() << "souphttpsrc"
+                                         << QString("location=%1%2").arg(iInfo.baseUrl.toString()).arg(mountName)
+                                         << "!"
+                                         << "filesink"
+                                         << QString("location=%1/streaming/%2/aufnahmen/%3_%4")
+                           .arg(QDir::homePath())
+                           .arg(((MainWindow*) mainWin)->startUp.toString("yyyy-MM-dd_hh-mm-ss"))
+                           .arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
+                           .arg(mountName)
+                           );
 }
 
 void CamBox::sourceOffline() {
