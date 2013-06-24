@@ -120,6 +120,8 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
       case 3: box = (CamBox*)ui->groupBox_4; break;
     }
 
+    if (box == NULL) return;
+
     // Determine action by 1st nibble
     switch (c1 & 0xf0) {
       case 0x00: // Fader
