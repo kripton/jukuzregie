@@ -11,7 +11,7 @@ void KradClient::anyCommand(QStringList params)
     env.insert("XDG_RUNTIME_DIR", QString("%1/streaming/xdg").arg(QDir::homePath()));
     QProcess* process = new QProcess();
     process->setProcessEnvironment(env);
-    params.prepend("jukuz");
+    params.prepend(QSettings().value("general/krad_station_name", "jukuz").toString());
     qDebug() << params;
     process->start("/usr/bin/krad_radio", params);
     process->waitForFinished();
@@ -49,7 +49,7 @@ qint16 KradClient::addSprite(QString filename)
                            );
 
     QProcess* process = new QProcess();
-    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "lssprites");
+    process->start("/usr/bin/krad_radio", QStringList() << QSettings().value("general/krad_station_name", "jukuz").toString() << "lssprites");
     process->waitForFinished();
     foreach (QString line, process->readAll().split('\n')) {
         if (!line.contains(filename)) continue;
@@ -77,7 +77,7 @@ qint16 KradClient::playStream(QUrl streamUrl) {
     anyCommand(QStringList() << "play" << streamUrl.host() << QString("%1").arg(streamUrl.port()) << streamUrl.path());
 
     QProcess* process = new QProcess();
-    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
+    process->start("/usr/bin/krad_radio", QStringList() << QSettings().value("general/krad_station_name", "jukuz").toString() << "ls");
     process->waitForFinished();
     foreach (QString line, process->readAll().split('\n')) {
         if (!line.contains(streamUrl.path())) continue;
@@ -105,7 +105,7 @@ qint16 KradClient::getRecordId()
     bool parseOkay = false;
 
     QProcess* process = new QProcess();
-    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
+    process->start("/usr/bin/krad_radio", QStringList() << QSettings().value("general/krad_station_name", "jukuz").toString() << "ls");
     process->waitForFinished();
     foreach (QString line, process->readAll().split('\n')) {
         if (!line.contains("record")) continue;
@@ -124,7 +124,7 @@ qint16 KradClient::getTransmitId()
     bool parseOkay = false;
 
     QProcess* process = new QProcess();
-    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
+    process->start("/usr/bin/krad_radio", QStringList() << QSettings().value("general/krad_station_name", "jukuz").toString() << "ls");
     process->waitForFinished();
     foreach (QString line, process->readAll().split('\n')) {
         if (!line.contains("transmit")) continue;
@@ -140,7 +140,7 @@ qint16 KradClient::getTransmitId()
 void KradClient::ls()
 {
     QProcess* process = new QProcess();
-    process->start("/usr/bin/krad_radio", QStringList() << "jukuz" << "ls");
+    process->start("/usr/bin/krad_radio", QStringList() << QSettings().value("general/krad_station_name", "jukuz").toString() << "ls");
     process->waitForFinished();
     qDebug() << "KRAD LS:" <<  process->readAll();
 

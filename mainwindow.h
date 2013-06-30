@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QThread>
 #include <QDateTime>
+#include <QSettings>
 #include "cambox.h"
 #include <phonon/VideoPlayer>
 #include <jackthread.h>

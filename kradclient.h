@@ -7,10 +7,14 @@
 #include <QUrl>
 #include <QDir>
 #include <QDebug>
+#include <QSettings>
 
 class KradClient : public QObject
 {
     Q_OBJECT
+private:
+    QSettings* settings;
+
 public:
     explicit KradClient(QObject *parent = 0);
     static void anyCommand(QStringList params);

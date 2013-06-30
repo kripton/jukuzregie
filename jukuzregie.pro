@@ -29,3 +29,6 @@ FORMS    += mainwindow.ui \
     cambox.ui
 
 LIBS += -ljack
+
+OTHER_FILES += \
+    settings.txt
