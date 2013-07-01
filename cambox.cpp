@@ -31,8 +31,12 @@ CamBox::CamBox(QWidget *parent):
     connect(ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opcatiyFaderChanged()));
     connect(ui->volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeFaderChanged()));
     connect(ui->MonitorPushButton, SIGNAL(toggled(bool)), this, SLOT(MonitorPushButtonToggled(bool)));
+    connect(ui->GOButton, SIGNAL(clicked()), this, SLOT(goButtonClicked()));
 
     this->setAlignment(Qt::AlignHCenter);
+
+    fadeTimer = new QTimer(this);
+    connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
 
     updateBackGround();
 }
@@ -63,6 +67,17 @@ void CamBox::setKradVolume(qreal volume) {
 void CamBox::setPreListen(bool value)
 {
     ui->MonitorPushButton->setChecked(value);
+}
+
+void CamBox::fadeStart(qint16 stepSize, qint16 interval)
+{
+    if (stepSize == 0) {
+        fadeTimer->stop();
+        return;
+    }
+    if (fadeTimer->isActive()) fadeTimer->stop();
+    fadeStepSize = stepSize;
+    fadeTimer->start(interval);
 }
 
 void CamBox::_setVideoOpacity(qreal opacity) {
@@ -237,6 +252,24 @@ void CamBox::unmute()
 void CamBox::MonitorPushButtonToggled(bool checked)
 {
     if (checked) unmute(); else mute();
+}
+
+void CamBox::fadeTimeEvent()
+{
+    if ((fadeStepSize > 0) && ((ui->opacitySlider->value() + fadeStepSize) >= 1000)) {
+        ui->opacitySlider->setValue(1000);
+        fadeTimer->stop();
+    } else if ((fadeStepSize < 0) && ((ui->opacitySlider->value() + fadeStepSize) <= 0)) {
+        ui->opacitySlider->setValue(0);
+        fadeTimer->stop();
+    } else {
+        ui->opacitySlider->setValue(ui->opacitySlider->value() + fadeStepSize);
+    }
+}
+
+void CamBox::goButtonClicked()
+{
+    emit fadeMeIn(this);
 }
 
 void CamBox::updateKradPort() {

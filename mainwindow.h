@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QDateTime>
 #include <QSettings>
+#include <QProcess>
 #include "cambox.h"
 #include <phonon/VideoPlayer>
 #include <jackthread.h>
@@ -35,6 +36,7 @@ private slots:
     void transmitButtonToggled(bool checked);
     void textButtonToggled(bool checked);
     void logoButtonToggled(bool checked);
+    void fadeInOneFadeOutOther(QObject* fadeInBox);
 
 private:
     Ui::MainWindow *ui;

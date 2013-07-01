@@ -55,11 +55,15 @@ public:
     bool getPreListen();
     void setMainWindow(QObject* mainWin);
 
+signals:
+    void fadeMeIn(QObject* sender);
+
 public slots:
     void setMountName(QString mountName);
     void setVideoOpacity(qreal opacity);
     void setKradVolume(qreal volume);
     void setPreListen(bool value);
+    void fadeStart(qint16 stepSize, qint16 interval);
 
 private slots:
     void _setVideoOpacity(qreal opacity);
@@ -75,6 +79,8 @@ private slots:
     void mute();
     void unmute();
     void MonitorPushButtonToggled(bool checked);
+    void fadeTimeEvent();
+    void goButtonClicked();
 
 private:
     // General management stuff
@@ -84,6 +90,9 @@ private:
     Phonon::AudioDataOutput* dataOutput;
     Phonon::MediaSource* mediaSource;
     QObject* mainWin;
+
+    qint16 fadeStepSize;
+    QTimer* fadeTimer;
 
     // KRAD related stuff
     VideoPort vPort;

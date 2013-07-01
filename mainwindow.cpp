@@ -16,6 +16,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->groupBox_3->setMainWindow(this);
     ui->groupBox_4->setMainWindow(this);
 
+    connect(ui->groupBox, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
+    connect(ui->groupBox_2, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
+    connect(ui->groupBox_3, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
+    connect(ui->groupBox_4, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
+
     startUp = QDateTime::currentDateTime();
     QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
     QDir().mkpath(QString("%1/streaming/%2/sprites/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
@@ -124,22 +129,24 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
     // Determine action by 1st nibble
     switch (c1 & 0xf0) {
-      case 0x00: // Fader
+      case 0x00: // Fader = set opacity
         box->setVideoOpacity(opacity);
         return;
 
       case 0x10: // Knob
         return;
 
-      case 0x20: // Solo
-        if (c2 == 0) return;
+      case 0x20: // Solo = toggle prelisten
+        if (c2 == 0) return; // no reaction on button up
         box->setPreListen(!box->getPreListen());
         return;
 
       case 0x30: // Mute
         return;
 
-      case 0x40: // Rec
+      case 0x40: // Rec = fade in this source, fade out all others
+        if (c2 == 0) return; // no reaction on button up
+        fadeInOneFadeOutOther(box);
         return;
 
     }
@@ -217,5 +224,16 @@ void MainWindow::logoButtonToggled(bool checked)
         logoSpriteId = KradClient::addSprite(QString("%1/streaming/sprites/bdv_logos.png").arg(QDir::homePath()));
     } else {
         KradClient::delSprite(logoSpriteId);
+    }
+}
+
+void MainWindow::fadeInOneFadeOutOther(QObject *fadeInBox)
+{
+    foreach (CamBox* box, QList<CamBox*>() << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4) {
+        if (box == fadeInBox) {
+            box->fadeStart(50, 50);
+        } else {
+            box->fadeStart(-50, 50);
+        }
     }
 }
