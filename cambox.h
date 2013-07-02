@@ -54,6 +54,7 @@ public:
 
     bool getPreListen();
     void setMainWindow(QObject* mainWin);
+    bool isSourceOnline();
 
 signals:
     void fadeMeIn(QObject* sender);

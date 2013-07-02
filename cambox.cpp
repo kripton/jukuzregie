@@ -38,6 +38,13 @@ CamBox::CamBox(QWidget *parent):
     fadeTimer = new QTimer(this);
     connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
 
+    ui->volumeSlider->setValue(0);
+    ui->opacitySlider->setValue(0);
+    ui->volumeSlider->setEnabled(false);
+    ui->opacitySlider->setEnabled(false);
+    ui->MonitorPushButton->setEnabled(false);
+    ui->GOButton->setEnabled(false);
+
     updateBackGround();
 }
 
@@ -54,6 +61,10 @@ bool CamBox::getPreListen()
 void CamBox::setMainWindow(QObject *mainWin)
 {
     this->mainWin = mainWin;
+}
+
+bool CamBox::isSourceOnline() {
+    return iInfo.sourceOnline;
 }
 
 void CamBox::setVideoOpacity(qreal opacity) {
@@ -155,6 +166,8 @@ void CamBox::sourceOnline() {
     ui->opacitySlider->setValue(0);
     ui->volumeSlider->setEnabled(true);
     ui->opacitySlider->setEnabled(true);
+    ui->MonitorPushButton->setEnabled(true);
+    ui->GOButton->setEnabled(true);
 
     vPort.pos_x = 0;
     vPort.pos_y = 0;
@@ -215,6 +228,8 @@ void CamBox::sourceOffline() {
     ui->opacitySlider->setValue(0);
     ui->volumeSlider->setEnabled(false);
     ui->opacitySlider->setEnabled(false);
+    ui->MonitorPushButton->setEnabled(false);
+    ui->GOButton->setEnabled(false);
 }
 
 void CamBox::updateBackGround() {
