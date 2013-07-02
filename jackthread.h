@@ -5,6 +5,7 @@
 #include <jack/midiport.h>
 
 #include <QObject>
+#include <QDebug>
 
 class JackThread : public QObject {
     Q_OBJECT

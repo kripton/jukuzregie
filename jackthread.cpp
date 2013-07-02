@@ -25,6 +25,37 @@ void JackThread::setup() {
     {
         emit error("Cannot activate jack client");
     }
+
+    qDebug() << "Trying to connect ports";
+    const char **ports;
+
+    // Connecting our IN port => looking for outputs
+    ports = jack_get_ports (client, "nanoKONTROL2", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput);
+    if (ports == NULL) {
+        qDebug() << "Cannot find any MIDI output ports";
+    } else {
+        qDebug() << "Trying to connect our" << jack_port_name(input_port) << "to" << ports[0];
+        if (jack_connect (client, ports[0], jack_port_name (input_port))) {
+            qDebug() << "failed";
+        } else {
+            qDebug() << "success";
+        }
+        free (ports);
+    }
+
+    // Connecting our feedack (=OUT) port => looking for inputs
+    ports = jack_get_ports (client, "nanoKONTROL2", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput);
+    if (ports == NULL) {
+        qDebug() << "Cannot find any MIDI input ports";
+    } else {
+        qDebug() << "Trying to connect our" << jack_port_name(feedback_port) << "to" << ports[0];
+        if (jack_connect (client, jack_port_name (feedback_port), ports[0])) {
+            qDebug() << "failed";
+        } else {
+            qDebug() << "success";
+        }
+        free (ports);
+    }
 }
 
 int JackThread::process(jack_nframes_t nframes, void *arg) {

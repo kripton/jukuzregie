@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QThread* thread = new QThread;
     worker = new JackThread();
     worker->moveToThread(thread);
-    //connect(worker, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
+
     connect(thread, SIGNAL(started()), worker, SLOT(setup()));
     connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
     connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
