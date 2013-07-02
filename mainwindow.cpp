@@ -11,16 +11,15 @@ MainWindow::MainWindow(QWidget *parent) :
     textBgSpriteId = -1;
     textSpriteId = -1;
 
-    ui->groupBox->setMainWindow(this);
-    ui->groupBox_2->setMainWindow(this);
-    ui->groupBox_3->setMainWindow(this);
-    ui->groupBox_4->setMainWindow(this);
+    allCamBoxes << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4;
 
-    connect(ui->groupBox, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
-    connect(ui->groupBox_2, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
-    connect(ui->groupBox_3, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
-    connect(ui->groupBox_4, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
-
+    foreach (QObject* boxObject, allCamBoxes) {
+        CamBox* box = (CamBox*)boxObject;
+        box->setMainWindow(this);
+        connect(box, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
+        connect(box, SIGNAL(preListenChanged(QObject*,bool)), this, SLOT(preListenChangedHandler(QObject*,bool)));
+        connect(box, SIGNAL(onAirInfo(QObject*,bool)), this, SLOT(onAirInfoHandler(QObject*,bool)));
+    }
     startUp = QDateTime::currentDateTime();
     QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
     QDir().mkpath(QString("%1/streaming/%2/sprites/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
@@ -231,11 +230,38 @@ void MainWindow::logoButtonToggled(bool checked)
 
 void MainWindow::fadeInOneFadeOutOther(QObject *fadeInBox)
 {
-    foreach (CamBox* box, QList<CamBox*>() << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4) {
+    foreach (QObject* boxObject, allCamBoxes) {
+        CamBox* box = (CamBox*) boxObject;
         if (box == fadeInBox) {
             box->fadeStart(50, 50);
         } else {
             box->fadeStart(-50, 50);
         }
     }
+}
+
+void MainWindow::preListenChangedHandler(QObject *sender, bool newState)
+{
+    int i = 0;
+    foreach (QObject* boxObject, allCamBoxes) {
+        CamBox* box = (CamBox*) boxObject;
+        if (box == sender) {
+            break;
+        }
+        i++;
+    }
+    worker->set_led(i + 0x20, newState ? 0x7f : 0x00);
+}
+
+void MainWindow::onAirInfoHandler(QObject *sender, bool newState)
+{
+    int i = 0;
+    foreach (QObject* boxObject, allCamBoxes) {
+        CamBox* box = (CamBox*) boxObject;
+        if (box == sender) {
+            break;
+        }
+        i++;
+    }
+    worker->set_led(i + 0x40, newState ? 0x7f : 0x00);
 }

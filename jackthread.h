@@ -18,6 +18,7 @@ signals:
 
 public slots:
     void setup();
+    void set_led(unsigned char num, unsigned char value);
 
 public:
     int process(jack_nframes_t nframes, void *arg);

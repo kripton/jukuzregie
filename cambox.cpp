@@ -237,15 +237,18 @@ void CamBox::updateBackGround() {
     if (iInfo.sourceOnline == true) {
         if (vPort.opacity != 0 || vPort.volume != 0) {
             // Source online and ONAIR (RED)
+            emit onAirInfo(this, true);
             p.setColor(QPalette::Window, Qt::red);
             this->setTitle(QString("%1 (ON AIR)").arg(mountName.toUpper()));
         } else {
-            // Source online but on ONAIR (PALE GREEN)
+            // Source online but not ONAIR (PALE GREEN)
+            emit onAirInfo(this, false);
             p.setColor(QPalette::Window, QColor(180, 255, 180));
             this->setTitle(QString("%1 (Bereit)").arg(mountName.toUpper()));
         }
     } else {
         // Source offline (LIGHT GRAY)
+        emit onAirInfo(this, false);
         p.setColor(QPalette::Window, Qt::lightGray);
         this->setTitle(QString("%1 (Nicht verbunden)").arg(mountName.toUpper()));
     }
@@ -267,6 +270,7 @@ void CamBox::unmute()
 void CamBox::MonitorPushButtonToggled(bool checked)
 {
     if (checked) unmute(); else mute();
+    emit preListenChanged(this, checked);
 }
 
 void CamBox::fadeTimeEvent()

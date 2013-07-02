@@ -37,12 +37,15 @@ private slots:
     void textButtonToggled(bool checked);
     void logoButtonToggled(bool checked);
     void fadeInOneFadeOutOther(QObject* fadeInBox);
+    void preListenChangedHandler(QObject* sender, bool newState);
+    void onAirInfoHandler(QObject* sender, bool newState);
 
 private:
     Ui::MainWindow *ui;
     QProcess* westonprocess;
     QProcess* process;
     QStringList arguments;
+    QList<QObject*> allCamBoxes;
 
     qint16 logoSpriteId;
     qint16 textBgSpriteId;

@@ -19,6 +19,7 @@ void JackThread::setup() {
     }
     jack_set_process_callback (client, process_wrapper, 0);
     input_port  = jack_port_register (client, "in",  JACK_DEFAULT_MIDI_TYPE, JackPortIsInput , 0);
+    feedback_port = jack_port_register (client, "feedback", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
 
     if (jack_activate(client))
     {
@@ -44,4 +45,15 @@ int JackThread::process(jack_nframes_t nframes, void *arg) {
         emit midiEvent((char)in_event.buffer[0], (char)in_event.buffer[1], (char)in_event.buffer[2]);
     }
     return 0;
+}
+
+void JackThread::set_led(unsigned char num, unsigned char value)
+{
+    void* feedback_port_buf = jack_port_get_buffer(feedback_port, 1);
+    jack_midi_clear_buffer(feedback_port_buf);
+    unsigned char* out;
+    out = jack_midi_event_reserve(feedback_port_buf, 0, 3);
+    out[0] = 0xb0; // MIDI ControlChange
+    out[1] = num;
+    out[2] = value;
 }

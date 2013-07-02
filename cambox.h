@@ -58,6 +58,8 @@ public:
 
 signals:
     void fadeMeIn(QObject* sender);
+    void preListenChanged(QObject* sender, bool newState);
+    void onAirInfo(QObject* sender, bool newState);
 
 public slots:
     void setMountName(QString mountName);
