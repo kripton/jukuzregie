@@ -173,7 +173,8 @@ void MainWindow::recordButtonToggled(bool checked)
                                << QString("%1/streaming/%2/aufnahmen/%3.webm").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")).arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
                                << "vp8vorbis"
                                << "960" << "540"
-                               << "400" << "0.9");
+                               << QSettings().value("outbound/record_bitrate", "400").toString()
+                               << "0.9");
         qDebug() << "Record id is" << KradClient::getRecordId();
     } else {
         KradClient::deleteStream(KradClient::getRecordId());
@@ -186,13 +187,14 @@ void MainWindow::transmitButtonToggled(bool checked)
         KradClient::anyCommand(QStringList()
                                << "transmit"
                                << "audiovideo"
-                               << "127.0.0.1"
-                               << "12000"
-                               << "/jukuz.webm"
-                               << "pass"
+                               << QSettings().value("outbound/host", "127.0.0.1").toString()
+                               << QSettings().value("outbound/port", "12000").toString()
+                               << QString("/%1").arg(QSettings().value("outbound/mount", "jukuz.webm").toString())
+                               << QSettings().value("outbound/pass", "pass").toString()
                                << "vp8vorbis"
                                << "960" << "540"
-                               << "400" << "0.9");
+                               << QSettings().value("outbound/transmit_bitrate", "400").toString()
+                               << "0.9");
         qDebug() << "Transmit id is" << KradClient::getTransmitId();
     } else {
         KradClient::deleteStream(KradClient::getTransmitId());
