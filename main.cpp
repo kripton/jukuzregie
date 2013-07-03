@@ -10,10 +10,6 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName("LiveStreamRegie");
     QApplication a(argc, argv);
 
-    QSettings settings;
-    //settings.setValue("general/krad_station_name", "jukuz");
-    settings.sync();
-
     MainWindow w;
 
     wP = &w;

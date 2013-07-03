@@ -60,12 +60,14 @@ void MainWindow::startupApplications() {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("XDG_RUNTIME_DIR", QString("%1/streaming/xdg").arg(QDir::homePath()));
 
-    qDebug() << "Starting up weston ...";
-    westonprocess = new QProcess();
-    westonprocess->setProcessEnvironment(env);
-    westonprocess->start("weston", QStringList() << "--idle-time=0");
-    westonprocess->waitForStarted();
-    qDebug() << "Weston has been started";
+    if (!QSettings().value("general/noWeston", false).toBool()) {
+        qDebug() << "Starting up weston ...";
+        westonprocess = new QProcess();
+        westonprocess->setProcessEnvironment(env);
+        westonprocess->start("weston", QStringList() << "--idle-time=0");
+        westonprocess->waitForStarted();
+        qDebug() << "Weston has been started";
+    }
 
     qDebug() << "Starting up KRAD";
     KradClient::launch();
@@ -80,28 +82,34 @@ void MainWindow::startupApplications() {
     KradClient::anyCommand(QStringList() << "setfps" << "25");
     KradClient::anyCommand(QStringList() << "rate" << "48000");
     KradClient::anyCommand(QStringList() << "setrate" << "48000");
-    KradClient::anyCommand(QStringList() << "display");
+    if (!QSettings().value("general/noWeston", false).toBool()) {
+        KradClient::anyCommand(QStringList() << "display");
+    }
     KradClient::anyCommand(QStringList() << "output" << "jack");
     qDebug() << "KRAD has been started";
 }
 
 void MainWindow::start() {
-    //Phonon::MediaSource* source2 = new Phonon::MediaSource("http://127.0.0.1:12000/cam_01.ogg");
-    //Phonon::MediaSource* source = new Phonon::MediaSource("/home/kripton/youtube/d9l0RArSpDc.webm");
-    //Phonon::MediaSource* source3 = new Phonon::MediaSource("/home/kripton/youtube/dav6_clickup.mp4");
-    //Phonon::MediaSource* source4 = new Phonon::MediaSource("/home/kripton/youtube/Flight1549CrashAndRescue.ogg");
+    QUrl baseUrl = QUrl(
+                QString("http://%1:%2/")
+                .arg(QSettings().value("inbound/host", "127.0.0.1").toString())
+                .arg(QSettings().value("inbound/port", "12000").toString())
+                );
+    qDebug() << "Inbound baseUrl" << baseUrl;
 
-    ui->groupBox->iInfo.baseUrl = QUrl("http://127.0.0.1:12000/");
-    ui->groupBox->setMountName("cam_01.ogg");
-
-    ui->groupBox_2->iInfo.baseUrl = QUrl("http://127.0.0.1:12000/");
-    ui->groupBox_2->setMountName("cam_02.ogg");
-
-    ui->groupBox_3->iInfo.baseUrl = QUrl("http://127.0.0.1:12000/");
-    ui->groupBox_3->setMountName("cam_03.ogg");
-
-    ui->groupBox_4->iInfo.baseUrl = QUrl("http://127.0.0.1:12000/");
-    ui->groupBox_4->setMountName("cam_04.ogg");
+    int i = 1;
+    foreach (QObject* boxObject, allCamBoxes) {
+        CamBox* box = (CamBox*) boxObject;
+        box->iInfo.baseUrl = baseUrl;
+        box->setMountName(QString("cam_%1.%2")
+                          .arg(i, 2).replace(' ', '0')
+                          .arg(QSettings().value("inbound/fileExt", "12000").toString())
+                          );
+        qDebug() << "MountName:" << QString("cam_%1.%2")
+                    .arg(i, 2).replace(' ', '0')
+                    .arg(QSettings().value("inbound/fileExt", "12000").toString());
+        i++;
+    }
 }
 
 void MainWindow::midiEvent(char c0, char c1, char c2) {
