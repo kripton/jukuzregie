@@ -15,14 +15,6 @@ CamBox::CamBox(QWidget *parent):
     this->mountName = mountName;
 
     // Initialize audio data viszualization
-    dataOutput = new Phonon::AudioDataOutput(this);
-    ui->AudioMeterSliderL->channel = Phonon::AudioDataOutput::LeftChannel;
-    ui->AudioMeterSliderR->channel = Phonon::AudioDataOutput::RightChannel;
-    Phonon::createPath(ui->VideoPlayer->mediaObject(), dataOutput);
-    connect(dataOutput, SIGNAL(dataReady(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)),
-                                            ui->AudioMeterSliderL, SLOT(dataReceived(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)));
-    connect(dataOutput, SIGNAL(dataReady(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)),
-                                            ui->AudioMeterSliderR, SLOT(dataReceived(const QMap<Phonon::AudioDataOutput::Channel, QVector<qint16> >&)));
 
     // Set up timer to poll our icecast mount
     timer.setInterval(1000);
@@ -158,8 +150,8 @@ void CamBox::pollIcecastRequest()
 void CamBox::sourceOnline() {
     if (iInfo.sourceOnline) return;
 
-    mediaSource = new Phonon::MediaSource(QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName));
-    ui->VideoPlayer->play(*mediaSource);
+    //mediaSource = new Phonon::MediaSource(QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName));
+    //ui->VideoPlayer->play(*mediaSource);
     mute();
 
     ui->volumeSlider->setValue(0);
@@ -216,9 +208,9 @@ void CamBox::sourceOffline() {
 
     qDebug() << "SOURCE ID" << vPort.id << "LEFT US";
 
-    ui->VideoPlayer->stop();
-    mediaSource->~MediaSource();
-    mediaSource = NULL;
+    //ui->VideoPlayer->stop();
+    //mediaSource->~MediaSource();
+    //mediaSource = NULL;
 
     KradClient::deleteStream(vPort.id);
     iInfo.sourceOnline = false;
@@ -257,14 +249,14 @@ void CamBox::updateBackGround() {
 
 void CamBox::mute()
 {
-    ui->VideoPlayer->setVolume(0.0);
-    qDebug() << "MUTED. Volume now:" << ui->VideoPlayer->volume();
+    //ui->VideoPlayer->setVolume(0.0);
+    //qDebug() << "MUTED. Volume now:" << ui->VideoPlayer->volume();
 }
 
 void CamBox::unmute()
 {
-    ui->VideoPlayer->setVolume(1.0);
-    qDebug() << "UNMUTED. Volume now:" << ui->VideoPlayer->volume();
+    //ui->VideoPlayer->setVolume(1.0);
+    //qDebug() << "UNMUTED. Volume now:" << ui->VideoPlayer->volume();
 }
 
 void CamBox::MonitorPushButtonToggled(bool checked)

@@ -10,23 +10,19 @@
     <height>290</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>GroupBox</string>
   </property>
   <property name="title">
    <string>Cam 01 (not connected)</string>
   </property>
-  <widget class="Phonon::VideoPlayer" name="VideoPlayer">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>20</y>
-     <width>320</width>
-     <height>180</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="AudioMeter" name="AudioMeterSliderL">
+  <widget class="QSlider" name="AudioMeterSliderL">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -55,7 +51,7 @@
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;L&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;R&lt;br /&gt;Audio Peak&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
-  <widget class="AudioMeter" name="AudioMeterSliderR">
+  <widget class="QSlider" name="AudioMeterSliderR">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -158,18 +154,23 @@ synchronisieren</string>
     <string>GO</string>
    </property>
   </widget>
+  <widget class="QGst::Ui::VideoWidget" name="widget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>20</y>
+     <width>320</width>
+     <height>180</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Phonon::VideoPlayer</class>
+   <class>QGst::Ui::VideoWidget</class>
    <extends>QWidget</extends>
-   <header location="global">phonon/videoplayer.h</header>
+   <header location="global">QGst/Ui/VideoWidget</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>AudioMeter</class>
-   <extends>QSlider</extends>
-   <header>audiometer.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
     textBgSpriteId = -1;
     textSpriteId = -1;
 
-    allCamBoxes << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4;
+    allCamBoxes << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4 << ui->groupBox_5 << ui->groupBox_6;
 
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*)boxObject;

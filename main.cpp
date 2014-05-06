@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include <QApplication>
+#include <QGst/Init>
 
 MainWindow* wP;
 
@@ -9,6 +10,7 @@ int main(int argc, char *argv[])
     QApplication::setOrganizationDomain("jukuz.de");
     QApplication::setApplicationName("LiveStreamRegie");
     QApplication a(argc, argv);
+    QGst::init(&argc, &argv);
 
     MainWindow w;
 

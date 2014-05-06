@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>850</width>
-    <height>720</height>
+    <width>1440</width>
+    <height>929</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,93 +17,219 @@
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>-1</x>
-      <y>9</y>
-      <width>851</width>
-      <height>661</height>
+      <x>0</x>
+      <y>0</y>
+      <width>1434</width>
+      <height>880</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
+     <item row="2" column="1">
+      <widget class="CamBox" name="groupBox_4">
+       <property name="minimumSize">
+        <size>
+         <width>390</width>
+         <height>290</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
-      <widget class="CamBox" name="groupBox_3">
+      <widget class="CamBox" name="groupBox">
+       <property name="minimumSize">
+        <size>
+         <width>390</width>
+         <height>290</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="CamBox" name="groupBox_2">
+       <property name="minimumSize">
+        <size>
+         <width>390</width>
+         <height>290</height>
+        </size>
+       </property>
        <property name="title">
         <string>GroupBox</string>
        </property>
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QPushButton" name="textButton">
-       <property name="text">
-        <string>Text aktivieren</string>
+      <widget class="CamBox" name="groupBox_6">
+       <property name="minimumSize">
+        <size>
+         <width>390</width>
+         <height>290</height>
+        </size>
        </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="CamBox" name="groupBox_4">
        <property name="title">
         <string>GroupBox</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="CamBox" name="groupBox">
-       <property name="title">
-        <string>GroupBox</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="CamBox" name="groupBox_2">
-       <property name="title">
-        <string>GroupBox</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QPushButton" name="transmitButton">
-       <property name="text">
-        <string>Senden</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QPushButton" name="recordButton">
-       <property name="text">
-        <string>Aufnehmen</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLineEdit" name="textEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <widget class="CamBox" name="groupBox_5">
+       <property name="minimumSize">
+        <size>
+         <width>390</width>
+         <height>290</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QPushButton" name="logoButton">
-       <property name="text">
-        <string>SenderLogo(s)</string>
+     <item row="2" column="0">
+      <widget class="CamBox" name="groupBox_3">
+       <property name="minimumSize">
+        <size>
+         <width>390</width>
+         <height>290</height>
+        </size>
        </property>
-       <property name="checkable">
-        <bool>true</bool>
+       <property name="title">
+        <string>GroupBox</string>
        </property>
       </widget>
+     </item>
+     <item row="1" column="2" rowspan="3">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QGroupBox" name="groupBox_8">
+         <property name="minimumSize">
+          <size>
+           <width>642</width>
+           <height>362</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>642</width>
+           <height>362</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Ausgabevorschau</string>
+         </property>
+         <widget class="QGst::Ui::VideoWidget" name="widget" native="true">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>20</y>
+            <width>640</width>
+            <height>360</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_7">
+         <property name="title">
+          <string>GroupBox</string>
+         </property>
+         <widget class="QPushButton" name="transmitButton">
+          <property name="geometry">
+           <rect>
+            <x>140</x>
+            <y>30</y>
+            <width>251</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Senden</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="recordButton">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>30</y>
+            <width>131</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Aufnehmen</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QLineEdit" name="textEdit">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>50</y>
+            <width>281</width>
+            <height>22</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="textButton">
+          <property name="geometry">
+           <rect>
+            <x>290</x>
+            <y>50</y>
+            <width>121</width>
+            <height>19</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Text aktivieren</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="logoButton">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>70</y>
+            <width>381</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>SenderLogo(s)</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </widget>
@@ -113,7 +239,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>850</width>
+     <width>1440</width>
      <height>16</height>
     </rect>
    </property>
@@ -134,6 +260,12 @@
    <class>CamBox</class>
    <extends>QGroupBox</extends>
    <header>cambox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QGst::Ui::VideoWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QGst/Ui/VideoWidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

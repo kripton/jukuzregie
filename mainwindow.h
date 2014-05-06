@@ -7,8 +7,9 @@
 #include <QSettings>
 #include <QProcess>
 #include "cambox.h"
-#include <phonon/VideoPlayer>
 #include <jackthread.h>
+
+#include <QGst/Ui/VideoWidget>
 
 namespace Ui {
 class MainWindow;
@@ -24,7 +25,6 @@ public:
 
     void start();
 
-    Phonon::VideoPlayer* player;
     JackThread* worker;
     QDateTime startUp;
 

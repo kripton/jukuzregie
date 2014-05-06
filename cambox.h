@@ -9,12 +9,6 @@
 #include <QtNetwork/QNetworkReply>
 #include <QMutex>
 #include <QWaitCondition>
-#include <phonon/VideoPlayer>
-#include <phonon/MediaObject>
-#include <phonon/AudioDataOutput>
-#include <phonon/MediaSource>
-#include <phonon/AudioOutput>
-#include "audiometer.h"
 #include "kradclient.h"
 #include "mainwindow.h"
 
@@ -90,8 +84,6 @@ private:
     Ui::CamBox *ui;
     QString mountName;
     QTimer timer;
-    Phonon::AudioDataOutput* dataOutput;
-    Phonon::MediaSource* mediaSource;
     QObject* mainWin;
 
     qint16 fadeStepSize;

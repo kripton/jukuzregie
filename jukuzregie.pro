@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui phonon network
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -14,13 +14,11 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     cambox.cpp \
-    audiometer.cpp \
     jackthread.cpp \
     kradclient.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
-    audiometer.h \
     jackthread.h \
     kradclient.h \
     nanoKontrol2.h
@@ -29,6 +27,9 @@ FORMS    += mainwindow.ui \
     cambox.ui
 
 LIBS += -ljack
+
+INCLUDEPATH += /usr/include/QtGStreamer
+LIBS += -I/usr/include/QtGStreamer -lQtGStreamer-1.0 -lQtGLib-2.0 -lQtGStreamerUi-1.0
 
 OTHER_FILES += \
     settings.txt
