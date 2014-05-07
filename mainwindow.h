@@ -9,6 +9,10 @@
 #include "cambox.h"
 #include <jackthread.h>
 
+#include <QGst/Element>
+#include <QGst/ElementFactory>
+#include <QGst/Bin>
+#include <QGst/Pipeline>
 #include <QGst/Ui/VideoWidget>
 
 namespace Ui {
@@ -50,6 +54,10 @@ private:
     qint16 logoSpriteId;
     qint16 textBgSpriteId;
     qint16 textSpriteId;
+
+    QGst::CapsPtr rawvidcaps;
+    QGst::PipelinePtr Pipeline;
+    QGst::ElementPtr VideoSinkPreview;
 
     void startupApplications();
 };

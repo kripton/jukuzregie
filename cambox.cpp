@@ -15,6 +15,7 @@ CamBox::CamBox(QWidget *parent):
     this->mountName = mountName;
 
     // Initialize audio data viszualization
+    //ui->VideoWidget->setVideoSink();
 
     // Set up timer to poll our icecast mount
     timer.setInterval(1000);
@@ -57,6 +58,11 @@ void CamBox::setMainWindow(QObject *mainWin)
 
 bool CamBox::isSourceOnline() {
     return iInfo.sourceOnline;
+}
+
+QGst::Ui::VideoWidget *CamBox::VideoWidget()
+{
+    return ui->VideoWidget;
 }
 
 void CamBox::setVideoOpacity(qreal opacity) {

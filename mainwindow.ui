@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1440</width>
+    <width>1444</width>
     <height>929</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>1434</width>
+      <width>1442</width>
       <height>880</height>
      </rect>
     </property>
@@ -111,23 +111,23 @@
         <widget class="QGroupBox" name="groupBox_8">
          <property name="minimumSize">
           <size>
-           <width>642</width>
-           <height>362</height>
+           <width>650</width>
+           <height>380</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>642</width>
-           <height>362</height>
+           <width>644</width>
+           <height>380</height>
           </size>
          </property>
          <property name="title">
           <string>Ausgabevorschau</string>
          </property>
-         <widget class="QGst::Ui::VideoWidget" name="widget" native="true">
+         <widget class="QGst::Ui::VideoWidget" name="VideoPlayer" native="true">
           <property name="geometry">
            <rect>
-            <x>0</x>
+            <x>5</x>
             <y>20</y>
             <width>640</width>
             <height>360</height>
@@ -239,7 +239,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1440</width>
+     <width>1444</width>
      <height>16</height>
     </rect>
    </property>

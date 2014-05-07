@@ -154,7 +154,7 @@ synchronisieren</string>
     <string>GO</string>
    </property>
   </widget>
-  <widget class="QGst::Ui::VideoWidget" name="widget" native="true">
+  <widget class="QGst::Ui::VideoWidget" name="VideoWidget" native="true">
    <property name="geometry">
     <rect>
      <x>10</x>

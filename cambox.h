@@ -12,6 +12,8 @@
 #include "kradclient.h"
 #include "mainwindow.h"
 
+#include <QGst/Ui/VideoWidget>
+
 namespace Ui {
 class CamBox;
 }
@@ -49,6 +51,8 @@ public:
     bool getPreListen();
     void setMainWindow(QObject* mainWin);
     bool isSourceOnline();
+
+    QGst::Ui::VideoWidget* VideoWidget();
 
 signals:
     void fadeMeIn(QObject* sender);

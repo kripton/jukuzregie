@@ -43,6 +43,24 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
     connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
 
+    rawvidcaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
+    QGst::ElementPtr videotestsrc = QGst::ElementFactory::make("videotestsrc");
+
+    VideoSinkPreview = QGst::ElementFactory::make("qtvideosink");
+    Pipeline = QGst::Pipeline::create();
+    Pipeline->add(videotestsrc, VideoSinkPreview);
+    videotestsrc->link(VideoSinkPreview, rawvidcaps);
+    ui->VideoPlayer->setVideoSink(VideoSinkPreview);
+
+    ui->groupBox->VideoWidget()->setVideoSink(VideoSinkPreview);
+    ui->groupBox_2->VideoWidget()->setVideoSink(VideoSinkPreview);
+    ui->groupBox_3->VideoWidget()->setVideoSink(VideoSinkPreview);
+    ui->groupBox_4->VideoWidget()->setVideoSink(VideoSinkPreview);
+    ui->groupBox_5->VideoWidget()->setVideoSink(VideoSinkPreview);
+    ui->groupBox_6->VideoWidget()->setVideoSink(VideoSinkPreview);
+
+    Pipeline->setState(QGst::StatePlaying);
+
     thread->start();
 }
 
