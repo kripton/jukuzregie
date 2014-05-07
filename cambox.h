@@ -9,7 +9,6 @@
 #include <QtNetwork/QNetworkReply>
 #include <QMutex>
 #include <QWaitCondition>
-#include "kradclient.h"
 #include "mainwindow.h"
 
 #include <QGst/Ui/VideoWidget>
@@ -72,7 +71,6 @@ private slots:
 
     void opcatiyFaderChanged();
     void volumeFaderChanged();
-    void updateKradPort();
     void pollIcecastRequest();
     void sourceOnline();
     void sourceOffline();

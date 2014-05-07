@@ -14,13 +14,11 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     cambox.cpp \
-    jackthread.cpp \
-    kradclient.cpp
+    jackthread.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
     jackthread.h \
-    kradclient.h \
     nanoKontrol2.h
 
 FORMS    += mainwindow.ui \

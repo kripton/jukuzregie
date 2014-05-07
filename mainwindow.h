@@ -6,6 +6,7 @@
 #include <QDateTime>
 #include <QSettings>
 #include <QProcess>
+#include <QDir>
 #include "cambox.h"
 #include <jackthread.h>
 
@@ -46,7 +47,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QProcess* westonprocess;
     QProcess* process;
     QStringList arguments;
     QList<QObject*> allCamBoxes;

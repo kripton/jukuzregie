@@ -66,45 +66,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    KradClient::kill();
-    westonprocess->kill();
     delete ui;
 }
 
 void MainWindow::startupApplications() {
-    if (!QDir().exists(QString("%1/streaming/xdg").arg(QDir::homePath()))) {
-        QDir().mkpath(QString("%1/streaming/xdg").arg(QDir::homePath()));
-    }
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("XDG_RUNTIME_DIR", QString("%1/streaming/xdg").arg(QDir::homePath()));
-
-    if (!QSettings().value("general/noWeston", false).toBool()) {
-        qDebug() << "Starting up weston ...";
-        westonprocess = new QProcess();
-        westonprocess->setProcessEnvironment(env);
-        westonprocess->start("weston", QStringList() << "--idle-time=0");
-        westonprocess->waitForStarted();
-        qDebug() << "Weston has been started";
-    }
-
-    qDebug() << "Starting up KRAD";
-    KradClient::launch();
-
     if (!QDir().exists(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
         QDir().mkpath(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
     }
-    KradClient::anyCommand(QStringList() << "setdir" << QString("%1/streaming/%2/logs/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
-    KradClient::anyCommand(QStringList() << "res" << "960" << "540");
-    KradClient::anyCommand(QStringList() << "setres" << "960" << "540");
-    KradClient::anyCommand(QStringList() << "fps" << "25");
-    KradClient::anyCommand(QStringList() << "setfps" << "25");
-    KradClient::anyCommand(QStringList() << "rate" << "48000");
-    KradClient::anyCommand(QStringList() << "setrate" << "48000");
-    if (!QSettings().value("general/noWeston", false).toBool()) {
-        KradClient::anyCommand(QStringList() << "display");
-    }
-    KradClient::anyCommand(QStringList() << "output" << "jack");
-    qDebug() << "KRAD has been started";
 }
 
 void MainWindow::start() {
@@ -185,37 +153,14 @@ void MainWindow::recordButtonToggled(bool checked)
         if (!QDir().exists(QString("%1/streaming/%2/aufnahmen").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
             QDir().mkpath(QString("%1/streaming/%2/aufnahmen").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
         }
-        KradClient::anyCommand(QStringList()
-                               << "record"
-                               << "audiovideo"
-                               << QString("%1/streaming/%2/aufnahmen/%3.webm").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")).arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
-                               << "vp8vorbis"
-                               << "960" << "540"
-                               << QSettings().value("outbound/record_bitrate", "400").toString()
-                               << "0.9");
-        qDebug() << "Record id is" << KradClient::getRecordId();
     } else {
-        KradClient::deleteStream(KradClient::getRecordId());
     }
 }
 
 void MainWindow::transmitButtonToggled(bool checked)
 {
     if (checked) {
-        KradClient::anyCommand(QStringList()
-                               << "transmit"
-                               << "audiovideo"
-                               << QSettings().value("outbound/host", "127.0.0.1").toString()
-                               << QSettings().value("outbound/port", "12000").toString()
-                               << QString("/%1").arg(QSettings().value("outbound/mount", "jukuz.webm").toString())
-                               << QSettings().value("outbound/pass", "pass").toString()
-                               << "vp8vorbis"
-                               << "960" << "540"
-                               << QSettings().value("outbound/transmit_bitrate", "400").toString()
-                               << "0.9");
-        qDebug() << "Transmit id is" << KradClient::getTransmitId();
     } else {
-        KradClient::deleteStream(KradClient::getTransmitId());
     }
 }
 
@@ -238,21 +183,15 @@ void MainWindow::textButtonToggled(bool checked)
                      fileName);
         imProc->waitForFinished();
 
-        textBgSpriteId = KradClient::addSprite(QString("%1/streaming/sprites/textsprite-960x540-scribble-alpha.png").arg(QDir::homePath()));
-        textSpriteId   = KradClient::addSprite(fileName);
     } else {
         ui->textButton->setText("Text aktivieren");
-        KradClient::delSprite(textBgSpriteId);
-        KradClient::delSprite(textSpriteId);
     }
 }
 
 void MainWindow::logoButtonToggled(bool checked)
 {
     if (checked) {
-        logoSpriteId = KradClient::addSprite(QString("%1/streaming/sprites/bdv_logos.png").arg(QDir::homePath()));
     } else {
-        KradClient::delSprite(logoSpriteId);
     }
 }
 

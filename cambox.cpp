@@ -99,7 +99,6 @@ void CamBox::_setVideoOpacity(qreal opacity) {
         return;
     }
 
-    updateKradPort();
     updateBackGround();
 }
 
@@ -107,7 +106,6 @@ void CamBox::_setKradVolume(qreal volume) {
     ui->volumeSlider->setValue(volume*10);
     if (vPort.volume == volume) return;
     vPort.volume = volume;
-    updateKradPort();
     updateBackGround();
 }
 
@@ -178,8 +176,8 @@ void CamBox::sourceOnline() {
     vPort.opacity = 0.0f;
     vPort.rotation = 0.0f;
     vPort.volume = 0.0f;
-    vPort.id = KradClient::playStream(QUrl(QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName)));
-    updateKradPort();
+    //vPort.id = KradClient::playStream(QUrl(QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName)));
+    //updateKradPort();
 
     // HACK: Set the opacity to 0 multiple time to not get it flicker on the screen
     QTimer::singleShot(80, this, SLOT(updateKradPort()));
@@ -218,7 +216,7 @@ void CamBox::sourceOffline() {
     //mediaSource->~MediaSource();
     //mediaSource = NULL;
 
-    KradClient::deleteStream(vPort.id);
+    //KradClient::deleteStream(vPort.id);
     iInfo.sourceOnline = false;
     updateBackGround();
 
@@ -287,26 +285,4 @@ void CamBox::fadeTimeEvent()
 void CamBox::goButtonClicked()
 {
     emit fadeMeIn(this);
-}
-
-void CamBox::updateKradPort() {
-    // Set KRAD's video port from vPort's values
-    QStringList params;
-    params << "setport"
-           << QString("%1").arg(vPort.id + 1) // this is a bit odd. Link id is "0", video port is "1"
-           << QString("%1").arg(vPort.pos_x)
-           << QString("%1").arg(vPort.pos_y)
-           << QString("%1").arg(vPort.width)
-           << QString("%1").arg(vPort.height)
-           << QString("%1").arg(vPort.crop_x)
-           << QString("%1").arg(vPort.crop_y)
-           << QString("%1").arg(vPort.crop_width)
-           << QString("%1").arg(vPort.crop_height)
-           << QString("%1").arg(vPort.opacity)
-           << QString("%1").arg(vPort.rotation);
-    KradClient::anyCommand(params);
-
-    params.clear();
-    params << "set" << QString("link%1").arg(vPort.id) << "volume" << QString("%1").arg(vPort.volume);
-    KradClient::anyCommand(params);
 }
