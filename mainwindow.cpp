@@ -52,14 +52,23 @@ MainWindow::MainWindow(QWidget *parent) :
     QGst::ElementPtr pngdec = QGst::ElementFactory::make("pngdec");
     QGst::ElementPtr videoconvert = QGst::ElementFactory::make("videoconvert");
     QGst::ElementPtr imagefreeze = QGst::ElementFactory::make("imagefreeze");
+    QGst::ElementPtr queue = QGst::ElementFactory::make("queue");
+
+    VideoMixer = QGst::ElementFactory::make("videomixer");
+    VideoMixerTee = QGst::ElementFactory::make("tee");
 
     VideoSinkPreview = QGst::ElementFactory::make("qtvideosink");
 
-    Pipeline->add(filesrc, pngdec, videoconvert, imagefreeze, VideoSinkPreview);
+    Pipeline->add(filesrc, pngdec, videoconvert, imagefreeze, queue, VideoMixer, VideoMixerTee, VideoSinkPreview);
     filesrc->link(pngdec);
     pngdec->link(videoconvert);
     videoconvert->link(imagefreeze);
-    imagefreeze->link(VideoSinkPreview, rawvidcaps);
+    imagefreeze->link(queue, rawvidcaps);
+    qDebug() << queue->getStaticPad("src")->link(VideoMixer->getRequestPad("sink_%u"));
+
+    qDebug() << VideoMixer->link(VideoMixerTee);
+    qDebug() << VideoMixerTee->link(VideoSinkPreview);
+
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
 
     ui->groupBox->VideoWidget()->setVideoSink(VideoSinkPreview);
