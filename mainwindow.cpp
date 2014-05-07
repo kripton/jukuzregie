@@ -44,12 +44,22 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
 
     rawvidcaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
-    QGst::ElementPtr videotestsrc = QGst::ElementFactory::make("videotestsrc");
+
+    Pipeline = QGst::Pipeline::create();
+
+    QGst::ElementPtr filesrc = QGst::ElementFactory::make("filesrc");
+    filesrc->setProperty("location", "/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
+    QGst::ElementPtr pngdec = QGst::ElementFactory::make("pngdec");
+    QGst::ElementPtr videoconvert = QGst::ElementFactory::make("videoconvert");
+    QGst::ElementPtr imagefreeze = QGst::ElementFactory::make("imagefreeze");
 
     VideoSinkPreview = QGst::ElementFactory::make("qtvideosink");
-    Pipeline = QGst::Pipeline::create();
-    Pipeline->add(videotestsrc, VideoSinkPreview);
-    videotestsrc->link(VideoSinkPreview, rawvidcaps);
+
+    Pipeline->add(filesrc, pngdec, videoconvert, imagefreeze, VideoSinkPreview);
+    filesrc->link(pngdec);
+    pngdec->link(videoconvert);
+    videoconvert->link(imagefreeze);
+    imagefreeze->link(VideoSinkPreview, rawvidcaps);
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
 
     ui->groupBox->VideoWidget()->setVideoSink(VideoSinkPreview);

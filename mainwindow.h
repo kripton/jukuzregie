@@ -12,6 +12,7 @@
 
 #include <QGst/Element>
 #include <QGst/ElementFactory>
+#include <QGst/Pad>
 #include <QGst/Bin>
 #include <QGst/Pipeline>
 #include <QGst/Ui/VideoWidget>
@@ -58,6 +59,8 @@ private:
     QGst::CapsPtr rawvidcaps;
     QGst::PipelinePtr Pipeline;
     QGst::ElementPtr VideoSinkPreview;
+    QGst::ElementPtr VideoMixer;
+    QGst::ElementPtr VideoMixerTee;
 
     void startupApplications();
 };
