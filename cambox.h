@@ -9,6 +9,7 @@
 #include "mainwindow.h"
 
 #include <QGst/Ui/VideoWidget>
+#include <QGst/Bin>
 
 namespace Ui {
 class CamBox;
@@ -30,26 +31,24 @@ public:
 
 signals:
     void fadeMeIn(QObject* sender);
-    void preListenChanged(QObject* sender, bool newState);
+    void newPreListen(QObject* sender, bool newState);
     void onAirInfo(QObject* sender, bool newState);
+    void newOpacity(QObject* sender, qreal newOpacity);
+    void newVolume(QObject* sender, qreal newVolume);
 
 public slots:
     void setName(QString name);
     void setVideoOpacity(qreal opacity);
-    void setAudioVolume(qreal volume);
+    void setVolume(qreal volume);
     void setPreListen(bool value);
-    void fadeStart(qint16 stepSize, qint16 interval);
 
 private slots:
-//    void opcatiyFaderChanged();
-//    void volumeFaderChanged();
+    void opcatiyFaderChanged();
+    void volumeFaderChanged();
     void sourceOnline();
     void sourceOffline();
-    void updateBackGround(); // background of UI groupbox
-    void mute();
-    void unmute();
-    void MonitorPushButtonToggled(bool checked);
-    void fadeTimeEvent();
+    void updateBackground();
+    void monitorButtonToggled(bool checked);
     void goButtonClicked();
 
 private:
@@ -59,11 +58,12 @@ private:
     QString name;
     bool camOnline;
 
-    QTimer timer;
     QObject* mainWin;
 
-    qint16 fadeStepSize;
-    QTimer* fadeTimer;
+    qreal opacity;
+    qreal volume;
+
+    QGst::Bin bin;
 };
 
 #endif // CAMBOX_H

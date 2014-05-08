@@ -10,22 +10,12 @@ CamBox::CamBox(QWidget *parent):
     this->setAutoFillBackground(true);
     camOnline = false;
 
-    // Initialize audio data viszualization
-    //ui->VideoWidget->setVideoSink();
-
-    // Set up timer to poll our icecast mount
-    timer.setInterval(1000);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(pollIcecastRequest()));
-
     connect(ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opcatiyFaderChanged()));
     connect(ui->volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeFaderChanged()));
-    connect(ui->MonitorPushButton, SIGNAL(toggled(bool)), this, SLOT(MonitorPushButtonToggled(bool)));
+    connect(ui->MonitorPushButton, SIGNAL(toggled(bool)), this, SLOT(monitorButtonToggled(bool)));
     connect(ui->GOButton, SIGNAL(clicked()), this, SLOT(goButtonClicked()));
 
     this->setAlignment(Qt::AlignHCenter);
-
-    fadeTimer = new QTimer(this);
-    connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
 
     ui->volumeSlider->setValue(0);
     ui->opacitySlider->setValue(0);
@@ -34,7 +24,7 @@ CamBox::CamBox(QWidget *parent):
     ui->MonitorPushButton->setEnabled(false);
     ui->GOButton->setEnabled(false);
 
-    updateBackGround();
+    updateBackground();
 }
 
 CamBox::~CamBox()
@@ -56,6 +46,18 @@ bool CamBox::isSourceOnline() {
     return camOnline;
 }
 
+void CamBox::opcatiyFaderChanged()
+{
+    if (opacity == ui->opacitySlider->value() / 1000.0) return;
+    emit newOpacity(this, ui->opacitySlider->value() / 1000.0);
+}
+
+void CamBox::volumeFaderChanged()
+{
+    if (volume == ui->volumeSlider->value() / 10.0) return;
+    emit newVolume(this, ui->volumeSlider->value() / 10.0);
+}
+
 QGst::Ui::VideoWidget *CamBox::VideoWidget()
 {
     return ui->VideoWidget;
@@ -63,10 +65,12 @@ QGst::Ui::VideoWidget *CamBox::VideoWidget()
 
 void CamBox::setVideoOpacity(qreal opacity) {
     ui->opacitySlider->setValue(opacity*1000);
+    // Does it emit a SIGNAL then? Should it?
 }
 
-void CamBox::setAudioVolume(qreal volume) {
+void CamBox::setVolume(qreal volume) {
     ui->volumeSlider->setValue(volume*10);
+    // Does it emit a SIGNAL then? Should it?
 }
 
 void CamBox::setPreListen(bool value)
@@ -74,52 +78,13 @@ void CamBox::setPreListen(bool value)
     ui->MonitorPushButton->setChecked(value);
 }
 
-void CamBox::fadeStart(qint16 stepSize, qint16 interval)
-{
-    if (stepSize == 0) {
-        fadeTimer->stop();
-        return;
-    }
-    if (fadeTimer->isActive()) fadeTimer->stop();
-    fadeStepSize = stepSize;
-    fadeTimer->start(interval);
-}
-
 void CamBox::setName(QString name)
 {
     this->name = name;
-
-    if (timer.isActive()) timer.stop();
-    timer.start();
 }
-
-/*void CamBox::pollIcecastRequest()
-{
-    qDebug() << mountName << "polling";
-    reply = qnam.get(request);
-
-    // execute an event loop to process the request (nearly-synchronous)
-    QEventLoop eventLoop;
-    // also dispose the event loop after the reply has arrived
-    connect(&qnam, SIGNAL(finished(QNetworkReply *)), &eventLoop, SLOT(quit()));
-    eventLoop.exec();
-
-    if (reply->readAll().contains(QString("<td><h3>Mount Point /" + mountName + "</h3></td>").toAscii())) {
-        qDebug() << "Online" << mountName;
-        sourceOnline();
-    } else {
-        qDebug() << "Offline:" << mountName;
-        sourceOffline();
-    }
-    updateBackGround();
-}*/
 
 void CamBox::sourceOnline() {
     if (camOnline) return;
-
-    //mediaSource = new Phonon::MediaSource(QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName));
-    //ui->VideoPlayer->play(*mediaSource);
-    mute();
 
     ui->volumeSlider->setValue(0);
     ui->opacitySlider->setValue(0);
@@ -128,16 +93,8 @@ void CamBox::sourceOnline() {
     ui->MonitorPushButton->setEnabled(true);
     ui->GOButton->setEnabled(true);
 
-    // HACK: Set the opacity to 0 multiple time to not get it flicker on the screen
-    QTimer::singleShot(80, this, SLOT(updateKradPort()));
-    QTimer::singleShot(100, this, SLOT(updateKradPort()));
-    QTimer::singleShot(120, this, SLOT(updateKradPort()));
-    QTimer::singleShot(140, this, SLOT(updateKradPort()));
-    QTimer::singleShot(160, this, SLOT(updateKradPort()));
-    QTimer::singleShot(180, this, SLOT(updateKradPort()));
-
     camOnline = true;
-    updateBackGround();
+    updateBackground();
 
     /*
     // Record the stream to disk so it can be re-cut later
@@ -166,7 +123,7 @@ void CamBox::sourceOffline() {
 
     //KradClient::deleteStream(vPort.id);
     camOnline = false;
-    updateBackGround();
+    updateBackground();
 
     ui->volumeSlider->setValue(0);
     ui->opacitySlider->setValue(0);
@@ -176,7 +133,7 @@ void CamBox::sourceOffline() {
     ui->GOButton->setEnabled(false);
 }
 
-void CamBox::updateBackGround() {
+void CamBox::updateBackground() {
     QPalette p = this->palette();
     /*if (camOnline == true) {
         if (vPort.opacity != 0 || vPort.volume != 0) {
@@ -199,35 +156,9 @@ void CamBox::updateBackGround() {
     this->setPalette(p);
 }
 
-void CamBox::mute()
+void CamBox::monitorButtonToggled(bool checked)
 {
-    //ui->VideoPlayer->setVolume(0.0);
-    //qDebug() << "MUTED. Volume now:" << ui->VideoPlayer->volume();
-}
-
-void CamBox::unmute()
-{
-    //ui->VideoPlayer->setVolume(1.0);
-    //qDebug() << "UNMUTED. Volume now:" << ui->VideoPlayer->volume();
-}
-
-void CamBox::MonitorPushButtonToggled(bool checked)
-{
-    if (checked) unmute(); else mute();
-    emit preListenChanged(this, checked);
-}
-
-void CamBox::fadeTimeEvent()
-{
-    if ((fadeStepSize > 0) && ((ui->opacitySlider->value() + fadeStepSize) >= 1000)) {
-        ui->opacitySlider->setValue(1000);
-        fadeTimer->stop();
-    } else if ((fadeStepSize < 0) && ((ui->opacitySlider->value() + fadeStepSize) <= 0)) {
-        ui->opacitySlider->setValue(0);
-        fadeTimer->stop();
-    } else {
-        ui->opacitySlider->setValue(ui->opacitySlider->value() + fadeStepSize);
-    }
+    emit newPreListen(this, checked);
 }
 
 void CamBox::goButtonClicked()

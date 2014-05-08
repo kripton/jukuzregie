@@ -47,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Pipeline = QGst::Pipeline::create();
 
+    // Background image "bin"
     QGst::ElementPtr filesrc = QGst::ElementFactory::make("filesrc");
     filesrc->setProperty("location", "/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
     QGst::ElementPtr pngdec = QGst::ElementFactory::make("pngdec");
@@ -196,12 +197,13 @@ void MainWindow::logoButtonToggled(bool checked)
 
 void MainWindow::fadeInOneFadeOutOther(QObject *fadeInBox)
 {
+    // TIMER!
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*) boxObject;
         if (box == fadeInBox) {
-            box->fadeStart(50, 50);
+
         } else {
-            box->fadeStart(-50, 50);
+
         }
     }
 }
