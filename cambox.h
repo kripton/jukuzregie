@@ -4,9 +4,6 @@
 #include <QGroupBox>
 #include <QUrl>
 #include <QTimer>
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkRequest>
-#include <QtNetwork/QNetworkReply>
 #include <QMutex>
 #include <QWaitCondition>
 #include "mainwindow.h"
@@ -17,27 +14,6 @@ namespace Ui {
 class CamBox;
 }
 
-struct IcecastInfo {
-    bool sourceOnline;
-    QUrl baseUrl;
-};
-
-struct VideoPort {
-    qint16 id;
-    qint16 pos_x;
-    qint16 pos_y;
-    qint16 width;
-    qint16 height;
-    qint16 crop_x;
-    qint16 crop_y;
-    qint16 crop_width;
-    qint16 crop_height;
-    qreal opacity;
-    qreal rotation;
-
-    qreal volume;
-};
-
 class CamBox : public QGroupBox
 {
     Q_OBJECT
@@ -45,7 +21,6 @@ class CamBox : public QGroupBox
 public:
     explicit CamBox(QWidget *parent = 0);
     ~CamBox();
-    IcecastInfo iInfo;
 
     bool getPreListen();
     void setMainWindow(QObject* mainWin);
@@ -59,22 +34,18 @@ signals:
     void onAirInfo(QObject* sender, bool newState);
 
 public slots:
-    void setMountName(QString mountName);
+    void setName(QString name);
     void setVideoOpacity(qreal opacity);
-    void setKradVolume(qreal volume);
+    void setAudioVolume(qreal volume);
     void setPreListen(bool value);
     void fadeStart(qint16 stepSize, qint16 interval);
 
 private slots:
-    void _setVideoOpacity(qreal opacity);
-    void _setKradVolume(qreal volume);
-
-    void opcatiyFaderChanged();
-    void volumeFaderChanged();
-    void pollIcecastRequest();
+//    void opcatiyFaderChanged();
+//    void volumeFaderChanged();
     void sourceOnline();
     void sourceOffline();
-    void updateBackGround();
+    void updateBackGround(); // background of UI groupbox
     void mute();
     void unmute();
     void MonitorPushButtonToggled(bool checked);
@@ -84,21 +55,15 @@ private slots:
 private:
     // General management stuff
     Ui::CamBox *ui;
-    QString mountName;
+
+    QString name;
+    bool camOnline;
+
     QTimer timer;
     QObject* mainWin;
 
     qint16 fadeStepSize;
     QTimer* fadeTimer;
-
-    // KRAD related stuff
-    VideoPort vPort;
-
-    // Icecast related stuff
-    QNetworkAccessManager qnam;
-    QNetworkRequest request;
-    QNetworkReply* reply;
-    QProcess* icecastDumpProc;
 };
 
 #endif // CAMBOX_H

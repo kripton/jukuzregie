@@ -71,13 +71,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
 
-    ui->groupBox->VideoWidget()->setVideoSink(VideoSinkPreview);
-    ui->groupBox_2->VideoWidget()->setVideoSink(VideoSinkPreview);
-    ui->groupBox_3->VideoWidget()->setVideoSink(VideoSinkPreview);
-    ui->groupBox_4->VideoWidget()->setVideoSink(VideoSinkPreview);
-    ui->groupBox_5->VideoWidget()->setVideoSink(VideoSinkPreview);
-    ui->groupBox_6->VideoWidget()->setVideoSink(VideoSinkPreview);
-
     Pipeline->setState(QGst::StatePlaying);
 
     thread->start();
@@ -95,24 +88,11 @@ void MainWindow::startupApplications() {
 }
 
 void MainWindow::start() {
-    QUrl baseUrl = QUrl(
-                QString("http://%1:%2/")
-                .arg(QSettings().value("inbound/host", "127.0.0.1").toString())
-                .arg(QSettings().value("inbound/port", "12000").toString())
-                );
-    qDebug() << "Inbound baseUrl" << baseUrl;
-
     int i = 1;
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*) boxObject;
-        box->iInfo.baseUrl = baseUrl;
-        box->setMountName(QString("cam_%1.%2")
-                          .arg(i, 2).replace(' ', '0')
-                          .arg(QSettings().value("inbound/fileExt", "12000").toString())
-                          );
-        qDebug() << "MountName:" << QString("cam_%1.%2")
-                    .arg(i, 2).replace(' ', '0')
-                    .arg(QSettings().value("inbound/fileExt", "12000").toString());
+
+        box->setName(QString("cam_%1").arg(i, 2).replace(' ', '0'));
         i++;
     }
 }
