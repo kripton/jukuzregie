@@ -58,6 +58,8 @@ MainWindow::MainWindow(QWidget *parent) :
     pngdec->link(videoconvert);
     videoconvert->link(imagefreeze);
     imagefreeze->link(queue, rawvidcaps);
+    QGst::PadPtr sourcePad = queue->getStaticPad("src");
+    backgroundBin->addPad(QGst::GhostPad::create(sourcePad, "videoSource"));
 
     VideoMixer = QGst::ElementFactory::make("videomixer");
     VideoMixerTee = QGst::ElementFactory::make("tee");
@@ -66,10 +68,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, VideoSinkPreview);
 
-    qDebug() << backgroundBin->getStaticPad("src")->link(VideoMixer->getRequestPad("sink_%u"));
+    backgroundBin->getStaticPad("videoSource")->link(VideoMixer->getRequestPad("sink_%u"));
 
-    qDebug() << VideoMixer->link(VideoMixerTee);
-    qDebug() << VideoMixerTee->link(VideoSinkPreview);
+    VideoMixer->link(VideoMixerTee);
+    VideoMixerTee->link(VideoSinkPreview);
 
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
 

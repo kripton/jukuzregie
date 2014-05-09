@@ -14,6 +14,7 @@
 #include <QGst/Element>
 #include <QGst/ElementFactory>
 #include <QGst/Pad>
+#include <QGst/GhostPad>
 #include <QGst/Bin>
 #include <QGst/Pipeline>
 #include <QGst/Ui/VideoWidget>
