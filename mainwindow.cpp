@@ -7,10 +7,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    logoSpriteId = -1;
-    textBgSpriteId = -1;
-    textSpriteId = -1;
-
     allCamBoxes << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4 << ui->groupBox_5 << ui->groupBox_6;
 
     foreach (QObject* boxObject, allCamBoxes) {
@@ -74,12 +70,64 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Pipeline->setState(QGst::StatePlaying);
 
+    notifySocket = new QUdpSocket(this);
+    notifySocket->bind(12007);
+    connect(notifySocket, SIGNAL(readyRead()), this, SLOT(newNotifyDatagram()));
+
+    QTimer* notificationTimer = new QTimer(this);
+    notificationTimer->setInterval(1000);
+    connect(notificationTimer, SIGNAL(timeout()), this, SLOT(broadcastSourceInfo()));
+    notificationTimer->start();
+
     thread->start();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void processTheDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort)
+{
+    Q_UNUSED(senderHost);
+    Q_UNUSED(senderPort);
+    QDataStream* stream = new QDataStream(datagram);
+    QHash<QString, QString>* hash = new QHash<QString, QString>();
+    (*stream) >> (*hash);
+
+    foreach (QString key, hash->keys())
+    {
+        qDebug() << key << hash->value(key);
+    }
+}
+
+void MainWindow::newNotifyDatagram()
+{
+    while (notifySocket->hasPendingDatagrams()) {
+        QByteArray datagram;
+        datagram.resize(notifySocket->pendingDatagramSize());
+        QHostAddress senderHost;
+        quint16 senderPort;
+
+        notifySocket->readDatagram(datagram.data(), datagram.size(), &senderHost, &senderPort);
+
+        qDebug() << "FROM" << senderHost << senderPort << datagram;
+        processTheDatagram(datagram, senderHost, senderPort);
+    }
+}
+
+void MainWindow::broadcastSourceInfo()
+{
+    QHash<QString, QHash<QString, QString> >* sources = new QHash<QString, QHash<QString, QString> >();
+    foreach (QObject* boxobj, allCamBoxes)
+    {
+        CamBox* box = (CamBox*) boxobj;
+        sources->insert(box->name, box->sourceInfo());
+    }
+    QByteArray* array = new QByteArray();
+    QDataStream* stream = new QDataStream(array, QIODevice::WriteOnly);
+    (*stream) << *sources;
+    notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
 }
 
 void MainWindow::startupApplications() {
@@ -93,7 +141,7 @@ void MainWindow::start() {
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*) boxObject;
 
-        box->setName(QString("cam_%1").arg(i, 2).replace(' ', '0'));
+        box->name = QString("cam_%1").arg(i, 2).replace(' ', '0');
         i++;
     }
 }

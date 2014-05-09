@@ -23,9 +23,12 @@ public:
     explicit CamBox(QWidget *parent = 0);
     ~CamBox();
 
+    QString name;
+
     bool getPreListen();
     void setMainWindow(QObject* mainWin);
     bool isSourceOnline();
+    QHash<QString, QString> sourceInfo();
 
     QGst::Ui::VideoWidget* VideoWidget();
 
@@ -37,7 +40,6 @@ signals:
     void newVolume(QObject* sender, qreal newVolume);
 
 public slots:
-    void setName(QString name);
     void setVideoOpacity(qreal opacity);
     void setVolume(qreal volume);
     void setPreListen(bool value);
@@ -55,7 +57,6 @@ private:
     // General management stuff
     Ui::CamBox *ui;
 
-    QString name;
     bool camOnline;
 
     QObject* mainWin;
@@ -63,7 +64,7 @@ private:
     qreal opacity;
     qreal volume;
 
-    QGst::Bin bin;
+    QGst::BinPtr bin;
 };
 
 #endif // CAMBOX_H

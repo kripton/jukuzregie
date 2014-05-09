@@ -46,6 +46,15 @@ bool CamBox::isSourceOnline() {
     return camOnline;
 }
 
+QHash<QString, QString> CamBox::sourceInfo()
+{
+    QHash<QString, QString> info;
+
+    info["online"] = QString("%1").arg(camOnline);
+
+    return info;
+}
+
 void CamBox::opcatiyFaderChanged()
 {
     if (opacity == ui->opacitySlider->value() / 1000.0) return;
@@ -76,11 +85,6 @@ void CamBox::setVolume(qreal volume) {
 void CamBox::setPreListen(bool value)
 {
     ui->MonitorPushButton->setChecked(value);
-}
-
-void CamBox::setName(QString name)
-{
-    this->name = name;
 }
 
 void CamBox::sourceOnline() {

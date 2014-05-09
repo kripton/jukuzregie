@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QProcess>
 #include <QDir>
+#include <QUdpSocket>
 #include "cambox.h"
 #include <jackthread.h>
 
@@ -46,15 +47,17 @@ private slots:
     void preListenChangedHandler(QObject* sender, bool newState);
     void onAirInfoHandler(QObject* sender, bool newState);
 
+    void newNotifyDatagram();
+
+    void broadcastSourceInfo();
+
 private:
     Ui::MainWindow *ui;
     QProcess* process;
     QStringList arguments;
     QList<QObject*> allCamBoxes;
 
-    qint16 logoSpriteId;
-    qint16 textBgSpriteId;
-    qint16 textSpriteId;
+    QUdpSocket* notifySocket;
 
     QGst::CapsPtr rawvidcaps;
     QGst::PipelinePtr Pipeline;
