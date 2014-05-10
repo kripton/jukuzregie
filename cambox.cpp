@@ -87,6 +87,26 @@ void CamBox::setPreListen(bool value)
     ui->MonitorPushButton->setChecked(value);
 }
 
+QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
+{
+    qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port);
+    QGst::BinPtr bin = QGst::Bin::create();
+    QGst::ElementPtr videotestsrc = QGst::ElementFactory::make("videotestsrc");
+    QGst::ElementPtr videotee = QGst::ElementFactory::make("tee");
+    QGst::ElementPtr videoqueue = QGst::ElementFactory::make("queue");
+    //QGst::ElementPtr videosinkqueue = QGst::ElementFactory::make("queue");
+    //QGst::ElementPtr videosink = QGst::ElementFactory::make("qtvideosink");
+    bin->add(videotestsrc, videotee, videoqueue);
+    videotestsrc->link(videotee, videocaps);
+    videotee->getRequestPad("src_%u")->link(videoqueue->getStaticPad("sink"));
+    //videotee->getRequestPad("src_%u")->link(videosinkqueue->getStaticPad("sink"));
+    //videosinkqueue->link(videosink);
+    //VideoWidget()->setVideoSink(videosink);
+    QGst::PadPtr videoPad = videoqueue->getStaticPad("src");
+    bin->addPad(QGst::GhostPad::create(videoPad, "video"));
+    return bin;
+}
+
 void CamBox::sourceOnline() {
     if (camOnline) return;
 

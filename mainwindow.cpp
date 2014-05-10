@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
     connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
 
-    rawvidcaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
+    rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
 
     Pipeline = QGst::Pipeline::create();
 
@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     filesrc->link(pngdec);
     pngdec->link(videoconvert);
     videoconvert->link(imagefreeze);
-    imagefreeze->link(queue, rawvidcaps);
+    imagefreeze->link(queue, rawvideocaps);
     QGst::PadPtr sourcePad = queue->getStaticPad("src");
     backgroundBin->addPad(QGst::GhostPad::create(sourcePad, "videoSource"));
 
@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QTimer* notificationTimer = new QTimer(this);
     notificationTimer->setInterval(1000);
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(broadcastSourceInfo()));
-    notificationTimer->start();
+    //notificationTimer->start();
 
     thread->start();
 }
@@ -94,13 +94,25 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void processTheDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort)
+void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort)
 {
-    Q_UNUSED(senderHost);
-    Q_UNUSED(senderPort);
     QDataStream* stream = new QDataStream(datagram);
     QHash<QString, QString>* hash = new QHash<QString, QString>();
     (*stream) >> (*hash);
+
+    if (hash->value("magic") != "JuKuZSourceCamConnect") return;
+
+    foreach (QObject* boxobj, allCamBoxes)
+    {
+        CamBox* box = (CamBox*) boxobj;
+        if ((box->name == hash->value("name")) && !box->isSourceOnline())
+        {
+            QGst::BinPtr bin = box->startCam(senderHost, senderPort + 1, rawvideocaps, rawaudiocaps);
+            Pipeline->add(bin);
+            bin->getStaticPad("video")->link(VideoMixer->getRequestPad("sink_%u"));
+            bin->syncStateWithParent();
+        }
+    }
 
     foreach (QString key, hash->keys())
     {
@@ -119,7 +131,7 @@ void MainWindow::newNotifyDatagram()
         notifySocket->readDatagram(datagram.data(), datagram.size(), &senderHost, &senderPort);
 
         qDebug() << "FROM" << senderHost << senderPort << datagram;
-        processTheDatagram(datagram, senderHost, senderPort);
+        processNotifyDatagram(datagram, senderHost, senderPort);
     }
 }
 

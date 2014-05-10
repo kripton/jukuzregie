@@ -60,13 +60,15 @@ private:
 
     QUdpSocket* notifySocket;
 
-    QGst::CapsPtr rawvidcaps;
+    QGst::CapsPtr rawvideocaps;
+    QGst::CapsPtr rawaudiocaps;
     QGst::PipelinePtr Pipeline;
     QGst::ElementPtr VideoSinkPreview;
     QGst::ElementPtr VideoMixer;
     QGst::ElementPtr VideoMixerTee;
 
     void startupApplications();
+    void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
 };
 
 #endif // MAINWINDOW_H

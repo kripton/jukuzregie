@@ -43,6 +43,7 @@ public slots:
     void setVideoOpacity(qreal opacity);
     void setVolume(qreal volume);
     void setPreListen(bool value);
+    QGst::BinPtr startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps);
 
 private slots:
     void opcatiyFaderChanged();
