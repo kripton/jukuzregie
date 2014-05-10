@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*)boxObject;
         box->setMainWindow(this);
+        connect(box, SIGNAL(newOpacity(QObject*,qreal)), this, SLOT(cb_newOpacity(QObject*, qreal)));
         connect(box, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
         connect(box, SIGNAL(preListenChanged(QObject*,bool)), this, SLOT(preListenChangedHandler(QObject*,bool)));
         connect(box, SIGNAL(onAirInfo(QObject*,bool)), this, SLOT(onAirInfoHandler(QObject*,bool)));
@@ -109,7 +110,9 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
         {
             QGst::BinPtr bin = box->startCam(senderHost, senderPort + 1, rawvideocaps, rawaudiocaps);
             Pipeline->add(bin);
-            bin->getStaticPad("video")->link(VideoMixer->getRequestPad("sink_%u"));
+            QGst::PadPtr sinkPad = VideoMixer->getRequestPad("sink_%u");
+            boxMixerPads.insert(boxobj, sinkPad);
+            bin->getStaticPad("video")->link(sinkPad);
             bin->syncStateWithParent();
         }
     }
@@ -147,6 +150,12 @@ void MainWindow::broadcastSourceInfo()
     QDataStream* stream = new QDataStream(array, QIODevice::WriteOnly);
     (*stream) << *sources;
     notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
+}
+
+void MainWindow::cb_newOpacity(QObject *sender, qreal newValue)
+{
+    qDebug() << "NewOpacity" << newValue << "from" << sender << boxMixerPads[sender]->name();
+    boxMixerPads[sender]->setProperty("alpha", newValue);
 }
 
 void MainWindow::startupApplications() {

@@ -93,17 +93,22 @@ QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr vid
     QGst::BinPtr bin = QGst::Bin::create();
     QGst::ElementPtr videotestsrc = QGst::ElementFactory::make("videotestsrc");
     QGst::ElementPtr videotee = QGst::ElementFactory::make("tee");
-    QGst::ElementPtr videoqueue = QGst::ElementFactory::make("queue");
-    //QGst::ElementPtr videosinkqueue = QGst::ElementFactory::make("queue");
-    //QGst::ElementPtr videosink = QGst::ElementFactory::make("qtvideosink");
-    bin->add(videotestsrc, videotee, videoqueue);
+    QGst::ElementPtr videooutqueue = QGst::ElementFactory::make("queue");
+    QGst::ElementPtr videopreviewqueue = QGst::ElementFactory::make("queue");
+    QGst::ElementPtr videosink = QGst::ElementFactory::make("xvimagesink");
+    bin->add(videotestsrc, videotee, videooutqueue, videopreviewqueue, videosink);
     videotestsrc->link(videotee, videocaps);
-    videotee->getRequestPad("src_%u")->link(videoqueue->getStaticPad("sink"));
-    //videotee->getRequestPad("src_%u")->link(videosinkqueue->getStaticPad("sink"));
-    //videosinkqueue->link(videosink);
-    //VideoWidget()->setVideoSink(videosink);
-    QGst::PadPtr videoPad = videoqueue->getStaticPad("src");
+    videotee->getRequestPad("src_%u")->link(videooutqueue->getStaticPad("sink"));
+    videotee->getRequestPad("src_%u")->link(videopreviewqueue->getStaticPad("sink"));
+
+    videopreviewqueue->link(videosink);
+    VideoWidget()->setVideoSink(videosink);
+
+    QGst::PadPtr videoPad = videooutqueue->getStaticPad("src");
     bin->addPad(QGst::GhostPad::create(videoPad, "video"));
+
+    sourceOnline();
+
     return bin;
 }
 

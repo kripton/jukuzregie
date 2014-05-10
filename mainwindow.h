@@ -52,11 +52,14 @@ private slots:
 
     void broadcastSourceInfo();
 
+    void cb_newOpacity(QObject* sender, qreal newValue);
+
 private:
     Ui::MainWindow *ui;
     QProcess* process;
     QStringList arguments;
     QList<QObject*> allCamBoxes;
+    QHash<QObject*, QGst::PadPtr> boxMixerPads;
 
     QUdpSocket* notifySocket;
 
