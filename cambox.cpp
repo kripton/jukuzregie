@@ -52,24 +52,55 @@ QHash<QString, QString> CamBox::sourceInfo()
 
 void CamBox::opcatiyFaderChanged()
 {
-    if (opacity == ui->opacitySlider->value() / 1000.0) return;
+    if (ui->volSync->isChecked())
+    {
+        setVolume(ui->opacitySlider->value() / 1000.0);
+        volumeFaderChanged();
+    }
     emit newOpacity(ui->opacitySlider->value() / 1000.0);
 }
 
 void CamBox::volumeFaderChanged()
 {
-    if (volume == ui->volumeSlider->value() / 10.0) return;
     emit newVolume(ui->volumeSlider->value() / 10.0);
 }
 
-void CamBox::setVideoOpacity(qreal opacity) {
-    ui->opacitySlider->setValue(opacity*1000);
-    // Does it emit a SIGNAL then? Should it?
+void CamBox::setVideoOpacity(qreal opacity, bool diff) {
+    qreal newValue;
+
+    if (diff)
+    {
+        qreal currentValue = ui->opacitySlider->value() / 1000.0;
+        newValue = currentValue + opacity;
+    }
+    else
+    {
+        newValue = opacity;
+    }
+    if (newValue > 1.0) newValue = 1.0;
+    if (newValue < 0.0) newValue = 0.0;
+    ui->opacitySlider->setValue(newValue * 1000);
+
+    opcatiyFaderChanged();
 }
 
-void CamBox::setVolume(qreal volume) {
-    ui->volumeSlider->setValue(volume*10);
-    // Does it emit a SIGNAL then? Should it?
+void CamBox::setVolume(qreal volume, bool diff) {
+    qreal newValue;
+
+    if (diff)
+    {
+        qreal currentValue = ui->volumeSlider->value() / 1000.0;
+        newValue = currentValue + volume;
+    }
+    else
+    {
+        newValue = volume;
+    }
+    if (newValue > 1.0) newValue = 1.0;
+    if (newValue < 0.0) newValue = 0.0;
+    ui->volumeSlider->setValue(newValue * 1000);
+
+    volumeFaderChanged();
 }
 
 void CamBox::setPreListen(bool value)

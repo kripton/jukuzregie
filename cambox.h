@@ -35,8 +35,8 @@ signals:
     void newVolume(qreal newVolume);        // emitted for parent when the volume changed
 
 public slots:
-    void setVideoOpacity(qreal opacity);    // set the opacity slider to a new value
-    void setVolume(qreal volume);           // set the volume fader to a new value
+    void setVideoOpacity(qreal opacity, bool diff = false);    // set the opacity slider to a new value or modifiy the current one
+    void setVolume(qreal volume, bool diff = false);           // set the volume fader to a new value or modifiy the current one
     void setPreListen(bool value);          // write-only public access to state of Pre-Listen button
     QGst::BinPtr startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps); // start playing from a source
 
@@ -54,9 +54,6 @@ private:
     Ui::CamBox *ui;
 
     bool camOnline;
-
-    qreal opacity;
-    qreal volume;
 
     QGst::BinPtr bin;
 };

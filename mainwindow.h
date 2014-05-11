@@ -47,7 +47,7 @@ private slots:
 
     // Events by CamBoxes
     void fadeMeInHandler();
-    void newPreListenChangedHandler(QObject* sender, bool newState);
+    void newPreListenChangedHandler(bool newState);
     void newOpacityHandler(qreal newValue);
     void newVolumeHandler(qreal newValue);
 

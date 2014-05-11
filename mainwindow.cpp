@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
 
     rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
+    rawaudiocaps = QGst::Caps::fromString("audio/x-raw,rate=48000,channels=2");
 
     Pipeline = QGst::Pipeline::create();
 
@@ -61,13 +62,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QGst::PadPtr sourcePad = queue->getStaticPad("src");
     backgroundBin->addPad(QGst::GhostPad::create(sourcePad, "videoSource"));
 
+    // Video Mixer + Preview
     VideoMixer = QGst::ElementFactory::make("videomixer");
     VideoMixerTee = QGst::ElementFactory::make("tee");
 
     VideoSinkPreview = QGst::ElementFactory::make("qtvideosink");
 
+    // Add it all to the Pipeline now
     Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, VideoSinkPreview);
 
+    // Link it all together
     backgroundBin->getStaticPad("videoSource")->link(VideoMixer->getRequestPad("sink_%u"));
 
     VideoMixer->link(VideoMixerTee);
@@ -75,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
 
+    // ... and start the Pipeline
     Pipeline->setState(QGst::StatePlaying);
 
     notifySocket = new QUdpSocket(this);
@@ -84,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QTimer* notificationTimer = new QTimer(this);
     notificationTimer->setInterval(1000);
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(broadcastSourceInfo()));
-    //notificationTimer->start();
+    notificationTimer->start();
 
     thread->start();
 }
@@ -154,7 +159,6 @@ void MainWindow::broadcastSourceInfo()
 
 void MainWindow::newOpacityHandler(qreal newValue)
 {
-    //qDebug() << "NewOpacity" << newValue << "from" << sender << boxMixerPads[sender]->name();
     boxMixerPads[QObject::sender()]->setProperty("alpha", newValue);
 }
 
@@ -278,22 +282,15 @@ void MainWindow::logoButtonToggled(bool checked)
 
 void MainWindow::fadeMeInHandler()
 {
+    // Do 25 steps in one second => timer interval
     // TIMER!
     foreach (QObject* boxObject, allCamBoxes) {
     }
 }
 
-void MainWindow::newPreListenChangedHandler(QObject *sender, bool newState)
+void MainWindow::newPreListenChangedHandler(bool newState)
 {
-    int i = 0;
-    foreach (QObject* boxObject, allCamBoxes) {
-        CamBox* box = (CamBox*) boxObject;
-        if (box == sender) {
-            break;
-        }
-        i++;
-    }
-    worker->set_led(i + 0x20, newState ? 0x7f : 0x00);
+    //worker->set_led(i + 0x20, newState ? 0x7f : 0x00);
 }
 
 
