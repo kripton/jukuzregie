@@ -44,15 +44,16 @@ private slots:
     void transmitButtonToggled(bool checked);
     void textButtonToggled(bool checked);
     void logoButtonToggled(bool checked);
-    void fadeInOneFadeOutOther(QObject* fadeInBox);
-    void preListenChangedHandler(QObject* sender, bool newState);
-    void onAirInfoHandler(QObject* sender, bool newState);
+
+    // Events by CamBoxes
+    void fadeMeInHandler();
+    void newPreListenChangedHandler(QObject* sender, bool newState);
+    void newOpacityHandler(qreal newValue);
+    void newVolumeHandler(qreal newValue);
 
     void newNotifyDatagram();
 
     void broadcastSourceInfo();
-
-    void cb_newOpacity(QObject* sender, qreal newValue);
 
 private:
     Ui::MainWindow *ui;
@@ -72,6 +73,7 @@ private:
 
     void startupApplications();
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
+    void setOnAirLED(QObject *boxObject, bool newState);
 };
 
 #endif // MAINWINDOW_H

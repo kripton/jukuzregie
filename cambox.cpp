@@ -12,7 +12,7 @@ CamBox::CamBox(QWidget *parent):
 
     connect(ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opcatiyFaderChanged()));
     connect(ui->volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeFaderChanged()));
-    connect(ui->MonitorPushButton, SIGNAL(toggled(bool)), this, SLOT(monitorButtonToggled(bool)));
+    connect(ui->MonitorPushButton, SIGNAL(toggled(bool)), this, SLOT(preListenButtonToggled(bool)));
     connect(ui->GOButton, SIGNAL(clicked()), this, SLOT(goButtonClicked()));
 
     this->setAlignment(Qt::AlignHCenter);
@@ -37,12 +37,7 @@ bool CamBox::getPreListen()
     return ui->MonitorPushButton->isChecked();
 }
 
-void CamBox::setMainWindow(QObject *mainWin)
-{
-    this->mainWin = mainWin;
-}
-
-bool CamBox::isSourceOnline() {
+bool CamBox::getCamOnline() {
     return camOnline;
 }
 
@@ -58,18 +53,13 @@ QHash<QString, QString> CamBox::sourceInfo()
 void CamBox::opcatiyFaderChanged()
 {
     if (opacity == ui->opacitySlider->value() / 1000.0) return;
-    emit newOpacity(this, ui->opacitySlider->value() / 1000.0);
+    emit newOpacity(ui->opacitySlider->value() / 1000.0);
 }
 
 void CamBox::volumeFaderChanged()
 {
     if (volume == ui->volumeSlider->value() / 10.0) return;
-    emit newVolume(this, ui->volumeSlider->value() / 10.0);
-}
-
-QGst::Ui::VideoWidget *CamBox::VideoWidget()
-{
-    return ui->VideoWidget;
+    emit newVolume(ui->volumeSlider->value() / 10.0);
 }
 
 void CamBox::setVideoOpacity(qreal opacity) {
@@ -91,18 +81,22 @@ QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr vid
 {
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port);
     QGst::BinPtr bin = QGst::Bin::create();
+    QString fileName = QString("/home/kripton/streaming/camvids/%1.ogg").arg(name);
+
     QGst::ElementPtr videotestsrc = QGst::ElementFactory::make("videotestsrc");
+    QGst::ElementPtr videoscale = QGst::ElementFactory::make("videoscale");
     QGst::ElementPtr videotee = QGst::ElementFactory::make("tee");
     QGst::ElementPtr videooutqueue = QGst::ElementFactory::make("queue");
     QGst::ElementPtr videopreviewqueue = QGst::ElementFactory::make("queue");
     QGst::ElementPtr videosink = QGst::ElementFactory::make("xvimagesink");
-    bin->add(videotestsrc, videotee, videooutqueue, videopreviewqueue, videosink);
-    videotestsrc->link(videotee, videocaps);
+    bin->add(videotestsrc, videoscale, videotee, videooutqueue, videopreviewqueue, videosink);
+    videotestsrc->link(videoscale, videocaps);
+    videoscale->link(videotee, videocaps);
     videotee->getRequestPad("src_%u")->link(videooutqueue->getStaticPad("sink"));
     videotee->getRequestPad("src_%u")->link(videopreviewqueue->getStaticPad("sink"));
 
     videopreviewqueue->link(videosink);
-    VideoWidget()->setVideoSink(videosink);
+    ui->VideoWidget->setVideoSink(videosink);
 
     QGst::PadPtr videoPad = videooutqueue->getStaticPad("src");
     bin->addPad(QGst::GhostPad::create(videoPad, "video"));
@@ -185,12 +179,12 @@ void CamBox::updateBackground() {
     this->setPalette(p);
 }
 
-void CamBox::monitorButtonToggled(bool checked)
+void CamBox::preListenButtonToggled(bool checked)
 {
-    emit newPreListen(this, checked);
+    emit newPreListen(checked);
 }
 
 void CamBox::goButtonClicked()
 {
-    emit fadeMeIn(this);
+    emit fadeMeIn();
 }

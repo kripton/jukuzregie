@@ -11,11 +11,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*)boxObject;
-        box->setMainWindow(this);
-        connect(box, SIGNAL(newOpacity(QObject*,qreal)), this, SLOT(cb_newOpacity(QObject*, qreal)));
-        connect(box, SIGNAL(fadeMeIn(QObject*)), this, SLOT(fadeInOneFadeOutOther(QObject*)));
-        connect(box, SIGNAL(preListenChanged(QObject*,bool)), this, SLOT(preListenChangedHandler(QObject*,bool)));
-        connect(box, SIGNAL(onAirInfo(QObject*,bool)), this, SLOT(onAirInfoHandler(QObject*,bool)));
+        connect(box, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandler()));
+        connect(box, SIGNAL(newPreListen(bool)), this, SLOT(newPreListenChangedHandler(bool)));
+        connect(box, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandler(qreal)));
+        connect(box, SIGNAL(newVolume(qreal)), this, SLOT(newVolumeHandler(qreal)));
     }
     startUp = QDateTime::currentDateTime();
     QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
@@ -106,13 +105,14 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
     foreach (QObject* boxobj, allCamBoxes)
     {
         CamBox* box = (CamBox*) boxobj;
-        if ((box->name == hash->value("name")) && !box->isSourceOnline())
+        if ((box->name == hash->value("name")) && !box->getCamOnline())
         {
             QGst::BinPtr bin = box->startCam(senderHost, senderPort + 1, rawvideocaps, rawaudiocaps);
             Pipeline->add(bin);
             QGst::PadPtr sinkPad = VideoMixer->getRequestPad("sink_%u");
             boxMixerPads.insert(boxobj, sinkPad);
             bin->getStaticPad("video")->link(sinkPad);
+            sinkPad->setProperty("alpha", 0);
             bin->syncStateWithParent();
         }
     }
@@ -152,10 +152,15 @@ void MainWindow::broadcastSourceInfo()
     notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
 }
 
-void MainWindow::cb_newOpacity(QObject *sender, qreal newValue)
+void MainWindow::newOpacityHandler(qreal newValue)
 {
-    qDebug() << "NewOpacity" << newValue << "from" << sender << boxMixerPads[sender]->name();
-    boxMixerPads[sender]->setProperty("alpha", newValue);
+    //qDebug() << "NewOpacity" << newValue << "from" << sender << boxMixerPads[sender]->name();
+    boxMixerPads[QObject::sender()]->setProperty("alpha", newValue);
+}
+
+void MainWindow::newVolumeHandler(qreal newValue)
+{
+
 }
 
 void MainWindow::startupApplications() {
@@ -196,7 +201,7 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
     if (box == NULL) return; // Button/Slider/Knob channel number is too high
 
-    if (!box->isSourceOnline()) return; // Source not online -> do nothing
+    if (!box->getCamOnline()) return; // Source not online -> do nothing
 
     // Determine action by 1st nibble
     switch (c1 & 0xf0) {
@@ -217,7 +222,7 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
       case 0x40: // Rec = fade in this source, fade out all others
         if (c2 == 0) return; // no reaction on button up
-        fadeInOneFadeOutOther(box);
+        //fadeMeInHandler(box); TODO
         return;
 
     }
@@ -271,20 +276,14 @@ void MainWindow::logoButtonToggled(bool checked)
     }
 }
 
-void MainWindow::fadeInOneFadeOutOther(QObject *fadeInBox)
+void MainWindow::fadeMeInHandler()
 {
     // TIMER!
     foreach (QObject* boxObject, allCamBoxes) {
-        CamBox* box = (CamBox*) boxObject;
-        if (box == fadeInBox) {
-
-        } else {
-
-        }
     }
 }
 
-void MainWindow::preListenChangedHandler(QObject *sender, bool newState)
+void MainWindow::newPreListenChangedHandler(QObject *sender, bool newState)
 {
     int i = 0;
     foreach (QObject* boxObject, allCamBoxes) {
@@ -297,15 +296,11 @@ void MainWindow::preListenChangedHandler(QObject *sender, bool newState)
     worker->set_led(i + 0x20, newState ? 0x7f : 0x00);
 }
 
-void MainWindow::onAirInfoHandler(QObject *sender, bool newState)
+
+void MainWindow::setOnAirLED(QObject *boxObject, bool newState)
 {
-    int i = 0;
-    foreach (QObject* boxObject, allCamBoxes) {
-        CamBox* box = (CamBox*) boxObject;
-        if (box == sender) {
-            break;
-        }
-        i++;
-    }
-    worker->set_led(i + 0x40, newState ? 0x7f : 0x00);
+    CamBox* box = (CamBox*) boxObject;
+    uchar num = box->name.split("_")[1].toUInt() - 1;
+
+    worker->set_led(num, newState ? 0x7f : 0x00);
 }
