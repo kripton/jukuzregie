@@ -44,23 +44,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Pipeline = QGst::Pipeline::create();
 
-    // Background image "bin"
-    QGst::ElementPtr filesrc = QGst::ElementFactory::make("filesrc");
-    filesrc->setProperty("location", "/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
-    QGst::ElementPtr pngdec = QGst::ElementFactory::make("pngdec");
-    QGst::ElementPtr videoconvert = QGst::ElementFactory::make("videoconvert");
-    QGst::ElementPtr imagefreeze = QGst::ElementFactory::make("imagefreeze");
-    QGst::ElementPtr queue = QGst::ElementFactory::make("queue");
+    // Background image bin
+    QString backgroundSprite = "/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png";
+    QString desc = QString("filesrc location=\"%1\" ! pngdec ! videoconvert ! imagefreeze ! %2 ! queue name=voutqueue").arg(backgroundSprite).arg(rawvideocaps->toString());
+    QGst::BinPtr backgroundBin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
 
-    QGst::BinPtr backgroundBin = QGst::Bin::create();
-    backgroundBin->add(filesrc, pngdec, videoconvert, imagefreeze, queue);
-
-    filesrc->link(pngdec);
-    pngdec->link(videoconvert);
-    videoconvert->link(imagefreeze);
-    imagefreeze->link(queue, rawvideocaps);
-    QGst::PadPtr sourcePad = queue->getStaticPad("src");
-    backgroundBin->addPad(QGst::GhostPad::create(sourcePad, "videoSource"));
+    QGst::PadPtr videoPad = backgroundBin->getElementByName("voutqueue")->getStaticPad("src");
+    backgroundBin->addPad(QGst::GhostPad::create(videoPad, "video"));
 
     // Video Mixer + Preview
     VideoMixer = QGst::ElementFactory::make("videomixer");
@@ -72,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, VideoSinkPreview);
 
     // Link it all together
-    backgroundBin->getStaticPad("videoSource")->link(VideoMixer->getRequestPad("sink_%u"));
+    backgroundBin->getStaticPad("video")->link(VideoMixer->getRequestPad("sink_%u"));
 
     VideoMixer->link(VideoMixerTee);
     VideoMixerTee->link(VideoSinkPreview);
@@ -159,6 +149,7 @@ void MainWindow::broadcastSourceInfo()
 
 void MainWindow::newOpacityHandler(qreal newValue)
 {
+    qDebug() << "New opacity from" << QObject::sender() << newValue;
     boxMixerPads[QObject::sender()]->setProperty("alpha", newValue);
 }
 

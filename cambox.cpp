@@ -113,13 +113,13 @@ QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr vid
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << name;
     QString fileName = QString("/home/kripton/streaming/camvids/%1.ogg").arg(name);
 
-    QString desc = QString("filesrc location=%2 ! decodebin ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink t. ! queue name=outqueue").arg(videocaps->toString()).arg(fileName);
+    QString desc = QString("filesrc location=%2 ! decodebin ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink t. ! queue name=voutqueue").arg(videocaps->toString()).arg(fileName);
     qDebug() << desc;
     QGst::BinPtr bin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
 
     ui->VideoWidget->setVideoSink(bin->getElementByName("previewsink"));
 
-    QGst::PadPtr videoPad = bin->getElementByName("outqueue")->getStaticPad("src");
+    QGst::PadPtr videoPad = bin->getElementByName("voutqueue")->getStaticPad("src");
     bin->addPad(QGst::GhostPad::create(videoPad, "video"));
 
     sourceOnline();
