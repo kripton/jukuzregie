@@ -153,6 +153,7 @@ void MainWindow::broadcastSourceInfo()
 void MainWindow::newOpacityHandler(qreal newValue)
 {
     qDebug() << "New opacity from" << QObject::sender() << newValue;
+    if (!boxMixerPads.contains(QObject::sender())) return;
     boxMixerPads[QObject::sender()]->setProperty("alpha", newValue);
 }
 
@@ -297,9 +298,16 @@ void MainWindow::logoButtonToggled(bool checked)
 void MainWindow::fadeMeInHandler()
 {
     // Do 25 steps in one second => timer interval = 0.04s = 40ms
-    // TIMER!
     foreach (QObject* boxObject, allCamBoxes) {
-        Q_UNUSED(boxObject); // TODO
+        CamBox* box = (CamBox*)boxObject;
+        if (boxObject == QObject::sender())
+        {
+            box->fadeStart(0.04, 40);
+        }
+        else
+        {
+            box->fadeStart(-0.04, 40);
+        }
     }
 }
 

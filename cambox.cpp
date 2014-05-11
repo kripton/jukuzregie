@@ -24,6 +24,9 @@ CamBox::CamBox(QWidget *parent):
     ui->MonitorPushButton->setEnabled(false);
     ui->GOButton->setEnabled(false);
 
+    fadeTimer = new QTimer(this);
+    connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
+
     // This is a bit awkward. Somehow, the title gets changed back
     // if we just call the SLOT here. So, use a single-shot timer
     QTimer::singleShot(200, this, SLOT(updateBackground()));
@@ -70,6 +73,7 @@ void CamBox::volumeFaderChanged()
 }
 
 void CamBox::setVideoOpacity(qreal opacity, bool diff) {
+    qDebug() << "setVideoOpacity" << opacity << diff;
     qreal newValue;
 
     if (diff)
@@ -105,6 +109,32 @@ void CamBox::setVolume(qreal volume, bool diff) {
     ui->volumeSlider->setValue(newValue * 1000);
 
     volumeFaderChanged();
+}
+
+void CamBox::fadeStart(qreal stepSize, qint16 interval)
+{
+    qDebug() << "fadeStart" << stepSize << interval;
+    if (stepSize == 0) {
+        fadeTimer->stop();
+        return;
+    }
+    if (fadeTimer->isActive()) fadeTimer->stop();
+    fadeStepSize = stepSize;
+    fadeTimer->start(interval);
+}
+
+void CamBox::fadeTimeEvent()
+{
+    qDebug() << "fadeTimeEvent" << ui->opacitySlider->value();
+    if ((fadeStepSize > 0) && ((ui->opacitySlider->value() / 1000.0 + fadeStepSize) >= 1.0)) {
+        setVideoOpacity(1.0);
+        fadeTimer->stop();
+    } else if ((fadeStepSize < 0) && ((ui->opacitySlider->value() / 1000.0  + fadeStepSize) <= 0.0)) {
+        setVideoOpacity(0.0);
+        fadeTimer->stop();
+    } else {
+        setVideoOpacity(fadeStepSize, true);
+    }
 }
 
 void CamBox::setPreListen(bool value)

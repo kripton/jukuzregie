@@ -39,6 +39,7 @@ public slots:
     void setVolume(qreal volume, bool diff = false);           // set the volume fader to a new value or modifiy the current one
     void setPreListen(bool value);          // write-only public access to state of Pre-Listen button
     QGst::BinPtr startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps); // start playing from a source
+    void fadeStart(qreal stepSize, qint16 interval);
 
 private slots:
     void opcatiyFaderChanged();             // called when the opacity-fader got changed
@@ -48,11 +49,15 @@ private slots:
     void updateBackground();                // Update the background color and title of this cambox
     void preListenButtonToggled(bool checked);// Internal slot to handle Pre-Listen button state changes
     void goButtonClicked();                 // Internal slot to handle GO-Button clicks
+    void fadeTimeEvent();
 
 private:
     Ui::CamBox *ui;
     bool camOnline;
     QGst::BinPtr bin;
+
+    qreal fadeStepSize;
+    QTimer* fadeTimer;
 };
 
 #endif // CAMBOX_H
