@@ -110,26 +110,16 @@ void CamBox::setPreListen(bool value)
 
 QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
 {
-    qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port);
-    QGst::BinPtr bin = QGst::Bin::create();
+    qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << name;
     QString fileName = QString("/home/kripton/streaming/camvids/%1.ogg").arg(name);
 
-    QGst::ElementPtr videotestsrc = QGst::ElementFactory::make("videotestsrc");
-    QGst::ElementPtr videoscale = QGst::ElementFactory::make("videoscale");
-    QGst::ElementPtr videotee = QGst::ElementFactory::make("tee");
-    QGst::ElementPtr videooutqueue = QGst::ElementFactory::make("queue");
-    QGst::ElementPtr videopreviewqueue = QGst::ElementFactory::make("queue");
-    QGst::ElementPtr videosink = QGst::ElementFactory::make("xvimagesink");
-    bin->add(videotestsrc, videoscale, videotee, videooutqueue, videopreviewqueue, videosink);
-    videotestsrc->link(videoscale, videocaps);
-    videoscale->link(videotee, videocaps);
-    videotee->getRequestPad("src_%u")->link(videooutqueue->getStaticPad("sink"));
-    videotee->getRequestPad("src_%u")->link(videopreviewqueue->getStaticPad("sink"));
+    QString desc = QString("filesrc location=%2 ! decodebin ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink t. ! queue name=outqueue").arg(videocaps->toString()).arg(fileName);
+    qDebug() << desc;
+    QGst::BinPtr bin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
 
-    videopreviewqueue->link(videosink);
-    ui->VideoWidget->setVideoSink(videosink);
+    ui->VideoWidget->setVideoSink(bin->getElementByName("previewsink"));
 
-    QGst::PadPtr videoPad = videooutqueue->getStaticPad("src");
+    QGst::PadPtr videoPad = bin->getElementByName("outqueue")->getStaticPad("src");
     bin->addPad(QGst::GhostPad::create(videoPad, "video"));
 
     sourceOnline();
