@@ -28,8 +28,6 @@ MainWindow::MainWindow(QWidget *parent) :
     worker->moveToThread(thread);
 
     connect(thread, SIGNAL(started()), worker, SLOT(setup()));
-    connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
-    connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
     connect(worker, SIGNAL(midiEvent(char, char, char)), this, SLOT(midiEvent(char, char, char)));
@@ -155,7 +153,8 @@ void MainWindow::newOpacityHandler(qreal newValue)
 
 void MainWindow::newVolumeHandler(qreal newValue)
 {
-
+    Q_UNUSED(newValue);
+    // TODO
 }
 
 void MainWindow::startupApplications() {
@@ -276,11 +275,13 @@ void MainWindow::fadeMeInHandler()
     // Do 25 steps in one second => timer interval
     // TIMER!
     foreach (QObject* boxObject, allCamBoxes) {
+        Q_UNUSED(boxObject); // TODO
     }
 }
 
 void MainWindow::newPreListenChangedHandler(bool newState)
 {
+    Q_UNUSED(newState); // TODO
     //worker->set_led(i + 0x20, newState ? 0x7f : 0x00);
 }
 

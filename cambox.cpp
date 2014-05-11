@@ -24,7 +24,9 @@ CamBox::CamBox(QWidget *parent):
     ui->MonitorPushButton->setEnabled(false);
     ui->GOButton->setEnabled(false);
 
-    updateBackground();
+    // This is a bit awkward. Somehow, the title gets changed back
+    // if we just call the SLOT here. So, use a single-shot timer
+    QTimer::singleShot(200, this, SLOT(updateBackground()));
 }
 
 CamBox::~CamBox()
@@ -57,11 +59,13 @@ void CamBox::opcatiyFaderChanged()
         setVolume(ui->opacitySlider->value() / 1000.0);
         volumeFaderChanged();
     }
+    updateBackground();
     emit newOpacity(ui->opacitySlider->value() / 1000.0);
 }
 
 void CamBox::volumeFaderChanged()
 {
+    updateBackground();
     emit newVolume(ui->volumeSlider->value() / 10.0);
 }
 
@@ -110,6 +114,8 @@ void CamBox::setPreListen(bool value)
 
 QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
 {
+    Q_UNUSED(audiocaps); // TODO
+
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << name;
     QString fileName = QString("/home/kripton/streaming/camvids/%1.ogg").arg(name);
 
@@ -179,24 +185,21 @@ void CamBox::sourceOffline() {
 
 void CamBox::updateBackground() {
     QPalette p = this->palette();
-    /*if (camOnline == true) {
-        if (vPort.opacity != 0 || vPort.volume != 0) {
+    if (camOnline == true) {
+        if (ui->opacitySlider->value() != 0 || ui->volumeSlider->value() != 0) {
             // Source online and ONAIR (RED)
-            emit onAirInfo(this, true);
             p.setColor(QPalette::Window, Qt::red);
-            this->setTitle(QString("%1 (ON AIR)").arg(mountName.toUpper()));
+            this->setTitle(QString("%1 (ON AIR)").arg(name));
         } else {
             // Source online but not ONAIR (PALE GREEN)
-            emit onAirInfo(this, false);
             p.setColor(QPalette::Window, QColor(180, 255, 180));
-            this->setTitle(QString("%1 (Bereit)").arg(mountName.toUpper()));
+            this->setTitle(QString("%1 (Bereit)").arg(name));
         }
     } else {
         // Source offline (LIGHT GRAY)
-        emit onAirInfo(this, false);
         p.setColor(QPalette::Window, Qt::lightGray);
-        this->setTitle(QString("%1 (Nicht verbunden)").arg(mountName.toUpper()));
-    }*/
+        this->setTitle(QString("%1 (Nicht verbunden)").arg(name));
+    }
     this->setPalette(p);
 }
 
