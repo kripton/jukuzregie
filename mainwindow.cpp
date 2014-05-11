@@ -44,28 +44,64 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Background image bin
     QString backgroundSprite = "/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png";
-    QString desc = QString("filesrc location=\"%1\" ! pngdec ! videoconvert ! imagefreeze ! %2 ! queue name=voutqueue").arg(backgroundSprite).arg(rawvideocaps->toString());
+    QString desc = QString("filesrc location=\"%1\" ! pngdec ! videoconvert ! imagefreeze ! %2 ! "
+                           "queue name=voutqueue").arg(backgroundSprite).arg(rawvideocaps->toString());
     QGst::BinPtr backgroundBin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
 
     QGst::PadPtr videoPad = backgroundBin->getElementByName("voutqueue")->getStaticPad("src");
     backgroundBin->addPad(QGst::GhostPad::create(videoPad, "video"));
 
+    QString adesc = QString("jackaudiosrc ! audioconvert ! %1 ! tee name=abgtee ! "
+                            "queue name=aoutqueue abgtee.! queue name=aPreListenQueue")
+            .arg(rawaudiocaps->toString());
+    QGst::BinPtr aBackgroundBin = QGst::Bin::fromDescription(adesc, QGst::Bin::NoGhost);
+    QGst::PadPtr audioPad = aBackgroundBin->getElementByName("aoutqueue")->getStaticPad("src");
+    aBackgroundBin->addPad(QGst::GhostPad::create(audioPad, "audio"));
+    QGst::PadPtr audioPreListenPad = aBackgroundBin->getElementByName("aPreListenQueue")->getStaticPad("src");
+    aBackgroundBin->addPad(QGst::GhostPad::create(audioPreListenPad, "audioPreListen"));
+
     // Video Mixer + Preview
     VideoMixer = QGst::ElementFactory::make("videomixer");
+    QGst::ElementPtr convert = QGst::ElementFactory::make("videoconvert");
     VideoMixerTee = QGst::ElementFactory::make("tee");
+    VideoSinkPreview = QGst::ElementFactory::make("xvimagesink");
 
-    VideoSinkPreview = QGst::ElementFactory::make("qtvideosink");
+    // Audio Mixer
+    audioMixer = QGst::ElementFactory::make("adder");
+    QGst::ElementPtr aconvert = QGst::ElementFactory::make("audioconvert");
+    audioMixerTee = QGst::ElementFactory::make("tee");
+    QGst::ElementPtr fakesink = QGst::ElementFactory::make("fakesink");
+
+    // audioPreListerMixer
+    audioPreListenMixer = QGst::ElementFactory::make("adder");
+    QGst::ElementPtr aconvert2 = QGst::ElementFactory::make("audioconvert");
+    QGst::ElementPtr preListenSink = QGst::ElementFactory::make("jackaudiosink");
 
     // Add it all to the Pipeline now
-    Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, VideoSinkPreview);
+    Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, convert, VideoSinkPreview,
+                  audioMixer, aconvert, audioMixerTee, fakesink);
+    Pipeline->add(aBackgroundBin, audioPreListenMixer, aconvert2, preListenSink);
 
     // Link it all together
     backgroundBin->getStaticPad("video")->link(VideoMixer->getRequestPad("sink_%u"));
 
-    VideoMixer->link(VideoMixerTee);
+    VideoMixer->link(convert);
+    convert->link(VideoMixerTee);
     VideoMixerTee->link(VideoSinkPreview);
 
+    aBackgroundBin->getStaticPad("audio")->link(audioMixer->getRequestPad("sink_%u"));
+    aBackgroundBin->getStaticPad("audioPreListen")->link(audioPreListenMixer->getRequestPad("sink_%u"));
+
+    audioMixer->link(aconvert);
+    aconvert->link(audioMixerTee);
+    audioMixerTee->link(fakesink);
+
+    audioPreListenMixer->link(aconvert2);
+    aconvert2->link(preListenSink);
+
+
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
+
 
     // Watch the bus for messages
     QGst::BusPtr bus = Pipeline->bus();
@@ -111,6 +147,11 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
             boxMixerPads.insert(boxobj, sinkPad);
             bin->getStaticPad("video")->link(sinkPad);
             sinkPad->setProperty("alpha", 0);
+            QGst::PadPtr aSinkPad = audioMixer->getRequestPad("sink_%u");
+            bin->getStaticPad("audio")->link(aSinkPad);
+            QGst::PadPtr aSinkPad2 = audioPreListenMixer->getRequestPad("sink_%u");
+            bin->getStaticPad("audioPreListen")->link(aSinkPad2);
+
             bin->syncStateWithParent();
         }
     }

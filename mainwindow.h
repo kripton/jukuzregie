@@ -73,6 +73,9 @@ private:
     QGst::ElementPtr VideoSinkPreview;
     QGst::ElementPtr VideoMixer;
     QGst::ElementPtr VideoMixerTee;
+    QGst::ElementPtr audioMixer;
+    QGst::ElementPtr audioMixerTee;
+    QGst::ElementPtr audioPreListenMixer;
 
     void onBusMessage(const QGst::MessagePtr & message);
     void startupApplications();

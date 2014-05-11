@@ -73,7 +73,6 @@ void CamBox::volumeFaderChanged()
 }
 
 void CamBox::setVideoOpacity(qreal opacity, bool diff) {
-    qDebug() << "setVideoOpacity" << opacity << diff;
     qreal newValue;
 
     if (diff)
@@ -113,7 +112,7 @@ void CamBox::setVolume(qreal volume, bool diff) {
 
 void CamBox::fadeStart(qreal stepSize, qint16 interval)
 {
-    qDebug() << "fadeStart" << stepSize << interval;
+    //qDebug() << "fadeStart" << stepSize << interval;
     if (stepSize == 0) {
         fadeTimer->stop();
         return;
@@ -125,7 +124,7 @@ void CamBox::fadeStart(qreal stepSize, qint16 interval)
 
 void CamBox::fadeTimeEvent()
 {
-    qDebug() << "fadeTimeEvent" << ui->opacitySlider->value();
+    //qDebug() << "fadeTimeEvent" << ui->opacitySlider->value();
     if ((fadeStepSize > 0) && ((ui->opacitySlider->value() / 1000.0 + fadeStepSize) >= 1.0)) {
         setVideoOpacity(1.0);
         fadeTimer->stop();
@@ -152,11 +151,13 @@ QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr vid
     QString desc = QString("filesrc location=%2 ! decodebin name=decode ! "
                            "queue ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
                            "t. ! queue name=voutqueue "
-                           "decode. ! queue ! audioconvert ! %3 ! level ! tee name=t2 ! queue name=aoutqueue "
-                           "t2. ! queue name=prelistenqueue")
+                           "decode. ! queue ! audioconvert ! %3 ! tee name=t2 ! queue name=a2outqueue "
+                           "t2. ! queue name=a2prelistenqueue")
             .arg(videocaps->toString())
             .arg(fileName)
             .arg(audiocaps->toString());
+    /*QString desc = QString("videotestsrc ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
+                           "t. ! queue name=voutqueue ").arg(videocaps->toString());*/
     qDebug() << desc;
     QGst::BinPtr bin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
 
@@ -164,6 +165,12 @@ QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr vid
 
     QGst::PadPtr videoPad = bin->getElementByName("voutqueue")->getStaticPad("src");
     bin->addPad(QGst::GhostPad::create(videoPad, "video"));
+
+    QGst::PadPtr audioPad = bin->getElementByName("a2outqueue")->getStaticPad("src");
+    bin->addPad(QGst::GhostPad::create(audioPad, "audio"));
+
+    QGst::PadPtr audioPreListenPad = bin->getElementByName("a2prelistenqueue")->getStaticPad("src");
+    bin->addPad(QGst::GhostPad::create(audioPreListenPad, "audioPreListen"));
 
     sourceOnline();
 
