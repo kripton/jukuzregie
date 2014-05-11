@@ -114,12 +114,19 @@ void CamBox::setPreListen(bool value)
 
 QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
 {
-    Q_UNUSED(audiocaps); // TODO
-
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << name;
     QString fileName = QString("/home/kripton/streaming/camvids/%1.ogg").arg(name);
 
-    QString desc = QString("filesrc location=%2 ! decodebin ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink t. ! queue name=voutqueue").arg(videocaps->toString()).arg(fileName);
+    // TODO: Dump stream to disk
+    // TODO: Audio
+    QString desc = QString("filesrc location=%2 ! decodebin name=decode ! "
+                           "queue ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
+                           "t. ! queue name=voutqueue "
+                           "decode. ! queue ! audioconvert ! %3 ! level ! tee name=t2 ! queue name=aoutqueue "
+                           "t2. ! queue name=prelistenqueue")
+            .arg(videocaps->toString())
+            .arg(fileName)
+            .arg(audiocaps->toString());
     qDebug() << desc;
     QGst::BinPtr bin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
 

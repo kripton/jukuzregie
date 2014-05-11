@@ -67,6 +67,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
 
+    // Watch the bus for messages
+    QGst::BusPtr bus = Pipeline->bus();
+    bus->addSignalWatch();
+    QGlib::connect(bus, "message", this, &MainWindow::onBusMessage);
+
     // ... and start the Pipeline
     Pipeline->setState(QGst::StatePlaying);
 
@@ -156,6 +161,25 @@ void MainWindow::newVolumeHandler(qreal newValue)
     Q_UNUSED(newValue);
     // TODO
 }
+
+void MainWindow::onBusMessage(const QGst::MessagePtr & message)
+{
+    qDebug() << "MESSAGE" << message->type() << message->typeName();
+    switch (message->type()) {
+    case QGst::MessageEos: //End of stream. We reached the end of the file.
+        //stop();
+        break;
+    case QGst::MessageError: //Some error occurred.
+        qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
+        //stop();
+        break;
+    case QGst::MessageStateChanged: //The element in message->source() has changed state
+        break;
+    default:
+        break;
+    }
+}
+
 
 void MainWindow::startupApplications() {
     if (!QDir().exists(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
@@ -272,7 +296,7 @@ void MainWindow::logoButtonToggled(bool checked)
 
 void MainWindow::fadeMeInHandler()
 {
-    // Do 25 steps in one second => timer interval
+    // Do 25 steps in one second => timer interval = 0.04s = 40ms
     // TIMER!
     foreach (QObject* boxObject, allCamBoxes) {
         Q_UNUSED(boxObject); // TODO

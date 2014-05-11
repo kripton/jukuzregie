@@ -11,12 +11,15 @@
 #include "cambox.h"
 #include <jackthread.h>
 
+#include <QGlib/Connect>
 #include <QGst/Element>
 #include <QGst/ElementFactory>
 #include <QGst/Pad>
 #include <QGst/GhostPad>
 #include <QGst/Bin>
 #include <QGst/Pipeline>
+#include <QGst/Bus>
+#include <QGst/Message>
 #include <QGst/Ui/VideoWidget>
 
 namespace Ui {
@@ -71,6 +74,7 @@ private:
     QGst::ElementPtr VideoMixer;
     QGst::ElementPtr VideoMixerTee;
 
+    void onBusMessage(const QGst::MessagePtr & message);
     void startupApplications();
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
     void setOnAirLED(QObject *boxObject, bool newState);

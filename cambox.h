@@ -50,11 +50,8 @@ private slots:
     void goButtonClicked();                 // Internal slot to handle GO-Button clicks
 
 private:
-    // General management stuff
     Ui::CamBox *ui;
-
     bool camOnline;
-
     QGst::BinPtr bin;
 };
 
