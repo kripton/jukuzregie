@@ -69,7 +69,7 @@ void CamBox::opcatiyFaderChanged()
 void CamBox::volumeFaderChanged()
 {
     updateBackground();
-    emit newVolume(ui->volumeSlider->value() / 10.0);
+    emit newVolume(ui->volumeSlider->value() / 1000.0);
 }
 
 void CamBox::setVideoOpacity(qreal opacity, bool diff) {

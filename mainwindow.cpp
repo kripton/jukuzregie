@@ -51,9 +51,17 @@ MainWindow::MainWindow(QWidget *parent) :
     QGst::PadPtr videoPad = backgroundBin->getElementByName("voutqueue")->getStaticPad("src");
     backgroundBin->addPad(QGst::GhostPad::create(videoPad, "video"));
 
-    QString adesc = QString("audiotestsrc ! volume volume=0.01 ! audioconvert ! %1 ! tee name=abgtee ! "
+    QString adesc;
+    // TODO: jackaudiosrc doesn't wanna play ... Let's use a muted audiotestsrc instead
+    if (0) {
+    adesc = QString("jackaudiosrc client-name=\"regie-Hintergrund\" connect=0 ! audioconvert ! %1 ! tee name=abgtee ! "
                             "queue name=aoutqueue abgtee.! queue name=aPreListenQueue")
-            .arg(rawaudiocaps->toString());
+           .arg(rawaudiocaps->toString());
+    } else {
+    adesc = QString("audiotestsrc ! audioconvert ! volume mute=1 ! audioconvert ! %1 ! tee name=abgtee ! "
+                            "queue name=aoutqueue abgtee.! queue name=aPreListenQueue")
+           .arg(rawaudiocaps->toString());
+    }
     QGst::BinPtr aBackgroundBin = QGst::Bin::fromDescription(adesc, QGst::Bin::NoGhost);
     QGst::PadPtr audioPad = aBackgroundBin->getElementByName("aoutqueue")->getStaticPad("src");
     aBackgroundBin->addPad(QGst::GhostPad::create(audioPad, "audio"));
@@ -70,12 +78,15 @@ MainWindow::MainWindow(QWidget *parent) :
     audioMixer = QGst::ElementFactory::make("adder");
     QGst::ElementPtr aconvert = QGst::ElementFactory::make("audioconvert");
     audioMixerTee = QGst::ElementFactory::make("tee");
-    QGst::ElementPtr fakesink = QGst::ElementFactory::make("fakesink");
+    QGst::ElementPtr fakesink = QGst::ElementFactory::make("jackaudiosink");
+    fakesink->setProperty("connect", 0);
+    fakesink->setProperty("client-name", "regie-MixeOut");
 
     // audioPreListerMixer
     audioPreListenMixer = QGst::ElementFactory::make("adder");
     QGst::ElementPtr aconvert2 = QGst::ElementFactory::make("audioconvert");
     QGst::ElementPtr preListenSink = QGst::ElementFactory::make("jackaudiosink");
+    preListenSink->setProperty("client-name", "regie-PreListen");
 
     // Add it all to the Pipeline now
     Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, convert, VideoSinkPreview,
@@ -152,17 +163,17 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
             Pipeline->add(aVolume);
             boxAudioVolume.insert(boxobj, aVolume);
             aVolume->setProperty("volume", 0.0);
-            qDebug() << bin->getStaticPad("audio")->link(aVolume->getStaticPad("sink"));
+            bin->getStaticPad("audio")->link(aVolume->getStaticPad("sink"));
             QGst::PadPtr aSinkPad = audioMixer->getRequestPad("sink_%u");
-            qDebug() << aVolume->getStaticPad("src")->link(aSinkPad);
+            aVolume->getStaticPad("src")->link(aSinkPad);
 
             QGst::ElementPtr aPreListenVolume = QGst::ElementFactory::make("volume");
             Pipeline->add(aPreListenVolume);
             boxAudioPreListenVolume.insert(boxobj, aPreListenVolume);
             aPreListenVolume->setProperty("mute", true);
-            qDebug() << bin->getStaticPad("audioPreListen")->link(aPreListenVolume->getStaticPad("sink"));
+            bin->getStaticPad("audioPreListen")->link(aPreListenVolume->getStaticPad("sink"));
             QGst::PadPtr aSinkPad2 = audioPreListenMixer->getRequestPad("sink_%u");
-            qDebug() << aPreListenVolume->getStaticPad("src")->link(aSinkPad2);
+            aPreListenVolume->getStaticPad("src")->link(aSinkPad2);
 
             bin->syncStateWithParent();
             aVolume->syncStateWithParent();
@@ -360,8 +371,9 @@ void MainWindow::newOpacityHandler(qreal newValue)
 
 void MainWindow::newVolumeHandler(qreal newValue)
 {
-    Q_UNUSED(newValue);
-    // TODO
+    qDebug() << "New volume from" << QObject::sender() << newValue;
+    if (!boxAudioVolume.contains(QObject::sender())) return;
+    boxAudioVolume[QObject::sender()]->setProperty("volume", newValue);
 }
 
 void MainWindow::fadeMeInHandler()
