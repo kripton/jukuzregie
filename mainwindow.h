@@ -63,7 +63,9 @@ private:
     QProcess* process;
     QStringList arguments;
     QList<QObject*> allCamBoxes;
-    QHash<QObject*, QGst::PadPtr> boxMixerPads;
+    QHash<QObject*, QGst::PadPtr> boxVideoMixerPads;
+    QHash<QObject*, QGst::ElementPtr> boxAudioVolume;
+    QHash<QObject*, QGst::ElementPtr> boxAudioPreListenVolume;
 
     QUdpSocket* notifySocket;
 

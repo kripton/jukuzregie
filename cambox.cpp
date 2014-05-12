@@ -151,11 +151,12 @@ QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr vid
     QString desc = QString("filesrc location=%2 ! decodebin name=decode ! "
                            "queue ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
                            "t. ! queue name=voutqueue "
-                           "decode. ! queue ! audioconvert ! %3 ! tee name=t2 ! queue name=a2outqueue "
+                           "decode. ! queue ! audioconvert ! level name=level_%4 ! audioconvert ! %3 ! tee name=t2 ! queue name=a2outqueue "
                            "t2. ! queue name=a2prelistenqueue")
             .arg(videocaps->toString())
             .arg(fileName)
-            .arg(audiocaps->toString());
+            .arg(audiocaps->toString())
+            .arg(name);
     /*QString desc = QString("videotestsrc ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
                            "t. ! queue name=voutqueue ").arg(videocaps->toString());*/
     qDebug() << desc;
