@@ -216,20 +216,31 @@ void MainWindow::broadcastSourceInfo()
     notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
 }
 
+void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm)
+{
+    //qDebug() << "NewState" << scm->newState();
+    return;
+}
+
+void handleElementMessage(const QGst::ElementMessagePtr & message)
+{
+    //qDebug() << "ELEMENTMESSAGE:" << message->
+}
+
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)
 {
     qDebug() << "MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
-    case QGst::MessageEos: //End of stream. We reached the end of the file.
-        //stop();
+    case QGst::MessageEos: //End of stream. From which cambox?
         break;
     case QGst::MessageError: //Some error occurred.
         qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
-        //stop();
         break;
     case QGst::MessageStateChanged: //The element in message->source() has changed state
+        handlePipelineStateChange(message.staticCast<QGst::StateChangedMessage>());
         break;
     case QGst::MessageElement: // Level data?
+        handleElementMessage(message.staticCast<QGst::ElementMessage>());
         return;
         qDebug() << "ELEM:" << message->internalStructure()->name();
 
@@ -247,7 +258,6 @@ void MainWindow::onBusMessage(const QGst::MessagePtr & message)
         break;
     }
 }
-
 
 void MainWindow::startupApplications() {
     if (!QDir().exists(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
