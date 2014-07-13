@@ -102,13 +102,14 @@ void MainWindow::start() {
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*) boxObject;
         box->iInfo.baseUrl = baseUrl;
-        box->setMountName(QString("cam_%1.%2")
+        box->setMountName(QString("cam_%1")
                           .arg(i, 2).replace(' ', '0')
-                          .arg(QSettings().value("inbound/fileExt", "12000").toString())
+                          //.arg(QSettings().value("inbound/fileExt", "12000").toString())
                           );
-        qDebug() << "MountName:" << QString("cam_%1.%2")
+        qDebug() << "MountName:" << QString("cam_%1")
                     .arg(i, 2).replace(' ', '0')
-                    .arg(QSettings().value("inbound/fileExt", "12000").toString());
+                    //.arg(QSettings().value("inbound/fileExt", "12000").toString())
+                    ;
         i++;
     }
 }

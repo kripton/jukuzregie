@@ -89,6 +89,7 @@ private:
     // General management stuff
     Ui::CamBox *ui;
     QString mountName;
+    QString mountExt;
     QTimer timer;
     Phonon::AudioDataOutput* dataOutput;
     Phonon::MediaSource* mediaSource;

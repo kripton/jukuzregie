@@ -12,7 +12,7 @@ CamBox::CamBox(QWidget *parent):
 
     vPort.id = -1;
 
-    this->mountName = mountName;
+    mountExt = "";
 
     // Initialize audio data viszualization
     dataOutput = new Phonon::AudioDataOutput(this);
@@ -145,8 +145,14 @@ void CamBox::pollIcecastRequest()
     connect(&qnam, SIGNAL(finished(QNetworkReply *)), &eventLoop, SLOT(quit()));
     eventLoop.exec();
 
-    if (reply->readAll().contains(QString("<td><h3>Mount Point /" + mountName + "</h3></td>").toAscii())) {
-        qDebug() << "Online" << mountName;
+    QByteArray data = reply->readAll();
+    if (data.contains(QString("<h3 class=\"mount\">Mount Point /" + mountName + ".ogg</h3>").toAscii())) {
+        mountExt = ".ogg";
+        qDebug() << "Online" << mountName + mountExt;
+        sourceOnline();
+    } else if (data.contains(QString("<h3 class=\"mount\">Mount Point /" + mountName + ".webm</h3>").toAscii())) {
+        mountExt = ".webm";
+        qDebug() << "Online" << mountName + mountExt;
         sourceOnline();
     } else {
         qDebug() << "Offline:" << mountName;
@@ -158,7 +164,8 @@ void CamBox::pollIcecastRequest()
 void CamBox::sourceOnline() {
     if (iInfo.sourceOnline) return;
 
-    mediaSource = new Phonon::MediaSource(QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName));
+    QString url = QString("%1%2%3").arg(iInfo.baseUrl.toString()).arg(mountName).arg(mountExt);
+    mediaSource = new Phonon::MediaSource(QUrl(url));
     ui->VideoPlayer->play(*mediaSource);
     mute();
 
@@ -180,7 +187,7 @@ void CamBox::sourceOnline() {
     vPort.opacity = 0.0f;
     vPort.rotation = 0.0f;
     vPort.volume = 0.0f;
-    vPort.id = KradClient::playStream(QUrl(QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName)));
+    vPort.id = KradClient::playStream(QUrl(url));
     updateKradPort();
 
     // HACK: Set the opacity to 0 multiple time to not get it flicker on the screen
@@ -191,7 +198,7 @@ void CamBox::sourceOnline() {
     QTimer::singleShot(160, this, SLOT(updateKradPort()));
     QTimer::singleShot(180, this, SLOT(updateKradPort()));
 
-    qDebug() << "STREAM FROM" <<  QString("%1%2").arg(iInfo.baseUrl.toString()).arg(mountName) << "STARTED WITH KRAD ID:" << vPort.id;
+    qDebug() << "STREAM FROM" << url << "STARTED WITH KRAD ID:" << vPort.id;
 
     iInfo.sourceOnline = true;
     updateBackGround();
@@ -200,14 +207,15 @@ void CamBox::sourceOnline() {
     icecastDumpProc = new QProcess(this);
     icecastDumpProc->start("gst-launch-1.0",
                            QStringList() << "souphttpsrc"
-                                         << QString("location=%1%2").arg(iInfo.baseUrl.toString()).arg(mountName)
+                                         << QString("location=%1%2%3").arg(url)
                                          << "!"
                                          << "filesink"
-                                         << QString("location=%1/streaming/%2/aufnahmen/%3_%4")
+                                         << QString("location=%1/streaming/%2/aufnahmen/%3_%4%5")
                            .arg(QDir::homePath())
                            .arg(((MainWindow*) mainWin)->startUp.toString("yyyy-MM-dd_hh-mm-ss"))
                            .arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
                            .arg(mountName)
+                           .arg(mountExt)
                            );
 }
 
