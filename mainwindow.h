@@ -21,6 +21,7 @@
 #include <QGst/Bus>
 #include <QGst/Message>
 #include <QGst/Ui/VideoWidget>
+#include <QGst/Clock>
 
 namespace Ui {
 class MainWindow;

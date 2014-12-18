@@ -78,20 +78,22 @@ MainWindow::MainWindow(QWidget *parent) :
     audioMixer = QGst::ElementFactory::make("adder");
     QGst::ElementPtr aconvert = QGst::ElementFactory::make("audioconvert");
     audioMixerTee = QGst::ElementFactory::make("tee");
-    QGst::ElementPtr fakesink = QGst::ElementFactory::make("jackaudiosink");
-    fakesink->setProperty("connect", 0);
-    fakesink->setProperty("client-name", "regie-MixeOut");
+    QGst::ElementPtr arate = QGst::ElementFactory::make("audiorate");
+    QGst::ElementPtr audioSink = QGst::ElementFactory::make("fakesink");
+    //audioSink->setProperty("connect", 0);
+    //audioSink->setProperty("client-name", "regie-MixeOut");
 
     // audioPreListerMixer
     audioPreListenMixer = QGst::ElementFactory::make("adder");
     QGst::ElementPtr aconvert2 = QGst::ElementFactory::make("audioconvert");
-    QGst::ElementPtr preListenSink = QGst::ElementFactory::make("jackaudiosink");
-    preListenSink->setProperty("client-name", "regie-PreListen");
+    QGst::ElementPtr arate2 = QGst::ElementFactory::make("audiorate");
+    QGst::ElementPtr preListenSink = QGst::ElementFactory::make("fakesink");
+    //preListenSink->setProperty("client-name", "regie-PreListen");
 
     // Add it all to the Pipeline now
     Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, convert, VideoSinkPreview,
-                  audioMixer, aconvert, audioMixerTee, fakesink);
-    Pipeline->add(aBackgroundBin, audioPreListenMixer, aconvert2, preListenSink);
+                  audioMixer, aconvert, audioMixerTee, arate, audioSink);
+    Pipeline->add(aBackgroundBin, audioPreListenMixer, aconvert2, arate2, preListenSink);
 
     // Link it all together
     backgroundBin->getStaticPad("video")->link(VideoMixer->getRequestPad("sink_%u"));
@@ -105,10 +107,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     audioMixer->link(aconvert);
     aconvert->link(audioMixerTee);
-    audioMixerTee->link(fakesink);
+    audioMixerTee->link(arate);
+    arate->link(audioSink);
 
     audioPreListenMixer->link(aconvert2);
-    aconvert2->link(preListenSink);
+    aconvert2->link(arate2);
+    arate2->link(preListenSink);
 
 
     ui->VideoPlayer->setVideoSink(VideoSinkPreview);
@@ -120,6 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QGlib::connect(bus, "message", this, &MainWindow::onBusMessage);
 
     // ... and start the Pipeline
+    qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
     Pipeline->setState(QGst::StatePlaying);
 
     notifySocket = new QUdpSocket(this);
@@ -152,7 +157,9 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
         CamBox* box = (CamBox*) boxobj;
         if ((box->name == hash->value("name")) && !box->getCamOnline())
         {
-            QGst::BinPtr bin = box->startCam(senderHost, senderPort + 1, rawvideocaps, rawaudiocaps);
+            QGst::ClockPtr clock = Pipeline->clock();
+
+            QGst::BinPtr bin = box->startCam(senderHost, senderPort - 1, rawvideocaps, rawaudiocaps);
             Pipeline->add(bin);
             QGst::PadPtr sinkPad = VideoMixer->getRequestPad("sink_%u");
             boxVideoMixerPads.insert(boxobj, sinkPad);
@@ -178,6 +185,17 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
             bin->syncStateWithParent();
             aVolume->syncStateWithParent();
             aPreListenVolume->syncStateWithParent();
+
+            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
+            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
+            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
+            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
+            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
+            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
+            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
+            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
+            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
+
         }
     }
 
@@ -218,18 +236,31 @@ void MainWindow::broadcastSourceInfo()
 
 void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm)
 {
-    //qDebug() << "NewState" << scm->newState();
+    qDebug() << "NewState" << scm->newState();
     return;
 }
 
 void handleElementMessage(const QGst::ElementMessagePtr & message)
 {
-    //qDebug() << "ELEMENTMESSAGE:" << message->
+    return;
+    qDebug() << "ELEMENTMESSAGE:" << message->internalStructure()->fieldName(0) << message->internalStructure()->fieldName(1);
+    for (int i = 0; i < message->internalStructure()->numberOfFields(); i++)
+    {
+        QString fieldName = message->internalStructure()->fieldName(i);
+        qDebug() << i << fieldName << message->internalStructure()->value(fieldName.toUtf8());
+    }
+}
+
+void handleQosMessage(const QGst::QosMessagePtr & message)
+{
+    return;
+    qDebug() << "Q_OS" << message->typeName() << message->quality();
+    return;
 }
 
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)
 {
-    qDebug() << "MESSAGE" << message->type() << message->typeName();
+    //qDebug() << "MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
     case QGst::MessageEos: //End of stream. From which cambox?
         break;
@@ -253,6 +284,9 @@ void MainWindow::onBusMessage(const QGst::MessagePtr & message)
             qDebug() << val << val.type().name();
         }
 
+        break;
+    case QGst::MessageQos:
+        handleQosMessage(message.staticCast<QGst::QosMessage>());
         break;
     default:
         break;

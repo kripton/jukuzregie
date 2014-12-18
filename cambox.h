@@ -39,7 +39,8 @@ public slots:
     void setVolume(qreal volume, bool diff = false);           // set the volume fader to a new value or modifiy the current one
     void setPreListen(bool value);          // write-only public access to state of Pre-Listen button
     QGst::BinPtr startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps); // start playing from a source
-    void fadeStart(qreal stepSize, qint16 interval);
+    void fadeStart(qreal stepSize, qint16 interval); // Start a fade on opacity
+    void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
 
 private slots:
     void opcatiyFaderChanged();             // called when the opacity-fader got changed

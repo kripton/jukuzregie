@@ -122,6 +122,11 @@ void CamBox::fadeStart(qreal stepSize, qint16 interval)
     fadeTimer->start(interval);
 }
 
+void CamBox::setDumpDir(QString dir)
+{
+// TODO
+}
+
 void CamBox::fadeTimeEvent()
 {
     //qDebug() << "fadeTimeEvent" << ui->opacitySlider->value();
@@ -144,19 +149,37 @@ void CamBox::setPreListen(bool value)
 QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
 {
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << name;
-    QString fileName = QString("/home/kripton/streaming/camvids/%1.ogg").arg(name);
+    QString dumpFileName = QString("/home/kripton/streaming/dump/%1.ogg").arg(name);
 
     // TODO: Dump stream to disk
-    // TODO: Audio
-    QString desc = QString("filesrc location=%2 ! decodebin name=decode ! "
-                           "queue ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
-                           "t. ! queue name=voutqueue "
-                           "decode. ! queue ! audioconvert ! level name=level_%4 ! audioconvert ! %3 ! tee name=t2 ! queue name=a2outqueue "
-                           "t2. ! queue name=a2prelistenqueue")
+    /*
+    QString desc = QString("uridecodebin uri=rtsp://%1:%2/test name=decode ! "
+                           "queue ! videoscale ! %3 ! tee name=video ! queue ! xvimagesink name=previewsink "
+                           "video. ! queue name=voutqueue "
+                           "decode. ! queue ! audioconvert ! level name=level_%4 ! audioconvert ! %5 ! tee name=audio ! queue name=a2outqueue "
+                           "audio. ! queue name=a2prelistenqueue" )
+            .arg(host.toString())
+            .arg(port)
             .arg(videocaps->toString())
-            .arg(fileName)
+            .arg(name)
             .arg(audiocaps->toString())
-            .arg(name);
+            .arg(dumpFileName);
+    */
+
+
+    QString desc = QString("tcpclientsrc host=%1 port=%2 ! gdpdepay ! tee name=stream ! decodebin name=decode ! "
+                           "queue ! videoscale ! %3 ! tee name=video ! queue ! xvimagesink name=previewsink "
+                           "video. ! queue name=voutqueue "
+                           "decode. ! queue ! audioconvert ! level name=level_%4 ! audioconvert ! %5 ! tee name=audio ! queue name=a2outqueue "
+                           "audio. ! queue name=a2prelistenqueue "
+                           "stream. ! queue ! filesink location=\"%6\"")
+            .arg(host.toString())
+            .arg(port)
+            .arg(videocaps->toString())
+            .arg(name)
+            .arg(audiocaps->toString())
+            .arg(dumpFileName);
+
     /*QString desc = QString("videotestsrc ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
                            "t. ! queue name=voutqueue ").arg(videocaps->toString());*/
     qDebug() << desc;
