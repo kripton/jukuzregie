@@ -293,9 +293,10 @@ void MainWindow::logoButtonToggled(bool checked)
 
 void MainWindow::newOpacityHandler(qreal newValue)
 {
-    qDebug() << "New opacity from" << QObject::sender() << newValue;
     CamBox* sender = (CamBox*)QObject::sender();
+    if (sender == 0) return;
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
+    if ((mgmtdata == 0) || (mgmtdata->opacityEffect == 0)) return;
     mgmtdata->opacityEffect->setOpacity(newValue);
 }
 
@@ -312,7 +313,9 @@ void MainWindow::newVideoFrame(QImage *image)
 
     // overlay it to the main scene
     CamBox* sender = (CamBox*)QObject::sender();
+    if (sender == 0) return;
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
+    if (mgmtdata == 0) return;
     if (mgmtdata->pixmapItem == 0)
     {
         mgmtdata->pixmapItem = scene.addPixmap(QPixmap::fromImage(img));

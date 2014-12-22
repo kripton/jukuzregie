@@ -166,10 +166,14 @@ void CamBox::onBusMessage(const QGst::MessagePtr &message)
 {
     qDebug() << "MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
-    case QGst::MessageEos: //End of stream. From which cambox?
+    case QGst::MessageEos:
+        camOnline = false;
+        sourceOffline();
         break;
     case QGst::MessageError: //Some error occurred.
         qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
+        camOnline = false;
+        sourceOffline();
         break;
     case QGst::MessageStateChanged: //The element in message->source() has changed state
         //handlePipelineStateChange(message.staticCast<QGst::StateChangedMessage>());
