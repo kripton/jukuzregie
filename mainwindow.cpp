@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(box, SIGNAL(newPreListen(bool)), this, SLOT(newPreListenChangedHandler(bool)));
         connect(box, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandler(qreal)));
         connect(box, SIGNAL(newVolume(qreal)), this, SLOT(newVolumeHandler(qreal)));
+        connect(box, SIGNAL(newVideoFrame(QImage*)), this, SLOT(newVideoFrame(QImage*)));
     }
     startUp = QDateTime::currentDateTime();
     QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
@@ -183,8 +184,12 @@ void MainWindow::start() {
     int i = 1;
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*) boxObject;
-
+        camBoxMgmtData* mgmtdata = new camBoxMgmtData;
+        box->userData = mgmtdata;
+        mgmtdata->pixmapItem = 0;
+        mgmtdata->opacityEffect = 0;
         box->name = QString("cam_%1").arg(i, 2).replace(' ', '0');
+
         i++;
     }
 }
@@ -289,8 +294,9 @@ void MainWindow::logoButtonToggled(bool checked)
 void MainWindow::newOpacityHandler(qreal newValue)
 {
     qDebug() << "New opacity from" << QObject::sender() << newValue;
-    //if (!boxVideoMixerPads.contains(QObject::sender())) return;
-    //boxVideoMixerPads[QObject::sender()]->setProperty("alpha", newValue);
+    CamBox* sender = (CamBox*)QObject::sender();
+    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
+    mgmtdata->opacityEffect->setOpacity(newValue);
 }
 
 void MainWindow::newVolumeHandler(qreal newValue)
@@ -298,6 +304,28 @@ void MainWindow::newVolumeHandler(qreal newValue)
     qDebug() << "New volume from" << QObject::sender() << newValue;
     //if (!boxAudioVolume.contains(QObject::sender())) return;
     //boxAudioVolume[QObject::sender()]->setProperty("volume", newValue);
+}
+
+void MainWindow::newVideoFrame(QImage *image)
+{
+    QImage img = image->convertToFormat(QImage::Format_ARGB32_Premultiplied);
+
+    // overlay it to the main scene
+    CamBox* sender = (CamBox*)QObject::sender();
+    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
+    if (mgmtdata->pixmapItem == 0)
+    {
+        mgmtdata->pixmapItem = scene.addPixmap(QPixmap::fromImage(img));
+        mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
+        mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
+        mgmtdata->opacityEffect->setOpacity(0.0);
+    }
+    else
+    {
+        mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(img));
+    }
+
+    delete image;
 }
 
 void MainWindow::fadeMeInHandler()

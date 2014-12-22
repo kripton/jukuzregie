@@ -24,6 +24,12 @@ CamBox::CamBox(QWidget *parent):
     ui->MonitorPushButton->setEnabled(false);
     ui->GOButton->setEnabled(false);
 
+    ui->VideoBox->setScene(&scene);
+    oldItem = 0;
+
+    m_sink = new VideoAppSink(this);
+    connect(m_sink, SIGNAL(newImage(QImage*)), this, SLOT(newVideoFrameFromSink(QImage*)));
+
     fadeTimer = new QTimer(this);
     connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
 
@@ -124,7 +130,22 @@ void CamBox::fadeStart(qreal stepSize, qint16 interval)
 
 void CamBox::setDumpDir(QString dir)
 {
-// TODO
+    // TODO
+}
+
+void CamBox::newVideoFrameFromSink(QImage *image)
+{
+    // display it in the preview
+    if (oldItem != 0)
+    {
+        scene.removeItem(oldItem);
+        delete oldItem;
+    }
+    // TODO: If we have too few CPU cycles left, use Qt::FastTransformation
+    QImage previewImage = image->scaled(320, 180, Qt::KeepAspectRatio, Qt::FastTransformation);
+    oldItem = (QGraphicsItem*)scene.addPixmap(QPixmap::fromImage(previewImage));
+
+    emit newVideoFrame(image);
 }
 
 void CamBox::fadeTimeEvent()
@@ -141,6 +162,26 @@ void CamBox::fadeTimeEvent()
     }
 }
 
+void CamBox::onBusMessage(const QGst::MessagePtr &message)
+{
+    qDebug() << "MESSAGE" << message->type() << message->typeName();
+    switch (message->type()) {
+    case QGst::MessageEos: //End of stream. From which cambox?
+        break;
+    case QGst::MessageError: //Some error occurred.
+        qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
+        break;
+    case QGst::MessageStateChanged: //The element in message->source() has changed state
+        //handlePipelineStateChange(message.staticCast<QGst::StateChangedMessage>());
+        break;
+    case QGst::MessageQos:
+        //handleQosMessage(message.staticCast<QGst::QosMessage>());
+        break;
+    default:
+        break;
+    }
+}
+
 void CamBox::setPreListen(bool value)
 {
     ui->MonitorPushButton->setChecked(value);
@@ -153,20 +194,32 @@ void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, 
 
 
     QString desc = QString("tcpclientsrc host=%1 port=%2 ! gdpdepay ! tee name=stream ! decodebin name=decode ! "
-                           "queue ! videoscale ! %3 ! tee name=video ! queue ! xvimagesink name=previewsink"
-                           "video. ! videoconvert ! appsink name=\"mysink\" caps=\"%2\""
-                           "stream. ! queue ! mkvmux ! filesink location=\"%6\"")
+                           "queue ! videoscale ! %3 ! tee name=video ! videoconvert ! appsink name=\"videosink\" caps=\"%4\" "
+                           "stream. ! queue ! filesink location=\"%5\" "
+                           "video. ! ximagesink")
             .arg(host.toString())
             .arg(port)
             .arg(videocaps->toString())
-            .arg(name)
-            .arg(audiocaps->toString())
+            .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1")
             .arg(dumpFileName);
 
-    /*QString desc = QString("videotestsrc ! videoscale ! %1 ! tee name=t ! queue ! xvimagesink name=previewsink "
-                           "t. ! queue name=voutqueue ").arg(videocaps->toString());*/
-    qDebug() << desc;
-    QGst::BinPtr bin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
+    desc = QString("tcpclientsrc host=\"%1\" port=\"%2\" ! gdpdepay ! tee name=stream ! queue !"
+                   " queue ! decodebin name=decode ! videoconvert ! tee name=video ! queue !"
+                   " videoconvert ! appsink name=\"videosink\" caps=\"%3\"")
+            .arg(host.toString())
+            .arg(port)
+            .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
+
+    qDebug() << "Pipeline:" << desc;
+    pipeline = QGst::Parse::launch(desc).dynamicCast<QGst::Pipeline>();
+
+    QGlib::connect(pipeline->bus(), "message", this, &CamBox::onBusMessage);
+    pipeline->bus()->addSignalWatch();
+
+    m_sink->setElement(pipeline->getElementByName("videosink"));
+
+    // start playing
+    pipeline->setState(QGst::StatePlaying);
 
     sourceOnline();
 }

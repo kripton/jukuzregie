@@ -9,6 +9,9 @@
 #include <QDir>
 #include <QUdpSocket>
 #include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QGraphicsOpacityEffect>
+#include <QHash>
 
 #include "cambox.h"
 #include "jackthread.h"
@@ -28,6 +31,11 @@
 namespace Ui {
 class MainWindow;
 }
+
+struct camBoxMgmtData {
+    QGraphicsPixmapItem* pixmapItem;
+    QGraphicsOpacityEffect* opacityEffect;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -56,6 +64,7 @@ private slots:
     void newPreListenChangedHandler(bool newState);
     void newOpacityHandler(qreal newValue);
     void newVolumeHandler(qreal newValue);
+    void newVideoFrame(QImage* image);
 
     void newNotifyDatagram();
 

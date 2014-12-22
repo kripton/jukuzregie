@@ -7,8 +7,11 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QImage>
+#include <QHostAddress>
+#include <QGraphicsScene>
+#include <QGraphicsItem>
 
-#include "mainwindow.h"
+#include "videoappsink.h"
 
 #include <QGst/Clock>
 #include <QGst/Bin>
@@ -32,6 +35,7 @@ public:
     bool getPreListen();                    // read-only public access to state of Pre-Listen button
     bool getCamOnline();                    // read-only public access to camOnline
     QHash<QString, QString> sourceInfo();
+    void* userData;
 
 signals:
     void fadeMeIn();                        // emitted for parent when the GO-Button is clicked
@@ -50,6 +54,9 @@ public slots:
     void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
 
 private slots:
+    void newVideoFrameFromSink(QImage* image);
+
+private slots:
     void opcatiyFaderChanged();             // called when the opacity-fader got changed
     void volumeFaderChanged();              // called when the volume-fader got changed
     void sourceOnline();                    // UI cleanups/defaults after the source has come online
@@ -62,7 +69,14 @@ private slots:
 private:
     Ui::CamBox *ui;
     bool camOnline;
-    QGst::BinPtr bin;
+    QGst::PipelinePtr pipeline;
+    void onBusMessage(const QGst::MessagePtr & message);
+
+    VideoAppSink* m_sink;
+
+    // Preview window stuff
+    QGraphicsScene scene;
+    QGraphicsItem* oldItem;
 
     qreal fadeStepSize;
     QTimer* fadeTimer;
