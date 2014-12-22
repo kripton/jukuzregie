@@ -154,7 +154,7 @@ synchronisieren</string>
     <string>GO</string>
    </property>
   </widget>
-  <widget class="QGst::Ui::VideoWidget" name="VideoWidget" native="true">
+  <widget class="QGraphicsView" name="VideoBox">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -163,16 +163,20 @@ synchronisieren</string>
      <height>180</height>
     </rect>
    </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="lineWidth">
+    <number>0</number>
+   </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="horizontalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QGst::Ui::VideoWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">QGst/Ui/VideoWidget</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

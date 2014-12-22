@@ -8,8 +8,10 @@
 #include <QProcess>
 #include <QDir>
 #include <QUdpSocket>
+#include <QGraphicsScene>
+
 #include "cambox.h"
-#include <jackthread.h>
+#include "jackthread.h"
 
 #include <QGlib/Connect>
 #include <QGst/Element>
@@ -21,7 +23,7 @@
 #include <QGst/Bus>
 #include <QGst/Message>
 #include <QGst/Ui/VideoWidget>
-#include <QGst/Clock>
+
 
 namespace Ui {
 class MainWindow;
@@ -64,21 +66,13 @@ private:
     QProcess* process;
     QStringList arguments;
     QList<QObject*> allCamBoxes;
-    QHash<QObject*, QGst::PadPtr> boxVideoMixerPads;
-    QHash<QObject*, QGst::ElementPtr> boxAudioVolume;
-    QHash<QObject*, QGst::ElementPtr> boxAudioPreListenVolume;
 
     QUdpSocket* notifySocket;
 
     QGst::CapsPtr rawvideocaps;
     QGst::CapsPtr rawaudiocaps;
-    QGst::PipelinePtr Pipeline;
-    QGst::ElementPtr VideoSinkPreview;
-    QGst::ElementPtr VideoMixer;
-    QGst::ElementPtr VideoMixerTee;
-    QGst::ElementPtr audioMixer;
-    QGst::ElementPtr audioMixerTee;
-    QGst::ElementPtr audioPreListenMixer;
+
+    QGraphicsScene scene;
 
     void onBusMessage(const QGst::MessagePtr & message);
     void startupApplications();

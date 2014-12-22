@@ -6,10 +6,15 @@
 #include <QTimer>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QImage>
+
 #include "mainwindow.h"
 
-#include <QGst/Ui/VideoWidget>
+#include <QGst/Clock>
 #include <QGst/Bin>
+#include <QGst/Memory>
+#include <QGst/Buffer>
+#include <QGst/Utils/ApplicationSink>
 
 namespace Ui {
 class CamBox;
@@ -34,11 +39,13 @@ signals:
     void newOpacity(qreal newOpacity);      // emitted for parent when the opacity changed
     void newVolume(qreal newVolume);        // emitted for parent when the volume changed
 
+    void newVideoFrame(QImage* image);
+
 public slots:
     void setVideoOpacity(qreal opacity, bool diff = false);    // set the opacity slider to a new value or modifiy the current one
     void setVolume(qreal volume, bool diff = false);           // set the volume fader to a new value or modifiy the current one
     void setPreListen(bool value);          // write-only public access to state of Pre-Listen button
-    QGst::BinPtr startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps); // start playing from a source
+    void startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps); // start playing from a source
     void fadeStart(qreal stepSize, qint16 interval); // Start a fade on opacity
     void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
 

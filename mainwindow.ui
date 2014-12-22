@@ -10,6 +10,12 @@
     <height>896</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>JuKuZ Livestreaming Regie</string>
   </property>
@@ -157,7 +163,7 @@
          <property name="title">
           <string>Ausgabevorschau</string>
          </property>
-         <widget class="QGst::Ui::VideoWidget" name="VideoPlayer" native="true">
+         <widget class="QGraphicsView" name="videoBox">
           <property name="geometry">
            <rect>
             <x>5</x>
@@ -166,11 +172,17 @@
             <height>360</height>
            </rect>
           </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
           </property>
          </widget>
         </widget>
@@ -285,7 +297,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>20</height>
+     <height>16</height>
     </rect>
    </property>
   </widget>
@@ -305,12 +317,6 @@
    <class>CamBox</class>
    <extends>QGroupBox</extends>
    <header>cambox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QGst::Ui::VideoWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">QGst/Ui/VideoWidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

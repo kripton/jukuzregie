@@ -40,92 +40,10 @@ MainWindow::MainWindow(QWidget *parent) :
     rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
     rawaudiocaps = QGst::Caps::fromString("audio/x-raw,rate=48000,channels=2");
 
-    Pipeline = QGst::Pipeline::create();
-
-    // Background image bin
-    QString backgroundSprite = "/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png";
-    QString desc = QString("filesrc location=\"%1\" ! pngdec ! videoconvert ! imagefreeze ! %2 ! "
-                           "queue name=voutqueue").arg(backgroundSprite).arg(rawvideocaps->toString());
-    QGst::BinPtr backgroundBin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
-
-    QGst::PadPtr videoPad = backgroundBin->getElementByName("voutqueue")->getStaticPad("src");
-    backgroundBin->addPad(QGst::GhostPad::create(videoPad, "video"));
-
-    QString adesc;
-    // TODO: jackaudiosrc doesn't wanna play ... Let's use a muted audiotestsrc instead
-    if (0) {
-    adesc = QString("jackaudiosrc client-name=\"regie-Hintergrund\" connect=0 ! audioconvert ! %1 ! tee name=abgtee ! "
-                            "queue name=aoutqueue abgtee.! queue name=aPreListenQueue")
-           .arg(rawaudiocaps->toString());
-    } else {
-    adesc = QString("audiotestsrc ! audioconvert ! volume mute=1 ! audioconvert ! %1 ! tee name=abgtee ! "
-                            "queue name=aoutqueue abgtee.! queue name=aPreListenQueue")
-           .arg(rawaudiocaps->toString());
-    }
-    QGst::BinPtr aBackgroundBin = QGst::Bin::fromDescription(adesc, QGst::Bin::NoGhost);
-    QGst::PadPtr audioPad = aBackgroundBin->getElementByName("aoutqueue")->getStaticPad("src");
-    aBackgroundBin->addPad(QGst::GhostPad::create(audioPad, "audio"));
-    QGst::PadPtr audioPreListenPad = aBackgroundBin->getElementByName("aPreListenQueue")->getStaticPad("src");
-    aBackgroundBin->addPad(QGst::GhostPad::create(audioPreListenPad, "audioPreListen"));
-
-    // Video Mixer + Preview
-    VideoMixer = QGst::ElementFactory::make("videomixer");
-    QGst::ElementPtr convert = QGst::ElementFactory::make("videoconvert");
-    VideoMixerTee = QGst::ElementFactory::make("tee");
-    VideoSinkPreview = QGst::ElementFactory::make("xvimagesink");
-
-    // Audio Mixer
-    audioMixer = QGst::ElementFactory::make("adder");
-    QGst::ElementPtr aconvert = QGst::ElementFactory::make("audioconvert");
-    audioMixerTee = QGst::ElementFactory::make("tee");
-    QGst::ElementPtr arate = QGst::ElementFactory::make("audiorate");
-    QGst::ElementPtr audioSink = QGst::ElementFactory::make("fakesink");
-    //audioSink->setProperty("connect", 0);
-    //audioSink->setProperty("client-name", "regie-MixeOut");
-
-    // audioPreListerMixer
-    audioPreListenMixer = QGst::ElementFactory::make("adder");
-    QGst::ElementPtr aconvert2 = QGst::ElementFactory::make("audioconvert");
-    QGst::ElementPtr arate2 = QGst::ElementFactory::make("audiorate");
-    QGst::ElementPtr preListenSink = QGst::ElementFactory::make("fakesink");
-    //preListenSink->setProperty("client-name", "regie-PreListen");
-
-    // Add it all to the Pipeline now
-    Pipeline->add(backgroundBin, VideoMixer, VideoMixerTee, convert, VideoSinkPreview,
-                  audioMixer, aconvert, audioMixerTee, arate, audioSink);
-    Pipeline->add(aBackgroundBin, audioPreListenMixer, aconvert2, arate2, preListenSink);
-
-    // Link it all together
-    backgroundBin->getStaticPad("video")->link(VideoMixer->getRequestPad("sink_%u"));
-
-    VideoMixer->link(convert);
-    convert->link(VideoMixerTee);
-    VideoMixerTee->link(VideoSinkPreview);
-
-    aBackgroundBin->getStaticPad("audio")->link(audioMixer->getRequestPad("sink_%u"));
-    aBackgroundBin->getStaticPad("audioPreListen")->link(audioPreListenMixer->getRequestPad("sink_%u"));
-
-    audioMixer->link(aconvert);
-    aconvert->link(audioMixerTee);
-    audioMixerTee->link(arate);
-    arate->link(audioSink);
-
-    audioPreListenMixer->link(aconvert2);
-    aconvert2->link(arate2);
-    arate2->link(preListenSink);
-
-
-    ui->VideoPlayer->setVideoSink(VideoSinkPreview);
-
-
-    // Watch the bus for messages
-    QGst::BusPtr bus = Pipeline->bus();
-    bus->addSignalWatch();
-    QGlib::connect(bus, "message", this, &MainWindow::onBusMessage);
-
-    // ... and start the Pipeline
-    qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
-    Pipeline->setState(QGst::StatePlaying);
+    QImage backgroundSprite;
+    backgroundSprite.load("/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
+    scene.addPixmap(QPixmap::fromImage(backgroundSprite));
+    ui->videoBox->setScene(&scene);
 
     notifySocket = new QUdpSocket(this);
     notifySocket->bind(12007);
@@ -157,45 +75,7 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
         CamBox* box = (CamBox*) boxobj;
         if ((box->name == hash->value("name")) && !box->getCamOnline())
         {
-            QGst::ClockPtr clock = Pipeline->clock();
-
-            QGst::BinPtr bin = box->startCam(senderHost, senderPort - 1, rawvideocaps, rawaudiocaps);
-            Pipeline->add(bin);
-            QGst::PadPtr sinkPad = VideoMixer->getRequestPad("sink_%u");
-            boxVideoMixerPads.insert(boxobj, sinkPad);
-            bin->getStaticPad("video")->link(sinkPad);
-            sinkPad->setProperty("alpha", 0);
-
-            QGst::ElementPtr aVolume = QGst::ElementFactory::make("volume");
-            Pipeline->add(aVolume);
-            boxAudioVolume.insert(boxobj, aVolume);
-            aVolume->setProperty("volume", 0.0);
-            bin->getStaticPad("audio")->link(aVolume->getStaticPad("sink"));
-            QGst::PadPtr aSinkPad = audioMixer->getRequestPad("sink_%u");
-            aVolume->getStaticPad("src")->link(aSinkPad);
-
-            QGst::ElementPtr aPreListenVolume = QGst::ElementFactory::make("volume");
-            Pipeline->add(aPreListenVolume);
-            boxAudioPreListenVolume.insert(boxobj, aPreListenVolume);
-            aPreListenVolume->setProperty("mute", true);
-            bin->getStaticPad("audioPreListen")->link(aPreListenVolume->getStaticPad("sink"));
-            QGst::PadPtr aSinkPad2 = audioPreListenMixer->getRequestPad("sink_%u");
-            aPreListenVolume->getStaticPad("src")->link(aSinkPad2);
-
-            bin->syncStateWithParent();
-            aVolume->syncStateWithParent();
-            aPreListenVolume->syncStateWithParent();
-
-            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
-            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
-            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
-            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
-            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
-            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
-            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
-            qDebug() << Pipeline->setClock(QGst::Clock::systemClock());
-            qDebug() << "CLOCK Name:" << Pipeline->clock()->name();
-
+            box->startCam(senderHost, senderPort - 1, rawvideocaps, rawaudiocaps);
         }
     }
 
@@ -215,7 +95,7 @@ void MainWindow::newNotifyDatagram()
 
         notifySocket->readDatagram(datagram.data(), datagram.size(), &senderHost, &senderPort);
 
-        qDebug() << "FROM" << senderHost << senderPort << datagram;
+        qDebug() << "FROM" << senderHost.toString() << senderPort << datagram;
         processNotifyDatagram(datagram, senderHost, senderPort);
     }
 }
@@ -409,15 +289,15 @@ void MainWindow::logoButtonToggled(bool checked)
 void MainWindow::newOpacityHandler(qreal newValue)
 {
     qDebug() << "New opacity from" << QObject::sender() << newValue;
-    if (!boxVideoMixerPads.contains(QObject::sender())) return;
-    boxVideoMixerPads[QObject::sender()]->setProperty("alpha", newValue);
+    //if (!boxVideoMixerPads.contains(QObject::sender())) return;
+    //boxVideoMixerPads[QObject::sender()]->setProperty("alpha", newValue);
 }
 
 void MainWindow::newVolumeHandler(qreal newValue)
 {
     qDebug() << "New volume from" << QObject::sender() << newValue;
-    if (!boxAudioVolume.contains(QObject::sender())) return;
-    boxAudioVolume[QObject::sender()]->setProperty("volume", newValue);
+    //if (!boxAudioVolume.contains(QObject::sender())) return;
+    //boxAudioVolume[QObject::sender()]->setProperty("volume", newValue);
 }
 
 void MainWindow::fadeMeInHandler()
@@ -439,9 +319,9 @@ void MainWindow::fadeMeInHandler()
 void MainWindow::newPreListenChangedHandler(bool newState)
 {
     qDebug() << "newPreListenChangedHandler" << newState;
-    if (!boxAudioPreListenVolume.contains(QObject::sender())) return;
-    qDebug() << boxAudioPreListenVolume[QObject::sender()]->name() << QString("setProperty(\"mute\", %1)").arg(!newState);
-    boxAudioPreListenVolume[QObject::sender()]->setProperty("mute", !newState);
+    //if (!boxAudioPreListenVolume.contains(QObject::sender())) return;
+    //qDebug() << boxAudioPreListenVolume[QObject::sender()]->name() << QString("setProperty(\"mute\", %1)").arg(!newState);
+    //boxAudioPreListenVolume[QObject::sender()]->setProperty("mute", !newState);
 
     //worker->set_led(i + 0x20, newState ? 0x7f : 0x00);
 }

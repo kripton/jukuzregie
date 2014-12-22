@@ -146,33 +146,16 @@ void CamBox::setPreListen(bool value)
     ui->MonitorPushButton->setChecked(value);
 }
 
-QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
+void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
 {
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << name;
-    QString dumpFileName = QString("/home/kripton/streaming/dump/%1.ogg").arg(name);
-
-    // TODO: Dump stream to disk
-    /*
-    QString desc = QString("uridecodebin uri=rtsp://%1:%2/test name=decode ! "
-                           "queue ! videoscale ! %3 ! tee name=video ! queue ! xvimagesink name=previewsink "
-                           "video. ! queue name=voutqueue "
-                           "decode. ! queue ! audioconvert ! level name=level_%4 ! audioconvert ! %5 ! tee name=audio ! queue name=a2outqueue "
-                           "audio. ! queue name=a2prelistenqueue" )
-            .arg(host.toString())
-            .arg(port)
-            .arg(videocaps->toString())
-            .arg(name)
-            .arg(audiocaps->toString())
-            .arg(dumpFileName);
-    */
+    QString dumpFileName = QString("/home/kripton/streaming/dump/%1.mkv").arg(name);
 
 
     QString desc = QString("tcpclientsrc host=%1 port=%2 ! gdpdepay ! tee name=stream ! decodebin name=decode ! "
-                           "queue ! videoscale ! %3 ! tee name=video ! queue ! xvimagesink name=previewsink "
-                           "video. ! queue name=voutqueue "
-                           "decode. ! queue ! audioconvert ! level name=level_%4 ! audioconvert ! %5 ! tee name=audio ! queue name=a2outqueue "
-                           "audio. ! queue name=a2prelistenqueue "
-                           "stream. ! queue ! filesink location=\"%6\"")
+                           "queue ! videoscale ! %3 ! tee name=video ! queue ! xvimagesink name=previewsink"
+                           "video. ! videoconvert ! appsink name=\"mysink\" caps=\"%2\""
+                           "stream. ! queue ! mkvmux ! filesink location=\"%6\"")
             .arg(host.toString())
             .arg(port)
             .arg(videocaps->toString())
@@ -185,20 +168,7 @@ QGst::BinPtr CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr vid
     qDebug() << desc;
     QGst::BinPtr bin = QGst::Bin::fromDescription(desc, QGst::Bin::NoGhost);
 
-    ui->VideoWidget->setVideoSink(bin->getElementByName("previewsink"));
-
-    QGst::PadPtr videoPad = bin->getElementByName("voutqueue")->getStaticPad("src");
-    bin->addPad(QGst::GhostPad::create(videoPad, "video"));
-
-    QGst::PadPtr audioPad = bin->getElementByName("a2outqueue")->getStaticPad("src");
-    bin->addPad(QGst::GhostPad::create(audioPad, "audio"));
-
-    QGst::PadPtr audioPreListenPad = bin->getElementByName("a2prelistenqueue")->getStaticPad("src");
-    bin->addPad(QGst::GhostPad::create(audioPreListenPad, "audioPreListen"));
-
     sourceOnline();
-
-    return bin;
 }
 
 void CamBox::sourceOnline() {
@@ -213,21 +183,6 @@ void CamBox::sourceOnline() {
 
     camOnline = true;
     updateBackground();
-
-    /*
-    // Record the stream to disk so it can be re-cut later
-    icecastDumpProc = new QProcess(this);
-    icecastDumpProc->start("gst-launch-1.0",
-                           QStringList() << "souphttpsrc"
-                                         << QString("location=%1%2").arg(iInfo.baseUrl.toString()).arg(mountName)
-                                         << "!"
-                                         << "filesink"
-                                         << QString("location=%1/streaming/%2/aufnahmen/%3_%4")
-                           .arg(QDir::homePath())
-                           .arg(((MainWindow*) mainWin)->startUp.toString("yyyy-MM-dd_hh-mm-ss"))
-                           .arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"))
-                           .arg(mountName)
-                           );*/
 }
 
 void CamBox::sourceOffline() {
@@ -235,11 +190,6 @@ void CamBox::sourceOffline() {
 
     qDebug() << "SOURCE ID" << name << "LEFT US";
 
-    //ui->VideoPlayer->stop();
-    //mediaSource->~MediaSource();
-    //mediaSource = NULL;
-
-    //KradClient::deleteStream(vPort.id);
     camOnline = false;
     updateBackground();
 
