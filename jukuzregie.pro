@@ -14,20 +14,30 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     cambox.cpp \
-    jackthread.cpp
+    jackthread.cpp \
+    videoappsink.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
     jackthread.h \
-    nanoKontrol2.h
+    nanoKontrol2.h \
+    videoappsink.h
 
 FORMS    += mainwindow.ui \
     cambox.ui
 
-LIBS += -ljack
+# Tell qmake to use pkg-config to find QtGStreamer.and jack
+CONFIG += link_pkgconfig
 
-INCLUDEPATH += /usr/include/QtGStreamer
-LIBS += -I/usr/include/QtGStreamer -lQtGStreamer-1.0 -lQtGLib-2.0 -lQtGStreamerUi-1.0
+# Now tell qmake to link to QtGStreamer and also use its include path and Cflags.
+contains(QT_VERSION, ^4\\..*) {
+  PKGCONFIG += QtGStreamer-1.0 QtGStreamerUtils-1.0
+}
+contains(QT_VERSION, ^5\\..*) {
+  PKGCONFIG += Qt5GStreamer-1.0 Qt5GStreamerUtils-1.0
+}
+
+PKGCONFIG += jack
 
 OTHER_FILES += \
     settings.txt
