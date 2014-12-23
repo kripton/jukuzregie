@@ -12,6 +12,7 @@
 #include <QGraphicsItem>
 
 #include "videoappsink.h"
+#include "audioappsink.h"
 
 #include <QGst/Clock>
 #include <QGst/Bin>
@@ -55,6 +56,7 @@ public slots:
 
 private slots:
     void newVideoFrameFromSink(QImage* image);
+    void newAudioBufferFromSink(QByteArray data);
 
 private slots:
     void opcatiyFaderChanged();             // called when the opacity-fader got changed
@@ -72,7 +74,9 @@ private:
     QGst::PipelinePtr pipeline;
     void onBusMessage(const QGst::MessagePtr & message);
 
-    VideoAppSink* m_sink;
+    VideoAppSink* m_videosink;
+
+    AudioAppSink* m_audiosink;
 
     // Preview window stuff
     QGraphicsScene scene;

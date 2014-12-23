@@ -27,8 +27,12 @@ CamBox::CamBox(QWidget *parent):
     ui->VideoBox->setScene(&scene);
     oldItem = 0;
 
-    m_sink = new VideoAppSink(this);
-    connect(m_sink, SIGNAL(newImage(QImage*)), this, SLOT(newVideoFrameFromSink(QImage*)));
+    m_videosink = new VideoAppSink(this);
+    connect(m_videosink, SIGNAL(newImage(QImage*)), this, SLOT(newVideoFrameFromSink(QImage*)));
+
+    m_audiosink = new AudioAppSink(this);
+    connect(m_audiosink, SIGNAL(newAudioBuffer(QByteArray)), this, SLOT(newAudioBufferFromSink(QByteArray)));
+
 
     fadeTimer = new QTimer(this);
     connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
@@ -148,6 +152,25 @@ void CamBox::newVideoFrameFromSink(QImage *image)
     emit newVideoFrame(image);
 }
 
+void CamBox::newAudioBufferFromSink(QByteArray data)
+{
+    qDebug() << "NEW AUDIO BUFFER";
+    float* buffer = (float*)data.data();
+
+    // Most simple peak calculation
+    float maxleft = 0.0;
+    float maxright = 0.0;
+    for (int i = 0; i < (data.size() / (int)sizeof(float));)
+    {
+        maxleft = std::max(maxleft, buffer[i]);
+        i++;
+        maxright = std::max(maxright, buffer[i]);
+        i++;
+    }
+    ui->AudioMeterSliderL->setValue(maxleft * 100);
+    ui->AudioMeterSliderR->setValue(maxright * 100);
+}
+
 void CamBox::fadeTimeEvent()
 {
     //qDebug() << "fadeTimeEvent" << ui->opacitySlider->value();
@@ -209,10 +232,12 @@ void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, 
 
     desc = QString("tcpclientsrc host=\"%1\" port=\"%2\" ! gdpdepay ! tee name=stream ! queue !"
                    " queue ! decodebin name=decode ! videoconvert ! tee name=video ! queue !"
-                   " videoconvert ! appsink name=\"videosink\" caps=\"%3\"")
+                   " videoconvert ! appsink name=videosink caps=\"%3\""
+                   " decode. ! audiorate silent=false ! audioconvert ! appsink name=audiosink caps=\"%4\"")
             .arg(host.toString())
             .arg(port)
-            .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
+            .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1")
+            .arg("audio/x-raw,format=F32LE,channels=2,rate=48000");
 
     qDebug() << "Pipeline:" << desc;
     pipeline = QGst::Parse::launch(desc).dynamicCast<QGst::Pipeline>();
@@ -220,7 +245,9 @@ void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, 
     QGlib::connect(pipeline->bus(), "message", this, &CamBox::onBusMessage);
     pipeline->bus()->addSignalWatch();
 
-    m_sink->setElement(pipeline->getElementByName("videosink"));
+    m_videosink->setElement(pipeline->getElementByName("videosink"));
+
+    m_audiosink->setElement(pipeline->getElementByName("audiosink"));
 
     // start playing
     pipeline->setState(QGst::StatePlaying);
@@ -250,6 +277,8 @@ void CamBox::sourceOffline() {
     camOnline = false;
     updateBackground();
 
+    ui->AudioMeterSliderL->setValue(0);
+    ui->AudioMeterSliderR->setValue(0);
     ui->volumeSlider->setValue(0);
     ui->opacitySlider->setValue(0);
     ui->volumeSlider->setEnabled(false);
