@@ -44,6 +44,7 @@ CamBox::CamBox(QWidget *parent):
 
 CamBox::~CamBox()
 {
+    if (pipeline) pipeline->setState(QGst::StateNull);
     delete ui;
 }
 
@@ -154,7 +155,6 @@ void CamBox::newVideoFrameFromSink(QImage *image)
 
 void CamBox::newAudioBufferFromSink(QByteArray data)
 {
-    qDebug() << "NEW AUDIO BUFFER";
     float* buffer = (float*)data.data();
 
     // Most simple peak calculation
@@ -169,6 +169,15 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
     }
     ui->AudioMeterSliderL->setValue(maxleft * 100);
     ui->AudioMeterSliderR->setValue(maxright * 100);
+
+    if (audioBuffers.size() < 16)
+    {
+        audioBuffers.enqueue(data);
+    }
+    else
+    {
+        qWarning() << "AUDIO BUFFER OVERFLOW";
+    }
 }
 
 void CamBox::fadeTimeEvent()
@@ -273,6 +282,8 @@ void CamBox::sourceOffline() {
     if (camOnline) return;
 
     qDebug() << "SOURCE ID" << name << "LEFT US";
+
+    audioBuffers.clear();
 
     camOnline = false;
     updateBackground();

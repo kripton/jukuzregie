@@ -10,6 +10,7 @@
 #include <QHostAddress>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QQueue>
 
 #include "videoappsink.h"
 #include "audioappsink.h"
@@ -37,6 +38,8 @@ public:
     bool getCamOnline();                    // read-only public access to camOnline
     QHash<QString, QString> sourceInfo();
     void* userData;
+
+    QQueue<QByteArray> audioBuffers;
 
 signals:
     void fadeMeIn();                        // emitted for parent when the GO-Button is clicked

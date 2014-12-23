@@ -115,30 +115,6 @@ void MainWindow::broadcastSourceInfo()
     notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
 }
 
-void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm)
-{
-    qDebug() << "NewState" << scm->newState();
-    return;
-}
-
-void handleElementMessage(const QGst::ElementMessagePtr & message)
-{
-    return;
-    qDebug() << "ELEMENTMESSAGE:" << message->internalStructure()->fieldName(0) << message->internalStructure()->fieldName(1);
-    for (int i = 0; i < message->internalStructure()->numberOfFields(); i++)
-    {
-        QString fieldName = message->internalStructure()->fieldName(i);
-        qDebug() << i << fieldName << message->internalStructure()->value(fieldName.toUtf8());
-    }
-}
-
-void handleQosMessage(const QGst::QosMessagePtr & message)
-{
-    return;
-    qDebug() << "Q_OS" << message->typeName() << message->quality();
-    return;
-}
-
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)
 {
     //qDebug() << "MESSAGE" << message->type() << message->typeName();
@@ -149,25 +125,7 @@ void MainWindow::onBusMessage(const QGst::MessagePtr & message)
         qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
         break;
     case QGst::MessageStateChanged: //The element in message->source() has changed state
-        handlePipelineStateChange(message.staticCast<QGst::StateChangedMessage>());
-        break;
-    case QGst::MessageElement: // Level data?
-        handleElementMessage(message.staticCast<QGst::ElementMessage>());
-        return;
-        qDebug() << "ELEM:" << message->internalStructure()->name();
-
-        uint i2;
-        for (i2 = 0; i2 <= message->internalStructure()->numberOfFields(); i2++)
-        {
-            if (message->internalStructure()->fieldName(i2) != "peak") continue;
-            QGlib::Value val = message->internalStructure()->value(message->internalStructure()->fieldName(i2).toUtf8());
-            qDebug() << message->internalStructure()->fieldName(i2) << val;
-            qDebug() << val << val.type().name();
-        }
-
-        break;
-    case QGst::MessageQos:
-        handleQosMessage(message.staticCast<QGst::QosMessage>());
+        qDebug() << "Pipeline NewState" << message.staticCast<QGst::StateChangedMessage>()->newState();
         break;
     default:
         break;
@@ -212,6 +170,8 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
       case 1: box = (CamBox*)ui->groupBox_2; break;
       case 2: box = (CamBox*)ui->groupBox_3; break;
       case 3: box = (CamBox*)ui->groupBox_4; break;
+      case 4: box = (CamBox*)ui->groupBox_5; break;
+      case 5: box = (CamBox*)ui->groupBox_6; break;
     }
 
     if (box == NULL) return; // Button/Slider/Knob channel number is too high
