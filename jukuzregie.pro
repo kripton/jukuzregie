@@ -15,13 +15,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     cambox.cpp \
     jackthread.cpp \
-    videoappsink.cpp
+    videoappsink.cpp \
+    audioappsink.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
     jackthread.h \
     nanoKontrol2.h \
-    videoappsink.h
+    videoappsink.h \
+    audioappsink.h
 
 FORMS    += mainwindow.ui \
     cambox.ui
