@@ -160,7 +160,7 @@ void CamBox::newVideoFrameFromSink(QImage *image)
 
 void CamBox::newAudioBufferFromSink(QByteArray data)
 {
-    qDebug() << "NEW BUFFER FROM SINK. SIZE:" << data.size();
+    //qDebug() << "NEW BUFFER FROM SINK. SIZE:" << data.size();
 
     float* buffer = (float*)data.data();
 
@@ -168,23 +168,24 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
     float maxleft = 0.0;
     float maxright = 0.0;
 
-    #pragma omp parallel for
-    for (int i = 0; i < (data.size() / (int)sizeof(float)); i = i + 2)
+    if (audioData.size() < 131070)
     {
-        maxleft = std::max(maxleft, buffer[i]);
-        maxright = std::max(maxright, buffer[i + 1]);
-    }
-    ui->AudioMeterSliderL->setValue(maxleft * 100);
-    ui->AudioMeterSliderR->setValue(maxright * 100);
-
-    if (audioBuffers.size() < 16)
-    {
-        audioBuffers.enqueue(data);
+        for (int i = 0; i < (data.size() / (int)sizeof(float)); i = i + 2)
+        {
+            maxleft = std::max(maxleft, buffer[i]);
+            maxright = std::max(maxright, buffer[i + 1]);
+            audioData.enqueue(buffer[i]);
+            audioData.enqueue(buffer[i+1]);
+        }
     }
     else
     {
         qWarning() << "AUDIO BUFFER OVERFLOW";
     }
+
+
+    ui->AudioMeterSliderL->setValue(((maxleft * 100) + ui->AudioMeterSliderL->value()) / 2);
+    ui->AudioMeterSliderR->setValue(((maxright * 100) + ui->AudioMeterSliderR->value()) / 2);
 }
 
 void CamBox::fadeTimeEvent()
@@ -290,7 +291,7 @@ void CamBox::sourceOffline() {
 
     qDebug() << "SOURCE ID" << name << "LEFT US";
 
-    audioBuffers.clear();
+    audioData.clear();
 
     camOnline = false;
     updateBackground();

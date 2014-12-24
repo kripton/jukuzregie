@@ -40,7 +40,7 @@ public:
     QHash<QString, QString> sourceInfo();
     void* userData;
 
-    QQueue<QByteArray> audioBuffers;
+    QQueue<float> audioData;
 
 signals:
     void fadeMeIn();                        // emitted for parent when the GO-Button is clicked

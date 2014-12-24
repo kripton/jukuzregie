@@ -139,17 +139,21 @@ void MainWindow::prepareAudioData(uint length)
     {
         CamBox* box = (CamBox*) obj;
 
-        if (box->audioBuffers.size() == 0) continue;
-        QByteArray boxData = box->audioBuffers.dequeue();
+        //qDebug() << "WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
 
-        qDebug() << "WANT" << length << "BYTES AND CAMBOX HAS" << boxData.size();
+        if ((box->audioData.size() * sizeof(float)) < length) continue;
 
         qreal vol = box->getVolume();
-        #pragma omp parallel for
+        if (vol == 0.0)
+        {
+            box->audioData.clear();
+            continue;
+        }
         for (uint i = 0; i < (length / sizeof(float)); i++)
         {
-            ((float*)data.data())[i] += ((float*)boxData.data())[i] * vol;
+            ((float*)data.data())[i] += box->audioData.dequeue() * vol;
         }
+        //qDebug() << "AFTERWARDS" << box->audioData.size();
     }
 
     audioSrc->pushAudioBuffer(data);
