@@ -12,9 +12,11 @@
 #include <QGraphicsItem>
 #include <QGraphicsOpacityEffect>
 #include <QHash>
+#include <QByteArray>
 
 #include "cambox.h"
 #include "jackthread.h"
+#include "audioappsrc.h"
 
 #include <QGlib/Connect>
 #include <QGst/Element>
@@ -63,12 +65,13 @@ private slots:
     void fadeMeInHandler();
     void newPreListenChangedHandler(bool newState);
     void newOpacityHandler(qreal newValue);
-    void newVolumeHandler(qreal newValue);
     void newVideoFrame(QImage* image);
 
     void newNotifyDatagram();
 
     void broadcastSourceInfo();
+
+    void prepareAudioData(uint length);
 
 private:
     Ui::MainWindow *ui;
@@ -80,6 +83,10 @@ private:
 
     QGst::CapsPtr rawvideocaps;
     QGst::CapsPtr rawaudiocaps;
+
+    QGst::PipelinePtr audioPipe;
+
+    AudioAppSrc* audioSrc;
 
     QGraphicsScene scene;
 

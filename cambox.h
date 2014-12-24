@@ -35,6 +35,7 @@ public:
 
     QString name;                           // The name of this cambox. Like "cam_02"
     bool getPreListen();                    // read-only public access to state of Pre-Listen button
+    qreal getVolume();                      // read-only public access to the current volume
     bool getCamOnline();                    // read-only public access to camOnline
     QHash<QString, QString> sourceInfo();
     void* userData;

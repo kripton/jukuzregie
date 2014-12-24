@@ -14,7 +14,6 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(box, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandler()));
         connect(box, SIGNAL(newPreListen(bool)), this, SLOT(newPreListenChangedHandler(bool)));
         connect(box, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandler(qreal)));
-        connect(box, SIGNAL(newVolume(qreal)), this, SLOT(newVolumeHandler(qreal)));
         connect(box, SIGNAL(newVideoFrame(QImage*)), this, SLOT(newVideoFrame(QImage*)));
     }
     startUp = QDateTime::currentDateTime();
@@ -24,12 +23,12 @@ MainWindow::MainWindow(QWidget *parent) :
     startupApplications();
 
     // Start the JACK-thread
-    QThread* thread = new QThread;
+    QThread* jackThread = new QThread;
     worker = new JackThread();
-    worker->moveToThread(thread);
+    worker->moveToThread(jackThread);
 
-    connect(thread, SIGNAL(started()), worker, SLOT(setup()));
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    connect(jackThread, SIGNAL(started()), worker, SLOT(setup()));
+    connect(jackThread, SIGNAL(finished()), jackThread, SLOT(deleteLater()));
 
     connect(worker, SIGNAL(midiEvent(char, char, char)), this, SLOT(midiEvent(char, char, char)));
 
@@ -39,7 +38,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
 
     rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
-    rawaudiocaps = QGst::Caps::fromString("audio/x-raw,rate=48000,channels=2");
+    rawaudiocaps = QGst::Caps::fromString("audio/x-raw,format=F32LE,rate=48000,channels=2");
+
+    QString audioPipeDesc = QString("appsrc name=audiosource caps=\"%1\" is-live=true blocksize=8192 ! jackaudiosink provide-clock=false sync=false")
+            .arg("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
+    audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
+    audioSrc = new AudioAppSrc(this);
+    audioSrc->setElement(audioPipe->getElementByName("audiosource"));
+    connect (audioSrc, SIGNAL(sigNeedData(uint)), this, SLOT(prepareAudioData(uint)));
+    QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
+    audioPipe->bus()->addSignalWatch();
+    audioPipe->setState(QGst::StatePlaying);
 
     QImage backgroundSprite;
     backgroundSprite.load("/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
@@ -55,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(broadcastSourceInfo()));
     notificationTimer->start();
 
-    thread->start();
+    jackThread->start();
 }
 
 MainWindow::~MainWindow()
@@ -115,14 +124,43 @@ void MainWindow::broadcastSourceInfo()
     notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
 }
 
+void MainWindow::prepareAudioData(uint length)
+{
+    QByteArray data;
+    data.resize(length);
+
+    #pragma omp parallel for
+    for (uint i = 0; i < (length / sizeof(float)); i++)
+    {
+        ((float*)data.data())[i] = 0.0;
+    }
+
+    foreach (QObject* obj, allCamBoxes)
+    {
+        CamBox* box = (CamBox*) obj;
+
+        if (box->audioBuffers.size() == 0) continue;
+        QByteArray boxData = box->audioBuffers.dequeue();
+
+        qDebug() << "WANT" << length << "BYTES AND CAMBOX HAS" << boxData.size();
+
+        qreal vol = box->getVolume();
+        #pragma omp parallel for
+        for (uint i = 0; i < (length / sizeof(float)); i++)
+        {
+            ((float*)data.data())[i] += ((float*)boxData.data())[i] * vol;
+        }
+    }
+
+    audioSrc->pushAudioBuffer(data);
+}
+
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)
 {
-    //qDebug() << "MESSAGE" << message->type() << message->typeName();
+    qDebug() << "MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
-    case QGst::MessageEos: //End of stream. From which cambox?
-        break;
     case QGst::MessageError: //Some error occurred.
-        qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
+        qCritical() << message.staticCast<QGst::ErrorMessage>()->error() << message.staticCast<QGst::ErrorMessage>()->debugMessage();
         break;
     case QGst::MessageStateChanged: //The element in message->source() has changed state
         qDebug() << "Pipeline NewState" << message.staticCast<QGst::StateChangedMessage>()->newState();
@@ -258,13 +296,6 @@ void MainWindow::newOpacityHandler(qreal newValue)
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
     if ((mgmtdata == 0) || (mgmtdata->opacityEffect == 0)) return;
     mgmtdata->opacityEffect->setOpacity(newValue);
-}
-
-void MainWindow::newVolumeHandler(qreal newValue)
-{
-    qDebug() << "New volume from" << QObject::sender() << newValue;
-    //if (!boxAudioVolume.contains(QObject::sender())) return;
-    //boxAudioVolume[QObject::sender()]->setProperty("volume", newValue);
 }
 
 void MainWindow::newVideoFrame(QImage *image)

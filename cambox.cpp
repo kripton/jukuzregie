@@ -53,6 +53,11 @@ bool CamBox::getPreListen()
     return ui->MonitorPushButton->isChecked();
 }
 
+qreal CamBox::getVolume()
+{
+    return ui->volumeSlider->value() / 1000.0;
+}
+
 bool CamBox::getCamOnline() {
     return camOnline;
 }
@@ -155,17 +160,19 @@ void CamBox::newVideoFrameFromSink(QImage *image)
 
 void CamBox::newAudioBufferFromSink(QByteArray data)
 {
+    qDebug() << "NEW BUFFER FROM SINK. SIZE:" << data.size();
+
     float* buffer = (float*)data.data();
 
     // Most simple peak calculation
     float maxleft = 0.0;
     float maxright = 0.0;
-    for (int i = 0; i < (data.size() / (int)sizeof(float));)
+
+    #pragma omp parallel for
+    for (int i = 0; i < (data.size() / (int)sizeof(float)); i = i + 2)
     {
         maxleft = std::max(maxleft, buffer[i]);
-        i++;
-        maxright = std::max(maxright, buffer[i]);
-        i++;
+        maxright = std::max(maxright, buffer[i + 1]);
     }
     ui->AudioMeterSliderL->setValue(maxleft * 100);
     ui->AudioMeterSliderR->setValue(maxright * 100);

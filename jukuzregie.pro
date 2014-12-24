@@ -11,19 +11,24 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = jukuzregie
 TEMPLATE = app
 
+QMAKE_CXXFLAGS_RELEASE += -O3 -march=native -fopenmp -D_GLIBCXX_PARALLEL
+QMAKE_LFLAGS_RELEASE += -fopenmp
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     cambox.cpp \
     jackthread.cpp \
     videoappsink.cpp \
-    audioappsink.cpp
+    audioappsink.cpp \
+    audioappsrc.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
     jackthread.h \
     nanoKontrol2.h \
     videoappsink.h \
-    audioappsink.h
+    audioappsink.h \
+    audioappsrc.h
 
 FORMS    += mainwindow.ui \
     cambox.ui
