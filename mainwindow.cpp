@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
     rawaudiocaps = QGst::Caps::fromString("audio/x-raw,format=F32LE,rate=48000,channels=2");
 
-    QString audioPipeDesc = QString("appsrc name=audiosource caps=\"%1\" is-live=true blocksize=8192 ! jackaudiosink provide-clock=false sync=false")
+    QString audioPipeDesc = QString("appsrc name=audiosource caps=\"%1\" is-live=true blocksize=32768 ! jackaudiosink provide-clock=false sync=false")
             .arg("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
     audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
     audioSrc = new AudioAppSrc(this);
@@ -129,19 +129,24 @@ void MainWindow::prepareAudioData(uint length)
     QByteArray data;
     data.resize(length);
 
+    // Make sure the buffer has all float-zeroes
     #pragma omp parallel for
     for (uint i = 0; i < (length / sizeof(float)); i++)
     {
         ((float*)data.data())[i] = 0.0;
     }
 
+    // Add the audio of all camBoxes
     foreach (QObject* obj, allCamBoxes)
     {
         CamBox* box = (CamBox*) obj;
 
-        //qDebug() << "WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
+        if (((box->audioData.size() * sizeof(float)) < length) || !box->getCamOnline())
+        {
+            continue;
+        }
 
-        if ((box->audioData.size() * sizeof(float)) < length) continue;
+        //qDebug() << "WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
 
         qreal vol = box->getVolume();
         if (vol == 0.0)
@@ -156,6 +161,7 @@ void MainWindow::prepareAudioData(uint length)
         //qDebug() << "AFTERWARDS" << box->audioData.size();
     }
 
+    // Push the buffer to the pipeline
     audioSrc->pushAudioBuffer(data);
 }
 

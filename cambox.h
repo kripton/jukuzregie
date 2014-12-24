@@ -84,7 +84,7 @@ private:
 
     // Preview window stuff
     QGraphicsScene scene;
-    QGraphicsItem* oldItem;
+    QGraphicsPixmapItem* pixmapItem;
 
     qreal fadeStepSize;
     QTimer* fadeTimer;

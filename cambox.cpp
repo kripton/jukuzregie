@@ -25,7 +25,7 @@ CamBox::CamBox(QWidget *parent):
     ui->GOButton->setEnabled(false);
 
     ui->VideoBox->setScene(&scene);
-    oldItem = 0;
+    pixmapItem = 0;
 
     m_videosink = new VideoAppSink(this);
     connect(m_videosink, SIGNAL(newImage(QImage*)), this, SLOT(newVideoFrameFromSink(QImage*)));
@@ -146,15 +146,14 @@ void CamBox::setDumpDir(QString dir)
 void CamBox::newVideoFrameFromSink(QImage *image)
 {
     // display it in the preview
-    if (oldItem != 0)
-    {
-        scene.removeItem(oldItem);
-        delete oldItem;
-    }
-    // TODO: If we have too few CPU cycles left, use Qt::FastTransformation
     QImage previewImage = image->scaled(320, 180, Qt::KeepAspectRatio, Qt::FastTransformation);
-    oldItem = (QGraphicsItem*)scene.addPixmap(QPixmap::fromImage(previewImage));
+    if (pixmapItem == 0)
+    {
+        pixmapItem = scene.addPixmap(QPixmap::fromImage(previewImage));
+    }
+    pixmapItem->setPixmap(QPixmap::fromImage(previewImage));
 
+    // Emit it so that the mainWindow can pick it up for the main image
     emit newVideoFrame(image);
 }
 
@@ -182,7 +181,6 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
     {
         qWarning() << "AUDIO BUFFER OVERFLOW";
     }
-
 
     ui->AudioMeterSliderL->setValue(((maxleft * 100) + ui->AudioMeterSliderL->value()) / 2);
     ui->AudioMeterSliderR->setValue(((maxright * 100) + ui->AudioMeterSliderR->value()) / 2);

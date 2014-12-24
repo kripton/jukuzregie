@@ -11,7 +11,6 @@
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QGraphicsOpacityEffect>
-#include <QHash>
 #include <QByteArray>
 
 #include "cambox.h"
