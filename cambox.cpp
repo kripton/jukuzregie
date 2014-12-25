@@ -28,7 +28,7 @@ CamBox::CamBox(QWidget *parent):
     pixmapItem = 0;
 
     m_videosink = new VideoAppSink(this);
-    connect(m_videosink, SIGNAL(newImage(QImage*)), this, SLOT(newVideoFrameFromSink(QImage*)));
+    connect(m_videosink, SIGNAL(newImage(QImage)), this, SLOT(newVideoFrameFromSink(QImage)));
 
     m_audiosink = new AudioAppSink(this);
     connect(m_audiosink, SIGNAL(newAudioBuffer(QByteArray)), this, SLOT(newAudioBufferFromSink(QByteArray)));
@@ -143,10 +143,10 @@ void CamBox::setDumpDir(QString dir)
     // TODO
 }
 
-void CamBox::newVideoFrameFromSink(QImage *image)
+void CamBox::newVideoFrameFromSink(QImage image)
 {
     // display it in the preview
-    QImage previewImage = image->scaled(320, 180, Qt::KeepAspectRatio, Qt::FastTransformation);
+    QImage previewImage = image.scaled(320, 180, Qt::KeepAspectRatio, Qt::FastTransformation);
     if (pixmapItem == 0)
     {
         pixmapItem = scene.addPixmap(QPixmap::fromImage(previewImage));

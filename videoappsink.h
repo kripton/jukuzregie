@@ -24,7 +24,7 @@ public:
     explicit VideoAppSink(QObject *parent = 0);
 
 signals:
-    void newImage(QImage* image);
+    void newImage(QImage image);
 
 public slots:
 

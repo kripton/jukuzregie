@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(box, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandler()));
         connect(box, SIGNAL(newPreListen(bool)), this, SLOT(newPreListenChangedHandler(bool)));
         connect(box, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandler(qreal)));
-        connect(box, SIGNAL(newVideoFrame(QImage*)), this, SLOT(newVideoFrame(QImage*)));
+        connect(box, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
     }
     startUp = QDateTime::currentDateTime();
     QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
@@ -308,28 +308,25 @@ void MainWindow::newOpacityHandler(qreal newValue)
     mgmtdata->opacityEffect->setOpacity(newValue);
 }
 
-void MainWindow::newVideoFrame(QImage *image)
+void MainWindow::newVideoFrame(QImage image)
 {
-    QImage img = image->convertToFormat(QImage::Format_ARGB32_Premultiplied);
-
     // overlay it to the main scene
     CamBox* sender = (CamBox*)QObject::sender();
     if (sender == 0) return;
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
     if (mgmtdata == 0) return;
+
     if (mgmtdata->pixmapItem == 0)
     {
-        mgmtdata->pixmapItem = scene.addPixmap(QPixmap::fromImage(img));
+        mgmtdata->pixmapItem = scene.addPixmap(QPixmap::fromImage(image));
         mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
         mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
         mgmtdata->opacityEffect->setOpacity(0.0);
     }
     else
     {
-        mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(img));
+        mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
     }
-
-    delete image;
 }
 
 void MainWindow::fadeMeInHandler()

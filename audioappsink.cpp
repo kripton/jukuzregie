@@ -17,6 +17,8 @@ QGst::FlowReturn AudioAppSink::newSample()
     sample->buffer()->map(mapInfo, QGst::MapRead);
 
     QByteArray data((char*)mapInfo.data(), mapInfo.size());
+    sample->buffer()->unmap(mapInfo);
+
     emit newAudioBuffer(data);
 
     return QGst::FlowOk;

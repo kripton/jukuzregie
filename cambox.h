@@ -48,7 +48,7 @@ signals:
     void newOpacity(qreal newOpacity);      // emitted for parent when the opacity changed
     void newVolume(qreal newVolume);        // emitted for parent when the volume changed
 
-    void newVideoFrame(QImage* image);
+    void newVideoFrame(QImage image);
 
 public slots:
     void setVideoOpacity(qreal opacity, bool diff = false);    // set the opacity slider to a new value or modifiy the current one
@@ -59,7 +59,7 @@ public slots:
     void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
 
 private slots:
-    void newVideoFrameFromSink(QImage* image);
+    void newVideoFrameFromSink(QImage image);
     void newAudioBufferFromSink(QByteArray data);
 
 private slots:

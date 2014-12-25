@@ -64,7 +64,7 @@ private slots:
     void fadeMeInHandler();
     void newPreListenChangedHandler(bool newState);
     void newOpacityHandler(qreal newValue);
-    void newVideoFrame(QImage* image);
+    void newVideoFrame(QImage image);
 
     void newNotifyDatagram();
 
