@@ -148,6 +148,8 @@ void MainWindow::prepareAudioData(uint length)
 
         //qDebug() << "WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
 
+        // TODO: preListenSrc if box->getPreListen Before clear ;)
+
         qreal vol = box->getVolume();
         if (vol == 0.0)
         {

@@ -248,7 +248,7 @@ void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, 
     desc = QString("tcpclientsrc host=\"%1\" port=\"%2\" ! gdpdepay ! tee name=stream ! queue !"
                    " queue ! decodebin name=decode ! videoconvert ! tee name=video ! queue !"
                    " videoconvert ! appsink name=videosink caps=\"%3\""
-                   " decode. ! audiorate silent=false ! audioconvert ! appsink name=audiosink caps=\"%4\"")
+                   " decode. ! audioconvert ! appsink name=audiosink caps=\"%4\"")
             .arg(host.toString())
             .arg(port)
             .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1")
