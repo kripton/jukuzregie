@@ -40,12 +40,17 @@ MainWindow::MainWindow(QWidget *parent) :
     rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
     rawaudiocaps = QGst::Caps::fromString("audio/x-raw,format=F32LE,rate=48000,channels=2");
 
-    QString audioPipeDesc = QString("appsrc name=audiosource caps=\"%1\" is-live=true blocksize=32768 ! jackaudiosink provide-clock=false sync=false")
+    QString audioPipeDesc = QString(" appsrc name=audiosource_main caps=\"%1\" is-live=true blocksize=32768 ! "
+                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
+                                    " appsrc name=audiosource_monitor caps=\"%1\" is-live=true blocksize=32768 ! "
+                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor")
             .arg("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
     audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
-    audioSrc = new AudioAppSrc(this);
-    audioSrc->setElement(audioPipe->getElementByName("audiosource"));
-    connect (audioSrc, SIGNAL(sigNeedData(uint)), this, SLOT(prepareAudioData(uint)));
+    audioSrc_main = new AudioAppSrc(this);
+    audioSrc_main->setElement(audioPipe->getElementByName("audiosource_main"));
+    connect (audioSrc_main, SIGNAL(sigNeedData(uint)), this, SLOT(prepareAudioData(uint)));
+    audioSrc_monitor = new AudioAppSrc(this);
+    audioSrc_monitor->setElement(audioPipe->getElementByName("audiosource_monitor"));
     QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
     audioPipe->bus()->addSignalWatch();
     audioPipe->setState(QGst::StatePlaying);
@@ -135,6 +140,7 @@ void MainWindow::prepareAudioData(uint length)
     {
         ((float*)data.data())[i] = 0.0;
     }
+    QByteArray preListenData = QByteArray(data);
 
     // Add the audio of all camBoxes
     foreach (QObject* obj, allCamBoxes)
@@ -151,20 +157,30 @@ void MainWindow::prepareAudioData(uint length)
         // TODO: preListenSrc if box->getPreListen Before clear ;)
 
         qreal vol = box->getVolume();
-        if (vol == 0.0)
+        bool preListen = box->getPreListen();
+
+        if ((vol == 0.0) && !preListen)
         {
             box->audioData.clear();
             continue;
         }
+
         for (uint i = 0; i < (length / sizeof(float)); i++)
         {
-            ((float*)data.data())[i] += box->audioData.dequeue() * vol;
+            float sample = box->audioData.dequeue();
+            ((float*)data.data())[i] += sample * vol;
+            if (preListen)
+            {
+                ((float*)preListenData.data())[i] += sample;
+            }
+
         }
         //qDebug() << "AFTERWARDS" << box->audioData.size();
     }
 
     // Push the buffer to the pipeline
-    audioSrc->pushAudioBuffer(data);
+    audioSrc_main->pushAudioBuffer(data);
+    audioSrc_monitor->pushAudioBuffer(preListenData);
 }
 
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)

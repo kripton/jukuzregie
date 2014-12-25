@@ -85,7 +85,8 @@ private:
 
     QGst::PipelinePtr audioPipe;
 
-    AudioAppSrc* audioSrc;
+    AudioAppSrc* audioSrc_main;
+    AudioAppSrc* audioSrc_monitor;
 
     QGraphicsScene scene;
 

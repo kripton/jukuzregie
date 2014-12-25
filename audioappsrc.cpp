@@ -23,6 +23,8 @@ void AudioAppSrc::pushAudioBuffer(QByteArray data)
 {
     //qDebug() << "PUSHING AUDIO BUFFER. Length:" << data.size();
 
+    // TODO: is memcpy really needed here?
+
     QGst::BufferPtr buf = QGst::Buffer::create(data.size());
     QGst::MapInfo mapInfo;
     buf->map(mapInfo, QGst::MapWrite);
