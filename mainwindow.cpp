@@ -40,9 +40,9 @@ MainWindow::MainWindow(QWidget *parent) :
     rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
     rawaudiocaps = QGst::Caps::fromString("audio/x-raw,format=F32LE,rate=48000,channels=2");
 
-    QString audioPipeDesc = QString(" appsrc name=audiosource_main caps=\"%1\" is-live=true blocksize=32768 ! "
+    QString audioPipeDesc = QString(" appsrc name=audiosource_main caps=\"%1\" is-live=true blocksize=8192 ! "
                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
-                                    " appsrc name=audiosource_monitor caps=\"%1\" is-live=true blocksize=32768 ! "
+                                    " appsrc name=audiosource_monitor caps=\"%1\" is-live=true blocksize=8192 ! "
                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor")
             .arg("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
     audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
@@ -147,14 +147,17 @@ void MainWindow::prepareAudioData(uint length)
     {
         CamBox* box = (CamBox*) obj;
 
-        if (((box->audioData.size() * sizeof(float)) < length) || !box->getCamOnline())
+        if (!box->getCamOnline())
         {
             continue;
         }
 
-        //qDebug() << "WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
-
-        // TODO: preListenSrc if box->getPreListen Before clear ;)
+        if ((box->audioData.size() * sizeof(float)) < length)
+        {
+            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
+            // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
+            continue;
+        }
 
         qreal vol = box->getVolume();
         bool preListen = box->getPreListen();

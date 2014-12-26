@@ -179,7 +179,8 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
     }
     else
     {
-        qWarning() << "AUDIO BUFFER OVERFLOW";
+        qWarning() << "AUDIO BUFFER OVERFLOW in camBox" << name << "Samples have been dropped";
+        // The samples are not saved anywhere and are dropped. THIS IS AUDIBLE!
     }
 
     ui->AudioMeterSliderL->setValue(((maxleft * 100) + ui->AudioMeterSliderL->value()) / 2);
