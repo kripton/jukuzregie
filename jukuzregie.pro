@@ -47,4 +47,5 @@ contains(QT_VERSION, ^5\\..*) {
 PKGCONFIG += jack
 
 OTHER_FILES += \
-    settings.txt
+    settings.txt \
+    notes
