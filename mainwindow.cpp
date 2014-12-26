@@ -152,13 +152,6 @@ void MainWindow::prepareAudioData(uint length, char* data)
             continue;
         }
 
-        if ((box->audioData.size() * sizeof(float)) < length)
-        {
-            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
-            // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
-            continue;
-        }
-
         qreal vol = box->getVolume();
         bool preListen = box->getPreListen();
 
@@ -167,6 +160,13 @@ void MainWindow::prepareAudioData(uint length, char* data)
             // Clear the currently queued audio data in the cambox
             // so we could use this to re-sync the audio data with the current input (video & from other camboxes)
             box->audioData.clear();
+            continue;
+        }
+
+        if ((box->audioData.size() * sizeof(float)) < length)
+        {
+            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
+            // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
             continue;
         }
 
