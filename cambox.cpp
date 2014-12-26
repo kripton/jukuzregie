@@ -216,11 +216,8 @@ void CamBox::onBusMessage(const QGst::MessagePtr &message)
         camOnline = false;
         sourceOffline();
         break;
-    case QGst::MessageStateChanged: //The element in message->source() has changed state
-        //handlePipelineStateChange(message.staticCast<QGst::StateChangedMessage>());
-        break;
-    case QGst::MessageQos:
-        //handleQosMessage(message.staticCast<QGst::QosMessage>());
+    case QGst::MessageStateChanged:
+        updateBackground(); // Change between Online/Buffering/Ready
         break;
     default:
         break;
@@ -310,7 +307,12 @@ void CamBox::sourceOffline() {
 void CamBox::updateBackground() {
     QPalette p = this->palette();
     if (camOnline == true) {
-        if (ui->opacitySlider->value() != 0 || ui->volumeSlider->value() != 0) {
+        if (pipeline->currentState() != QGst::StatePlaying)
+        {
+            // Source online but pipeline not PLAYING ... (Still buffering input)
+            p.setColor(QPalette::Window, Qt::yellow);
+            this->setTitle(QString("%1 (Buffering)").arg(name));
+        } else if (ui->opacitySlider->value() != 0 || ui->volumeSlider->value() != 0) {
             // Source online and ONAIR (RED)
             p.setColor(QPalette::Window, Qt::red);
             this->setTitle(QString("%1 (ON AIR)").arg(name));
