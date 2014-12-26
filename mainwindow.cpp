@@ -89,7 +89,7 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
     foreach (QObject* boxobj, allCamBoxes)
     {
         CamBox* box = (CamBox*) boxobj;
-        if ((box->name == hash->value("name")) && !box->getCamOnline())
+        if ((box->id == hash->value("name")) && !box->getCamOnline())
         {
             box->startCam(senderHost, senderPort - 1, rawvideocaps, rawaudiocaps);
         }
@@ -111,7 +111,7 @@ void MainWindow::newNotifyDatagram()
 
         notifySocket->readDatagram(datagram.data(), datagram.size(), &senderHost, &senderPort);
 
-        qDebug() << "FROM" << senderHost.toString() << senderPort << datagram;
+        qDebug() << "DATAGRAM FROM" << senderHost.toString() << senderPort << datagram;
         processNotifyDatagram(datagram, senderHost, senderPort);
     }
 }
@@ -122,7 +122,7 @@ void MainWindow::broadcastSourceInfo()
     foreach (QObject* boxobj, allCamBoxes)
     {
         CamBox* box = (CamBox*) boxobj;
-        sources->insert(box->name, box->sourceInfo());
+        sources->insert(box->id, box->sourceInfo());
     }
     QByteArray* array = new QByteArray();
     QDataStream* stream = new QDataStream(array, QIODevice::WriteOnly);
@@ -165,7 +165,7 @@ void MainWindow::prepareAudioData(uint length, char* data)
 
         if ((box->audioData.size() * sizeof(float)) < length)
         {
-            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->name << "HAS" << box->audioData.size() * sizeof(float);
+            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->id << "HAS" << box->audioData.size() * sizeof(float);
             // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
             continue;
         }
@@ -181,10 +181,9 @@ void MainWindow::prepareAudioData(uint length, char* data)
             }
 
         }
-        //qDebug() << "AFTERWARDS" << box->audioData.size();
     }
 
-    // Push the buffer to the pipeline
+    // Push the buffer to the pipelines
     audioSrc_main->pushAudioBuffer();
     audioSrc_monitor->pushAudioBuffer(preListenData);
 }
@@ -218,7 +217,7 @@ void MainWindow::start() {
         box->userData = mgmtdata;
         mgmtdata->pixmapItem = 0;
         mgmtdata->opacityEffect = 0;
-        box->name = QString("cam_%1").arg(i, 2).replace(' ', '0');
+        box->id = QString("cam_%1").arg(i, 2).replace(' ', '0');
 
         i++;
     }
@@ -384,7 +383,7 @@ void MainWindow::newPreListenChangedHandler(bool newState)
 void MainWindow::setOnAirLED(QObject *boxObject, bool newState)
 {
     CamBox* box = (CamBox*) boxObject;
-    uchar num = box->name.split("_")[1].toUInt() - 1;
+    uchar num = box->id.split("_")[1].toUInt() - 1;
 
     worker->set_led(num, newState ? 0x7f : 0x00);
 }

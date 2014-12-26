@@ -180,7 +180,7 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
     }
     else
     {
-        qWarning() << "AUDIO BUFFER OVERFLOW in camBox" << name << "Samples have been dropped";
+        qWarning() << "AUDIO BUFFER OVERFLOW in camBox" << id << "Samples have been dropped";
         // The samples are not saved anywhere and are dropped. THIS IS AUDIBLE!
     }
 
@@ -219,6 +219,16 @@ void CamBox::onBusMessage(const QGst::MessagePtr &message)
     case QGst::MessageStateChanged:
         updateBackground(); // Change between Online/Buffering/Ready
         break;
+    case QGst::MessageTag:
+    {
+        QGst::TagList taglist = message.staticCast<QGst::TagMessage>()->taglist();
+        if (taglist.comment() != "")
+        {
+            name = taglist.comment();
+        }
+        break;
+    }
+
     default:
         break;
     }
@@ -231,8 +241,8 @@ void CamBox::setPreListen(bool value)
 
 void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
 {
-    qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << name;
-    QString dumpFileName = QString("/home/kripton/streaming/dump/%1.mkv").arg(name);
+    qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << id;
+    QString dumpFileName = QString("/home/kripton/streaming/dump/%1.mkv").arg(id);
 
 
     QString desc = QString("tcpclientsrc host=%1 port=%2 ! gdpdepay ! tee name=stream ! decodebin name=decode ! "
@@ -287,11 +297,12 @@ void CamBox::sourceOnline() {
 void CamBox::sourceOffline() {
     if (camOnline) return;
 
-    qDebug() << "SOURCE ID" << name << "LEFT US";
+    qDebug() << "SOURCE ID" << id << "LEFT US";
 
     audioData.clear();
 
     camOnline = false;
+    name = "";
     updateBackground();
 
     ui->AudioMeterSliderL->setValue(0);
@@ -311,20 +322,20 @@ void CamBox::updateBackground() {
         {
             // Source online but pipeline not PLAYING ... (Still buffering input)
             p.setColor(QPalette::Window, Qt::yellow);
-            this->setTitle(QString("%1 (Buffering)").arg(name));
+            this->setTitle(QString("%1 (%2) : Buffering").arg(id).arg(name));
         } else if (ui->opacitySlider->value() != 0 || ui->volumeSlider->value() != 0) {
             // Source online and ONAIR (RED)
             p.setColor(QPalette::Window, Qt::red);
-            this->setTitle(QString("%1 (ON AIR)").arg(name));
+            this->setTitle(QString("%1 (%2) : ON AIR").arg(id).arg(name));
         } else {
             // Source online but not ONAIR (PALE GREEN)
             p.setColor(QPalette::Window, QColor(180, 255, 180));
-            this->setTitle(QString("%1 (Bereit)").arg(name));
+            this->setTitle(QString("%1 (%2) : Bereit").arg(id).arg(name));
         }
     } else {
         // Source offline (LIGHT GRAY)
         p.setColor(QPalette::Window, Qt::lightGray);
-        this->setTitle(QString("%1 (Nicht verbunden)").arg(name));
+        this->setTitle(QString("%1 : Nicht verbunden").arg(id));
     }
     this->setPalette(p);
 }

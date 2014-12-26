@@ -33,7 +33,8 @@ public:
     explicit CamBox(QWidget *parent = 0);
     ~CamBox();
 
-    QString name;                           // The name of this cambox. Like "cam_02"
+    QString id;                             // The id of this cambox. Like "cam_02"
+    QString name;                           // The name of this cambox. Like "BühneTotale" or "Backstage"
     bool getPreListen();                    // read-only public access to state of Pre-Listen button
     qreal getVolume();                      // read-only public access to the current volume
     bool getCamOnline();                    // read-only public access to camOnline
