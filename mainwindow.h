@@ -70,7 +70,7 @@ private slots:
 
     void broadcastSourceInfo();
 
-    void prepareAudioData(uint length);
+    void prepareAudioData(uint length, char *data);
 
 private:
     Ui::MainWindow *ui;

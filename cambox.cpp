@@ -169,6 +169,7 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
 
     if (audioData.size() < 131070)
     {
+        // No use of omp parallel for here since the .enqueue() needs to be done in the correct order!
         for (int i = 0; i < (data.size() / (int)sizeof(float)); i = i + 2)
         {
             maxleft = std::max(maxleft, buffer[i]);
@@ -183,6 +184,7 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
         // The samples are not saved anywhere and are dropped. THIS IS AUDIBLE!
     }
 
+    // Set the new value to the avarage of the old and the new value. This makes the display less twitchy
     ui->AudioMeterSliderL->setValue(((maxleft * 100) + ui->AudioMeterSliderL->value()) / 2);
     ui->AudioMeterSliderR->setValue(((maxright * 100) + ui->AudioMeterSliderR->value()) / 2);
 }

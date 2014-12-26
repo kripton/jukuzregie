@@ -48,7 +48,8 @@ MainWindow::MainWindow(QWidget *parent) :
     audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
     audioSrc_main = new AudioAppSrc(this);
     audioSrc_main->setElement(audioPipe->getElementByName("audiosource_main"));
-    connect (audioSrc_main, SIGNAL(sigNeedData(uint)), this, SLOT(prepareAudioData(uint)));
+    audioSrc_main->preAlloc = true;
+    connect (audioSrc_main, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
     audioSrc_monitor = new AudioAppSrc(this);
     audioSrc_monitor->setElement(audioPipe->getElementByName("audiosource_monitor"));
     QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
@@ -129,18 +130,17 @@ void MainWindow::broadcastSourceInfo()
     notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
 }
 
-void MainWindow::prepareAudioData(uint length)
+void MainWindow::prepareAudioData(uint length, char* data)
 {
-    QByteArray data;
-    data.resize(length);
-
     // Make sure the buffer has all float-zeroes
     #pragma omp parallel for
     for (uint i = 0; i < (length / sizeof(float)); i++)
     {
-        ((float*)data.data())[i] = 0.0;
+        ((float*)data)[i] = 0.0;
     }
-    QByteArray preListenData = QByteArray(data);
+
+    // Makes a deep copy, so the preListenData is also pre-filled with float-zeroes
+    QByteArray preListenData = QByteArray(data, length);
 
     // Add the audio of all camBoxes
     foreach (QObject* obj, allCamBoxes)
@@ -164,14 +164,17 @@ void MainWindow::prepareAudioData(uint length)
 
         if ((vol == 0.0) && !preListen)
         {
+            // Clear the currently queued audio data in the cambox
+            // so we could use this to re-sync the audio data with the current input (video & from other camboxes)
             box->audioData.clear();
             continue;
         }
 
+        // No use of omp parallel for here since the .dequeue() needs to be done in the correct order!
         for (uint i = 0; i < (length / sizeof(float)); i++)
         {
             float sample = box->audioData.dequeue();
-            ((float*)data.data())[i] += sample * vol;
+            ((float*)data)[i] += sample * vol;
             if (preListen)
             {
                 ((float*)preListenData.data())[i] += sample;
@@ -182,7 +185,7 @@ void MainWindow::prepareAudioData(uint length)
     }
 
     // Push the buffer to the pipeline
-    audioSrc_main->pushAudioBuffer(data);
+    audioSrc_main->pushAudioBuffer();
     audioSrc_monitor->pushAudioBuffer(preListenData);
 }
 
