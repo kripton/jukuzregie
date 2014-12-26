@@ -244,9 +244,10 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
       case 3: box = (CamBox*)ui->groupBox_4; break;
       case 4: box = (CamBox*)ui->groupBox_5; break;
       case 5: box = (CamBox*)ui->groupBox_6; break;
+      default: box = 0;
     }
 
-    if (box == NULL) return; // Button/Slider/Knob channel number is too high
+    if (box == 0) return; // Button/Slider/Knob channel number is too high
 
     if (!box->getCamOnline()) return; // Source not online -> do nothing
 
