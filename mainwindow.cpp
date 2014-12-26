@@ -12,7 +12,6 @@ MainWindow::MainWindow(QWidget *parent) :
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*)boxObject;
         connect(box, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandler()));
-        connect(box, SIGNAL(newPreListen(bool)), this, SLOT(newPreListenChangedHandler(bool)));
         connect(box, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandler(qreal)));
         connect(box, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
     }
@@ -61,8 +60,26 @@ MainWindow::MainWindow(QWidget *parent) :
     scene.addPixmap(QPixmap::fromImage(backgroundSprite));
     ui->videoBox->setScene(&scene);
 
-    notifySocket = new QUdpSocket(this);
-    notifySocket->bind(12007);
+    // Sockets for sending
+    foreach (QHostAddress address, QNetworkInterface::allAddresses())
+    {
+        if (
+                address != QHostAddress::Any &&
+                address != QHostAddress::LocalHostIPv6 &&
+                address != QHostAddress::AnyIPv6 &&
+                address.toString().contains(".") &&
+                !address.toString().contains(":")
+        )
+        {
+            QUdpSocket* notifySocket = new QUdpSocket(this);
+            notifySocket->bind(address, 12007);
+            notifySockets.append(notifySocket);
+        }
+    }
+
+    // Socket for incoming packets
+    QUdpSocket* notifySocket = new QUdpSocket(this);
+    notifySocket->bind(QHostAddress::Broadcast, 12007);
     connect(notifySocket, SIGNAL(readyRead()), this, SLOT(newNotifyDatagram()));
 
     QTimer* notificationTimer = new QTimer(this);
@@ -80,29 +97,46 @@ MainWindow::~MainWindow()
 
 void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort)
 {
-    QDataStream* stream = new QDataStream(datagram);
-    QHash<QString, QString>* hash = new QHash<QString, QString>();
-    (*stream) >> (*hash);
+    QDataStream stream(datagram);
+    QHash<QString, QString> hash;
+    stream >> hash;
 
-    if (hash->value("magic") != "JuKuZSourceCamConnect") return;
+    if ((hash.value("magic") != "JuKuZSourceCamConnect") || (senderPort != 4999))
+    {
+        return;
+    }
 
     foreach (QObject* boxobj, allCamBoxes)
     {
         CamBox* box = (CamBox*) boxobj;
-        if ((box->id == hash->value("name")) && !box->getCamOnline())
+        if ((box->id == hash.value("id") || "" == hash.value("id")) && !box->getCamOnline())
         {
-            box->startCam(senderHost, senderPort - 1, rawvideocaps, rawaudiocaps);
+            if (hash.value("host") != "")
+            {
+                box->startCam(QHostAddress(hash.value("host")), hash.value("port").toUShort(), rawvideocaps, rawaudiocaps);
+            }
+            else
+            {
+                box->startCam(senderHost, hash.value("port").toUShort(), rawvideocaps, rawaudiocaps);
+            }
+            break;
         }
     }
 
-    foreach (QString key, hash->keys())
-    {
-        qDebug() << key << hash->value(key);
-    }
+    //foreach (QString key, hash.keys())
+    //{
+    //    qDebug() << key << hash.value(key);
+    //}
 }
 
 void MainWindow::newNotifyDatagram()
 {
+    if (QObject::sender() == 0)
+    {
+        return;
+    }
+
+    QUdpSocket* notifySocket = ((QUdpSocket*)QObject::sender());
     while (notifySocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(notifySocket->pendingDatagramSize());
@@ -111,23 +145,34 @@ void MainWindow::newNotifyDatagram()
 
         notifySocket->readDatagram(datagram.data(), datagram.size(), &senderHost, &senderPort);
 
-        qDebug() << "DATAGRAM FROM" << senderHost.toString() << senderPort << datagram;
+        //qDebug() << QString("DATAGRAM ON %1:%2 FROM %3:%4:")
+        //            .arg(notifySocket->localAddress().toString())
+        //            .arg(notifySocket->localPort())
+        //            .arg(senderHost.toString())
+        //            .arg(senderPort) << datagram;
         processNotifyDatagram(datagram, senderHost, senderPort);
     }
 }
 
 void MainWindow::broadcastSourceInfo()
 {
-    QHash<QString, QHash<QString, QString> >* sources = new QHash<QString, QHash<QString, QString> >();
+    QHash<QString, QHash<QString, QString> > sources;
     foreach (QObject* boxobj, allCamBoxes)
     {
         CamBox* box = (CamBox*) boxobj;
-        sources->insert(box->id, box->sourceInfo());
+        sources.insert(box->id, box->sourceInfo());
     }
-    QByteArray* array = new QByteArray();
-    QDataStream* stream = new QDataStream(array, QIODevice::WriteOnly);
-    (*stream) << *sources;
-    notifySocket->writeDatagram(*array, QHostAddress::Broadcast, 12007);
+
+    //qDebug() << "Broadcasting source info" << sources;
+
+    QByteArray array;
+    QDataStream stream(&array, QIODevice::WriteOnly);
+    stream << sources;
+
+    foreach (QUdpSocket* notifySocket, notifySockets)
+    {
+        notifySocket->writeDatagram(array, QHostAddress::Broadcast, 12007);
+    }
 }
 
 void MainWindow::prepareAudioData(uint length, char* data)
@@ -368,17 +413,6 @@ void MainWindow::fadeMeInHandler()
         }
     }
 }
-
-void MainWindow::newPreListenChangedHandler(bool newState)
-{
-    qDebug() << "newPreListenChangedHandler" << newState;
-    //if (!boxAudioPreListenVolume.contains(QObject::sender())) return;
-    //qDebug() << boxAudioPreListenVolume[QObject::sender()]->name() << QString("setProperty(\"mute\", %1)").arg(!newState);
-    //boxAudioPreListenVolume[QObject::sender()]->setProperty("mute", !newState);
-
-    //worker->set_led(i + 0x20, newState ? 0x7f : 0x00);
-}
-
 
 void MainWindow::setOnAirLED(QObject *boxObject, bool newState)
 {

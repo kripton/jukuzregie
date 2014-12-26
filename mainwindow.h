@@ -12,6 +12,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsOpacityEffect>
 #include <QByteArray>
+#include <QNetworkInterface>
 
 #include "cambox.h"
 #include "jackthread.h"
@@ -62,7 +63,6 @@ private slots:
 
     // Events by CamBoxes
     void fadeMeInHandler();
-    void newPreListenChangedHandler(bool newState);
     void newOpacityHandler(qreal newValue);
     void newVideoFrame(QImage image);
 
@@ -78,7 +78,7 @@ private:
     QStringList arguments;
     QList<QObject*> allCamBoxes;
 
-    QUdpSocket* notifySocket;
+    QList<QUdpSocket*> notifySockets;
 
     QGst::CapsPtr rawvideocaps;
     QGst::CapsPtr rawaudiocaps;

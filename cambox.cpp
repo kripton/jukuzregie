@@ -67,6 +67,10 @@ QHash<QString, QString> CamBox::sourceInfo()
     QHash<QString, QString> info;
 
     info["online"] = QString("%1").arg(camOnline);
+    info["name"] = name;
+    info["audiobuffersize"] = QString("%1").arg(audioData.size());
+    info["volume"] = QString("%1").arg(ui->volumeSlider->value() / 1000.0);
+    info["opacity"] = QString("%1").arg(ui->opacitySlider->value() / 1000.0);
 
     return info;
 }
