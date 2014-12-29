@@ -42,15 +42,25 @@ MainWindow::MainWindow(QWidget *parent) :
     QString audioPipeDesc = QString(" appsrc name=audiosource_main caps=\"%1\" is-live=true blocksize=8192 ! "
                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
                                     " appsrc name=audiosource_monitor caps=\"%1\" is-live=true blocksize=8192 ! "
-                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor")
-            .arg("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
+                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor"
+                                    " appsrc name=videosource is-live=true caps=\"%2\" ! videoconvert ! ximagesink")
+            .arg("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2")
+            .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
+
     audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
+
     audioSrc_main = new AudioAppSrc(this);
     audioSrc_main->setElement(audioPipe->getElementByName("audiosource_main"));
     audioSrc_main->preAlloc = true;
     connect (audioSrc_main, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
+
     audioSrc_monitor = new AudioAppSrc(this);
     audioSrc_monitor->setElement(audioPipe->getElementByName("audiosource_monitor"));
+
+    videoSrc = new VideoAppSrc(this);
+    connect(videoSrc, SIGNAL(sigNeedData(uint)), this, SLOT(prepareVideoData(uint)));
+    videoSrc->setElement(audioPipe->getElementByName("videosource"));
+
     QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
     audioPipe->bus()->addSignalWatch();
     audioPipe->setState(QGst::StatePlaying);
@@ -237,12 +247,29 @@ void MainWindow::prepareAudioData(uint length, char* data)
     audioSrc_monitor->pushAudioBuffer(preListenData);
 }
 
+void MainWindow::prepareVideoData(uint length)
+{
+    Q_UNUSED(length)
+
+    QImage vidImg(640, 360, QImage::Format_ARGB32);
+    QPainter painter(&vidImg);
+    //painter.setRenderHint(QPainter::Antialiasing);
+    scene.render(&painter);
+
+    QByteArray data((char*)vidImg.bits(), 640*360*4);
+
+    videoSrc->pushVideoBuffer(data);
+}
+
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)
 {
     qDebug() << "MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
     case QGst::MessageError: //Some error occurred.
         qCritical() << message.staticCast<QGst::ErrorMessage>()->error() << message.staticCast<QGst::ErrorMessage>()->debugMessage();
+        break;
+    case QGst::MessageWarning:
+        qWarning() << message.staticCast<QGst::WarningMessage>()->error() << message.staticCast<QGst::WarningMessage>()->debugMessage();
         break;
     case QGst::MessageStateChanged: //The element in message->source() has changed state
         qDebug() << "Pipeline NewState" << message.staticCast<QGst::StateChangedMessage>()->newState();

@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     videoappsink.cpp \
     audioappsink.cpp \
     audioappsrc.cpp \
-    tcpappsrc.cpp
+    tcpappsrc.cpp \
+    videoappsrc.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
@@ -30,7 +31,8 @@ HEADERS  += mainwindow.h \
     videoappsink.h \
     audioappsink.h \
     audioappsrc.h \
-    tcpappsrc.h
+    tcpappsrc.h \
+    videoappsrc.h
 
 FORMS    += mainwindow.ui \
     cambox.ui

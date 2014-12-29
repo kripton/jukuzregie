@@ -17,6 +17,7 @@
 #include "cambox.h"
 #include "jackthread.h"
 #include "audioappsrc.h"
+#include "videoappsrc.h"
 
 #include <QGlib/Connect>
 #include <QGst/Element>
@@ -71,6 +72,7 @@ private slots:
     void broadcastSourceInfo();
 
     void prepareAudioData(uint length, char *data);
+    void prepareVideoData(uint length);
 
 private:
     Ui::MainWindow *ui;
@@ -87,6 +89,8 @@ private:
 
     AudioAppSrc* audioSrc_main;
     AudioAppSrc* audioSrc_monitor;
+
+    VideoAppSrc* videoSrc;
 
     QGraphicsScene scene;
 
