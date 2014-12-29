@@ -37,5 +37,7 @@ void VideoAppSrc::pushVideoBuffer()
     }
 
     buffer->unmap(mapInfo);
+
+    //qDebug() << "VideoAppSrc PUSHBUFFER Length:" << buffer->size();
     pushBuffer(buffer);
 }

@@ -11,7 +11,7 @@ AudioAppSrc::AudioAppSrc(QObject *parent) :
 
 void AudioAppSrc::needData(uint length)
 {
-    //qDebug() << "AudioAppSrc NEED DATA. Length:" << length;
+    //qDebug() << "AudioAppSrc NEED DATA. PREALLOC" << preAlloc << "Length:" << length;
 
     if (preAlloc)
     {
@@ -46,6 +46,7 @@ void AudioAppSrc::pushAudioBuffer()
 
     buffer->unmap(mapInfo);
 
+    //qDebug() << "AudioAppSrc PUSHBUFFER. PREALLOC" << preAlloc << "Length:" << buffer->size();
     pushBuffer(buffer);
 }
 
@@ -62,5 +63,6 @@ void AudioAppSrc::pushAudioBuffer(QByteArray data)
     memcpy(map.data(), data.data(), map.size());
     buf->unmap(map);
 
+    //qDebug() << "AudioAppSrc PUSHBUFFER. PREALLOC" << preAlloc << "Length:" << buffer->size();
     pushBuffer(buf);
 }
