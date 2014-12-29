@@ -71,8 +71,8 @@ private slots:
 
     void broadcastSourceInfo();
 
-    void prepareAudioData(uint length, char *data);
-    void prepareVideoData(uint length);
+    void prepareAudioData(uint length, char* data);
+    void prepareVideoData(uint length, char* data);
 
 private:
     Ui::MainWindow *ui;

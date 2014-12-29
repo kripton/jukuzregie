@@ -10,9 +10,18 @@ VideoAppSrc::VideoAppSrc(QObject *parent) :
 
 void VideoAppSrc::needData(uint length)
 {
+    Q_UNUSED(length);
+
     //qDebug() << "VIDEOAPPSOURCE NEED DATA. Length:" << length;
 
-    emit sigNeedData(length);
+    if (!buffer.isNull())
+    {
+        buffer.clear();
+    }
+    buffer = QGst::Buffer::create(640*360*4);
+    buffer->map(mapInfo, QGst::MapWrite);
+
+    emit sigNeedData(buffer->size(), (char*)mapInfo.data());
 }
 
 void VideoAppSrc::enoughData()
@@ -20,13 +29,13 @@ void VideoAppSrc::enoughData()
     qDebug() << "VIDEOAPPSOURCE ENOUGH DATA";
 }
 
-void VideoAppSrc::pushVideoBuffer(QByteArray data)
+void VideoAppSrc::pushVideoBuffer()
 {
-    QGst::BufferPtr buf = QGst::Buffer::create(data.size());
-    QGst::MapInfo map;
-    buf->map(map, QGst::MapWrite);
-    memcpy(map.data(), data.data(), map.size());
-    buf->unmap(map);
+    if (buffer.isNull())
+    {
+        return;
+    }
 
-    pushBuffer(buf);
+    buffer->unmap(mapInfo);
+    pushBuffer(buffer);
 }

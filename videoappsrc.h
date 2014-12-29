@@ -24,11 +24,15 @@ public:
     virtual void needData (uint length);
     virtual void enoughData();
 
+private:
+    QGst::BufferPtr buffer;
+    QGst::MapInfo mapInfo;
+
 signals:
-    void sigNeedData(uint length);
+    void sigNeedData(uint length, char* data);
 
 public slots:
-    void pushVideoBuffer(QByteArray data);
+    void pushVideoBuffer();
 };
 
 #endif // VIDEOAPPSRC_H

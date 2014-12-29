@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     audioSrc_monitor->setElement(audioPipe->getElementByName("audiosource_monitor"));
 
     videoSrc = new VideoAppSrc(this);
-    connect(videoSrc, SIGNAL(sigNeedData(uint)), this, SLOT(prepareVideoData(uint)));
+    connect(videoSrc, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareVideoData(uint, char*)));
     videoSrc->setElement(audioPipe->getElementByName("videosource"));
 
     QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
@@ -247,18 +247,16 @@ void MainWindow::prepareAudioData(uint length, char* data)
     audioSrc_monitor->pushAudioBuffer(preListenData);
 }
 
-void MainWindow::prepareVideoData(uint length)
+void MainWindow::prepareVideoData(uint length, char* data)
 {
-    Q_UNUSED(length)
-
     QImage vidImg(640, 360, QImage::Format_ARGB32);
     QPainter painter(&vidImg);
     //painter.setRenderHint(QPainter::Antialiasing);
     scene.render(&painter);
 
-    QByteArray data((char*)vidImg.bits(), 640*360*4);
+    memcpy((void*)data, (void*)vidImg.bits(), length);
 
-    videoSrc->pushVideoBuffer(data);
+    videoSrc->pushVideoBuffer();
 }
 
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)

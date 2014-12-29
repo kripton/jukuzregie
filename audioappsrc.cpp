@@ -15,6 +15,11 @@ void AudioAppSrc::needData(uint length)
 
     if (preAlloc)
     {
+        if (!buffer.isNull())
+        {
+            buffer.clear();
+        }
+
         // Create and allocate the buffer here so we don't need to malloc the space twice and shuffle the data between threads too often
         buffer = QGst::Buffer::create(length);
         buffer->map(mapInfo, QGst::MapWrite);
