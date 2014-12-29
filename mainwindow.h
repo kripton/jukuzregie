@@ -13,6 +13,7 @@
 #include <QGraphicsOpacityEffect>
 #include <QByteArray>
 #include <QNetworkInterface>
+#include <QFileDialog>
 
 #include "cambox.h"
 #include "jackthread.h"
@@ -55,20 +56,21 @@ public slots:
     void midiEvent(char c0, char c1, char c2);
 
 private slots:
-    void recordButtonToggled(bool checked);
-    void transmitButtonToggled(bool checked);
+    // UI events
     void textButtonToggled(bool checked);
     void logoButtonToggled(bool checked);
+    void selectNewLogoFile();
 
     // Events by CamBoxes
     void fadeMeInHandler();
     void newOpacityHandler(qreal newValue);
     void newVideoFrame(QImage image);
 
+    // UDP stuff
     void newNotifyDatagram();
-
     void broadcastSourceInfo();
 
+    // Audio and Video stuff
     void prepareAudioData(uint length, char* data);
     void prepareVideoData(uint length, char* data);
 
@@ -91,6 +93,8 @@ private:
     VideoAppSrc* videoSrc;
 
     QGraphicsScene scene;
+    QGraphicsPixmapItem* logoItem;
+    QGraphicsOpacityEffect logoOpacityEffect;
 
     void onBusMessage(const QGst::MessagePtr & message);
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);

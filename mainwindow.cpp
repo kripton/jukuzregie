@@ -7,11 +7,16 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     //////////////////// UI ////////////////////
     ui->setupUi(this);
+    setStatusBar(0);
 
-    connect(ui->recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonToggled(bool)));
-    connect(ui->transmitButton, SIGNAL(toggled(bool)), this, SLOT(transmitButtonToggled(bool)));
+    logoItem = scene.addPixmap(QPixmap());
+    logoItem->setGraphicsEffect(&logoOpacityEffect);
+    logoItem->setZValue(1.0);
+    logoOpacityEffect.setOpacity(0.0);
+
     connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
     connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
+    connect(ui->logoFileSelectButton, SIGNAL(clicked()), this, SLOT(selectNewLogoFile()));
 
     //////////////////// Paths for runtime dumping data and logging ////////////////////
     startUp = QDateTime::currentDateTime();
@@ -364,23 +369,6 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
     }
 }
 
-void MainWindow::recordButtonToggled(bool checked)
-{
-    if (checked) {
-        if (!QDir().exists(QString("%1/streaming/%2/aufnahmen").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
-            QDir().mkpath(QString("%1/streaming/%2/aufnahmen").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
-        }
-    } else {
-    }
-}
-
-void MainWindow::transmitButtonToggled(bool checked)
-{
-    if (checked) {
-    } else {
-    }
-}
-
 void MainWindow::textButtonToggled(bool checked)
 {
     if (checked) {
@@ -408,8 +396,30 @@ void MainWindow::textButtonToggled(bool checked)
 void MainWindow::logoButtonToggled(bool checked)
 {
     if (checked) {
+        QFileInfo fInfo(ui->logoFileLineEdit->text());
+
+        if (!fInfo.exists() || !fInfo.isFile())
+        {
+            return;
+        }
+
+        QImage image;
+
+        if (!image.load(ui->logoFileLineEdit->text()))
+        {
+            return;
+        }
+        image = image.scaledToWidth(640, Qt::SmoothTransformation);
+        logoItem->setPixmap(QPixmap::fromImage(image));
+        logoOpacityEffect.setOpacity(1.0);
     } else {
+        logoOpacityEffect.setOpacity(0.0);
     }
+}
+
+void MainWindow::selectNewLogoFile()
+{
+    ui->logoFileLineEdit->setText(QFileDialog::getOpenFileName(this, tr("Open Logo"), "", tr("PNG images (*.png)")));
 }
 
 void MainWindow::newOpacityHandler(qreal newValue)

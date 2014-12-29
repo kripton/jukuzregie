@@ -68,6 +68,11 @@ int JackThread::process(jack_nframes_t nframes, void *arg) {
     uint32_t i = 0;
     void* in_port_buf  = jack_port_get_buffer(input_port , nframes);
 
+    if (in_port_buf == 0)
+    {
+        return 0;
+    }
+
     jack_midi_event_t in_event;
     jack_nframes_t event_count = jack_midi_get_event_count(in_port_buf);
 
