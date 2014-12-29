@@ -104,11 +104,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     audioSrc_main = new AudioAppSrc(this);
     audioSrc_main->setElement(outputPipe->getElementByName("audiosrc_main"));
-    audioSrc_main->preAlloc = true;
-    connect (audioSrc_main, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
 
     audioSrc_monitor = new AudioAppSrc(this);
     audioSrc_monitor->setElement(outputPipe->getElementByName("audiosrc_monitor"));
+    audioSrc_monitor->preAlloc = true;
+    connect (audioSrc_monitor, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
 
     videoSrc = new VideoAppSrc(this);
     connect(videoSrc, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareVideoData(uint, char*)));
@@ -220,8 +220,8 @@ void MainWindow::prepareAudioData(uint length, char* data)
         ((float*)data)[i] = 0.0;
     }
 
-    // Makes a deep copy, so the preListenData is also pre-filled with float-zeroes
-    QByteArray preListenData = QByteArray(data, length);
+    // Makes a deep copy, so the mainData is also pre-filled with float-zeroes
+    QByteArray mainAudioData = QByteArray(data, length);
 
     // Add the audio of all camBoxes
     foreach (QObject* obj, allCamBoxes)
@@ -255,18 +255,19 @@ void MainWindow::prepareAudioData(uint length, char* data)
         for (uint i = 0; i < (length / sizeof(float)); i++)
         {
             float sample = box->audioData.dequeue();
-            ((float*)data)[i] += sample * vol;
+
+            ((float*)mainAudioData.data())[i] += sample * vol;
             if (preListen)
             {
-                ((float*)preListenData.data())[i] += sample;
+                ((float*)data)[i] += sample;
             }
 
         }
     }
 
     // Push the buffer to the pipelines
-    audioSrc_main->pushAudioBuffer();
-    audioSrc_monitor->pushAudioBuffer(preListenData);
+    audioSrc_monitor->pushAudioBuffer();
+    audioSrc_main->pushAudioBuffer(mainAudioData);
 }
 
 void MainWindow::prepareVideoData(uint length, char* data)
