@@ -11,7 +11,7 @@ AudioAppSrc::AudioAppSrc(QObject *parent) :
 
 void AudioAppSrc::needData(uint length)
 {
-    //qDebug() << "SOURCE NEED DATA. Length:" << length;
+    //qDebug() << "AudioAppSrc NEED DATA. Length:" << length;
 
     if (preAlloc)
     {
@@ -34,7 +34,7 @@ void AudioAppSrc::needData(uint length)
 
 void AudioAppSrc::enoughData()
 {
-    qDebug() << "SOURCE ENOUGH DATA";
+    //qDebug() << "AudioAppSrc ENOUGH DATA";
 }
 
 void AudioAppSrc::pushAudioBuffer()

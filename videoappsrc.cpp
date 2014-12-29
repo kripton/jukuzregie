@@ -12,7 +12,7 @@ void VideoAppSrc::needData(uint length)
 {
     Q_UNUSED(length);
 
-    //qDebug() << "VIDEOAPPSOURCE NEED DATA. Length:" << length;
+    //qDebug() << "VideoAppSrc NEED DATA. Length:" << length;
 
     if (!buffer.isNull())
     {
@@ -26,7 +26,7 @@ void VideoAppSrc::needData(uint length)
 
 void VideoAppSrc::enoughData()
 {
-    qDebug() << "VIDEOAPPSOURCE ENOUGH DATA";
+    //qDebug() << "VideoAppSrc ENOUGH DATA";
 }
 
 void VideoAppSrc::pushVideoBuffer()
