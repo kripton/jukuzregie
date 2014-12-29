@@ -33,6 +33,7 @@ void TcpAppSrc::stop()
 
 void TcpAppSrc::needData(uint length)
 {
+    Q_UNUSED(length)
     //qDebug() << "TCPAPPSOURCE NEED DATA. Length:" << length;
 }
 
