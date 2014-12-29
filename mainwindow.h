@@ -83,7 +83,7 @@ private:
     QString rawvideocaps;
     QString rawaudiocaps;
 
-    QGst::PipelinePtr audioPipe;
+    QGst::PipelinePtr outputPipe;
 
     AudioAppSrc* audioSrc_main;
     AudioAppSrc* audioSrc_monitor;

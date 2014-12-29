@@ -92,31 +92,31 @@ MainWindow::MainWindow(QWidget *parent) :
     rawvideocaps = QString("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
     rawaudiocaps = QString("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
 
-    QString audioPipeDesc = QString(" appsrc name=audiosource_main caps=\"%1\" is-live=true blocksize=8192 ! "
+    QString audioPipeDesc = QString(" appsrc name=audiosrc_main caps=\"%1\" is-live=true blocksize=8192 ! "
                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
-                                    " appsrc name=audiosource_monitor caps=\"%1\" is-live=true blocksize=8192 ! "
+                                    " appsrc name=audiosrc_monitor caps=\"%1\" is-live=true blocksize=8192 ! "
                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor"
-                                    " appsrc name=videosource is-live=true caps=\"%2\" ! videoconvert ! ximagesink")
+                                    " appsrc name=videosrc is-live=true caps=\"%2\" ! videoconvert ! ximagesink")
             .arg(rawaudiocaps)
             .arg(rawvideocaps);
 
-    audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
+    outputPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
 
     audioSrc_main = new AudioAppSrc(this);
-    audioSrc_main->setElement(audioPipe->getElementByName("audiosource_main"));
+    audioSrc_main->setElement(outputPipe->getElementByName("audiosrc_main"));
     audioSrc_main->preAlloc = true;
     connect (audioSrc_main, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
 
     audioSrc_monitor = new AudioAppSrc(this);
-    audioSrc_monitor->setElement(audioPipe->getElementByName("audiosource_monitor"));
+    audioSrc_monitor->setElement(outputPipe->getElementByName("audiosrc_monitor"));
 
     videoSrc = new VideoAppSrc(this);
     connect(videoSrc, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareVideoData(uint, char*)));
-    videoSrc->setElement(audioPipe->getElementByName("videosource"));
+    videoSrc->setElement(outputPipe->getElementByName("videosrc"));
 
-    QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
-    audioPipe->bus()->addSignalWatch();
-    audioPipe->setState(QGst::StatePlaying);
+    QGlib::connect(outputPipe->bus(), "message", this, &MainWindow::onBusMessage);
+    outputPipe->bus()->addSignalWatch();
+    outputPipe->setState(QGst::StatePlaying);
 
     //////////////////// Start the midi control ////////////////////
     jackThread->start();
@@ -124,9 +124,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    if (!audioPipe.isNull())
+    if (!outputPipe.isNull())
     {
-        audioPipe->setState(QGst::StateNull);
+        outputPipe->setState(QGst::StateNull);
     }
     delete ui;
 }
