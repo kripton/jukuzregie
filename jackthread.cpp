@@ -12,6 +12,7 @@ JackThread::~JackThread()
 {
     if (client != 0)
     {
+        jack_set_process_callback(client, 0, 0);
         jack_client_close(client);
     }
 }
