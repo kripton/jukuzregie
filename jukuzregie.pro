@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     jackthread.cpp \
     videoappsink.cpp \
     audioappsink.cpp \
-    audioappsrc.cpp
+    audioappsrc.cpp \
+    tcpappsrc.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
@@ -28,7 +29,8 @@ HEADERS  += mainwindow.h \
     nanoKontrol2.h \
     videoappsink.h \
     audioappsink.h \
-    audioappsrc.h
+    audioappsrc.h \
+    tcpappsrc.h
 
 FORMS    += mainwindow.ui \
     cambox.ui

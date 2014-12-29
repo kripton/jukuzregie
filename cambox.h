@@ -12,6 +12,7 @@
 #include <QGraphicsItem>
 #include <QQueue>
 
+#include "tcpappsrc.h"
 #include "videoappsink.h"
 #include "audioappsink.h"
 
@@ -79,8 +80,9 @@ private:
     QGst::PipelinePtr pipeline;
     void onBusMessage(const QGst::MessagePtr & message);
 
-    VideoAppSink* m_videosink;
+    TcpAppSrc* m_tcpsrc;
 
+    VideoAppSink* m_videosink;
     AudioAppSink* m_audiosink;
 
     // Preview window stuff

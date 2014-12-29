@@ -27,6 +27,8 @@ CamBox::CamBox(QWidget *parent):
     ui->VideoBox->setScene(&scene);
     pixmapItem = 0;
 
+    m_tcpsrc = new TcpAppSrc(this);
+
     m_videosink = new VideoAppSink(this);
     connect(m_videosink, SIGNAL(newImage(QImage)), this, SLOT(newVideoFrameFromSink(QImage)));
 
@@ -246,13 +248,13 @@ void CamBox::setPreListen(bool value)
 void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
 {
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << id;
-    QString dumpFileName = QString("/home/kripton/streaming/dump/%1.mkv").arg(id);
+    QString dumpFileName = QString("/home/kripton/streaming/dump/%1_%2.mkv")
+            .arg(QDateTime::currentDateTime().toString("yyyy-mm-dd_hh-mm-ss"))
+            .arg(id);
 
-    QString desc = QString("tcpclientsrc host=\"%1\" port=\"%2\" !"
-                   " decodebin name=decode ! queue ! videoconvert ! appsink name=videosink caps=\"%3\""
-                   " decode. ! queue ! audioconvert ! appsink name=audiosink caps=\"%4\"")
-            .arg(host.toString())
-            .arg(port)
+    QString desc = QString("appsrc name=source !"
+                   " decodebin name=decode ! queue ! videoconvert ! appsink name=videosink caps=\"%1\""
+                   " decode. ! queue ! audioconvert ! appsink name=audiosink caps=\"%2\"")
             .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1")
             .arg("audio/x-raw,format=F32LE,channels=2,rate=48000");
 
@@ -261,6 +263,9 @@ void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, 
 
     QGlib::connect(pipeline->bus(), "message", this, &CamBox::onBusMessage);
     pipeline->bus()->addSignalWatch();
+
+    m_tcpsrc->setElement(pipeline->getElementByName("source"));
+    m_tcpsrc->start(host.toString(), port, dumpFileName);
 
     m_videosink->setElement(pipeline->getElementByName("videosink"));
 
