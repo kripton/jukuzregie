@@ -92,7 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rawvideocaps = QString("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
     rawaudiocaps = QString("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
 
-    QString audioPipeDesc = QString(" appsrc name=audiosrc_main caps=\"%1\" is-live=true blocksize=32768 format=time do-timestamp=true !"
+    QString outputPipeDesc = QString(" appsrc name=audiosrc_main caps=\"%1\" is-live=true blocksize=32768 format=time do-timestamp=true !"
                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
                                     " appsrc name=audiosrc_monitor caps=\"%1\" is-live=true blocksize=32768 format=time do-timestamp=true ! "
                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor"
@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent) :
             .arg(rawvideocaps)
             .arg(640*360*4);
 
-    outputPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
+    outputPipe = QGst::Parse::launch(outputPipeDesc).dynamicCast<QGst::Pipeline>();
 
     audioSrc_main = new AudioAppSrc(this);
     audioSrc_main->setElement(outputPipe->getElementByName("audiosrc_main"));
