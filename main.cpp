@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
 
     wP = &w;
     w.show();
-    w.start();
 
     return a.exec();
 }

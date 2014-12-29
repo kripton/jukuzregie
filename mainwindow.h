@@ -48,8 +48,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    void start();
-
     JackThread* worker;
     QDateTime startUp;
 
@@ -82,8 +80,8 @@ private:
 
     QList<QUdpSocket*> notifySockets;
 
-    QGst::CapsPtr rawvideocaps;
-    QGst::CapsPtr rawaudiocaps;
+    QString rawvideocaps;
+    QString rawaudiocaps;
 
     QGst::PipelinePtr audioPipe;
 
@@ -95,7 +93,6 @@ private:
     QGraphicsScene scene;
 
     void onBusMessage(const QGst::MessagePtr & message);
-    void startupApplications();
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
     void setOnAirLED(QObject *boxObject, bool newState);
 };

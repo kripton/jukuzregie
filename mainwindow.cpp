@@ -5,23 +5,46 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    //////////////////// UI ////////////////////
     ui->setupUi(this);
 
+    connect(ui->recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonToggled(bool)));
+    connect(ui->transmitButton, SIGNAL(toggled(bool)), this, SLOT(transmitButtonToggled(bool)));
+    connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
+    connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
+
+    //////////////////// Paths for runtime dumping data and logging ////////////////////
+    startUp = QDateTime::currentDateTime();
+    QString dumpDir = QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss"));
+    QDir().mkpath(dumpDir);
+
+    if (!QDir().exists(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
+        QDir().mkpath(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
+    }
+
+    //////////////////// CamBoxes ////////////////////
     allCamBoxes << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4 << ui->groupBox_5 << ui->groupBox_6;
 
+    int i = 1;
     foreach (QObject* boxObject, allCamBoxes) {
         CamBox* box = (CamBox*)boxObject;
+
+        box->setDumpDir(dumpDir);
+
+        camBoxMgmtData* mgmtdata = new camBoxMgmtData;
+        box->userData = mgmtdata;
+        mgmtdata->pixmapItem = 0;
+        mgmtdata->opacityEffect = 0;
+        box->id = QString("cam_%1").arg(i, 2).replace(' ', '0');
+
         connect(box, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandler()));
         connect(box, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandler(qreal)));
         connect(box, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
+
+        i++;
     }
-    startUp = QDateTime::currentDateTime();
-    QDir().mkpath(QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
-    QDir().mkpath(QString("%1/streaming/%2/sprites/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
 
-    startupApplications();
-
-    // Start the JACK-thread
+    //////////////////// JACK thread for midi control ////////////////////
     QThread* jackThread = new QThread;
     worker = new JackThread();
     worker->moveToThread(jackThread);
@@ -31,45 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(worker, SIGNAL(midiEvent(char, char, char)), this, SLOT(midiEvent(char, char, char)));
 
-    connect(ui->recordButton, SIGNAL(toggled(bool)), this, SLOT(recordButtonToggled(bool)));
-    connect(ui->transmitButton, SIGNAL(toggled(bool)), this, SLOT(transmitButtonToggled(bool)));
-    connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
-    connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
-
-    rawvideocaps = QGst::Caps::fromString("video/x-raw,width=640,height=360,framerate=25/1");
-    rawaudiocaps = QGst::Caps::fromString("audio/x-raw,format=F32LE,rate=48000,channels=2");
-
-    QString audioPipeDesc = QString(" appsrc name=audiosource_main caps=\"%1\" is-live=true blocksize=8192 ! "
-                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
-                                    " appsrc name=audiosource_monitor caps=\"%1\" is-live=true blocksize=8192 ! "
-                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor"
-                                    " appsrc name=videosource is-live=true caps=\"%2\" ! videoconvert ! ximagesink")
-            .arg("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2")
-            .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
-
-    audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
-
-    audioSrc_main = new AudioAppSrc(this);
-    audioSrc_main->setElement(audioPipe->getElementByName("audiosource_main"));
-    audioSrc_main->preAlloc = true;
-    connect (audioSrc_main, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
-
-    audioSrc_monitor = new AudioAppSrc(this);
-    audioSrc_monitor->setElement(audioPipe->getElementByName("audiosource_monitor"));
-
-    videoSrc = new VideoAppSrc(this);
-    connect(videoSrc, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareVideoData(uint, char*)));
-    videoSrc->setElement(audioPipe->getElementByName("videosource"));
-
-    QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
-    audioPipe->bus()->addSignalWatch();
-    audioPipe->setState(QGst::StatePlaying);
-
-    QImage backgroundSprite;
-    backgroundSprite.load("/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
-    scene.addPixmap(QPixmap::fromImage(backgroundSprite));
-    ui->videoBox->setScene(&scene);
-
+    //////////////////// UDP info broadcasting and listener for new source requests ////////////////////
     // Sockets for sending
     foreach (QHostAddress address, QNetworkInterface::allAddresses())
     {
@@ -97,6 +82,43 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(broadcastSourceInfo()));
     notificationTimer->start();
 
+    //////////////////// Video scene and preview box ////////////////////
+    QImage backgroundSprite;
+    backgroundSprite.load("/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
+    scene.addPixmap(QPixmap::fromImage(backgroundSprite));
+    ui->videoBox->setScene(&scene);
+
+    //////////////////// GStreamer pipeline that handles the output and monitoring ////////////////////
+    rawvideocaps = QString("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
+    rawaudiocaps = QString("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
+
+    QString audioPipeDesc = QString(" appsrc name=audiosource_main caps=\"%1\" is-live=true blocksize=8192 ! "
+                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
+                                    " appsrc name=audiosource_monitor caps=\"%1\" is-live=true blocksize=8192 ! "
+                                    " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor"
+                                    " appsrc name=videosource is-live=true caps=\"%2\" ! videoconvert ! ximagesink")
+            .arg(rawaudiocaps)
+            .arg(rawvideocaps);
+
+    audioPipe = QGst::Parse::launch(audioPipeDesc).dynamicCast<QGst::Pipeline>();
+
+    audioSrc_main = new AudioAppSrc(this);
+    audioSrc_main->setElement(audioPipe->getElementByName("audiosource_main"));
+    audioSrc_main->preAlloc = true;
+    connect (audioSrc_main, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
+
+    audioSrc_monitor = new AudioAppSrc(this);
+    audioSrc_monitor->setElement(audioPipe->getElementByName("audiosource_monitor"));
+
+    videoSrc = new VideoAppSrc(this);
+    connect(videoSrc, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareVideoData(uint, char*)));
+    videoSrc->setElement(audioPipe->getElementByName("videosource"));
+
+    QGlib::connect(audioPipe->bus(), "message", this, &MainWindow::onBusMessage);
+    audioPipe->bus()->addSignalWatch();
+    audioPipe->setState(QGst::StatePlaying);
+
+    //////////////////// Start the midi control ////////////////////
     jackThread->start();
 }
 
@@ -274,26 +296,6 @@ void MainWindow::onBusMessage(const QGst::MessagePtr & message)
         break;
     default:
         break;
-    }
-}
-
-void MainWindow::startupApplications() {
-    if (!QDir().exists(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")))) {
-        QDir().mkpath(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
-    }
-}
-
-void MainWindow::start() {
-    int i = 1;
-    foreach (QObject* boxObject, allCamBoxes) {
-        CamBox* box = (CamBox*) boxObject;
-        camBoxMgmtData* mgmtdata = new camBoxMgmtData;
-        box->userData = mgmtdata;
-        mgmtdata->pixmapItem = 0;
-        mgmtdata->opacityEffect = 0;
-        box->id = QString("cam_%1").arg(i, 2).replace(' ', '0');
-
-        i++;
     }
 }
 

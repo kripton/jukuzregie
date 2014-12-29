@@ -146,7 +146,7 @@ void CamBox::fadeStart(qreal stepSize, qint16 interval)
 
 void CamBox::setDumpDir(QString dir)
 {
-    // TODO
+    dumpDir = dir;
 }
 
 void CamBox::newVideoFrameFromSink(QImage image)
@@ -245,18 +245,19 @@ void CamBox::setPreListen(bool value)
     ui->MonitorPushButton->setChecked(value);
 }
 
-void CamBox::startCam(QHostAddress host, quint16 port, QGst::CapsPtr videocaps, QGst::CapsPtr audiocaps)
+void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QString audiocaps)
 {
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << id;
-    QString dumpFileName = QString("/home/kripton/streaming/dump/%1_%2.mkv")
+    QString dumpFileName = QString("%1/%2_%3.mkv")
+            .arg(dumpDir)
             .arg(QDateTime::currentDateTime().toString("yyyy-mm-dd_hh-mm-ss"))
             .arg(id);
 
     QString desc = QString("appsrc name=source !"
                    " decodebin name=decode ! queue ! videoconvert ! appsink name=videosink caps=\"%1\""
                    " decode. ! queue ! audioconvert ! appsink name=audiosink caps=\"%2\"")
-            .arg("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1")
-            .arg("audio/x-raw,format=F32LE,channels=2,rate=48000");
+            .arg(videocaps)
+            .arg(audiocaps);
 
     qDebug() << "Pipeline:" << desc;
     pipeline = QGst::Parse::launch(desc).dynamicCast<QGst::Pipeline>();
