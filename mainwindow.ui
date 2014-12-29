@@ -210,10 +210,20 @@
             <x>10</x>
             <y>20</y>
             <width>631</width>
-            <height>121</height>
+            <height>111</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="2">
+            <widget class="QPushButton" name="logoFileSelectButton">
+             <property name="text">
+              <string>Auswählen ...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="logoFileLineEdit"/>
+           </item>
            <item row="0" column="0">
             <widget class="QCheckBox" name="logoButton">
              <property name="text">
@@ -224,33 +234,99 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="logoFileLineEdit"/>
-           </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="logoFileSelectButton">
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="textButton">
              <property name="text">
-              <string>Auswählen ...</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QPushButton" name="textButton">
-             <property name="text">
-              <string>Text aktivieren</string>
+              <string>Text:</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QLineEdit" name="textEdit">
+           <item row="2" column="0" colspan="3">
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Texthintergrund:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="textSpriteFilename"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="textBackgroundSelectorBox">
+               <property name="text">
+                <string>Auswählen ...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="textFontConfigureButton">
+               <property name="text">
+                <string>Schrift einstellen</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Position:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="textPosX">
+               <property name="maximum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.010000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="textPosY">
+               <property name="maximum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.010000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="1" colspan="2">
+            <widget class="QTextEdit" name="textEdit">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="lineWrapMode">
+              <enum>QTextEdit::NoWrap</enum>
+             </property>
+             <property name="acceptRichText">
+              <bool>false</bool>
              </property>
             </widget>
            </item>

@@ -14,9 +14,22 @@ MainWindow::MainWindow(QWidget *parent) :
     logoItem->setZValue(1.0);
     logoOpacityEffect.setOpacity(0.0);
 
+    textSpriteItem = scene.addPixmap(QPixmap());
+    textSpriteItem->setGraphicsEffect(&textSpriteOpacityEffect);
+    textSpriteItem->setZValue(0.9);
+    textSpriteOpacityEffect.setOpacity(0.0);
+
+    textFont.setPointSize(37);
+    textFont.setBold(true);
+
+    ui->textPosX->setValue(0.17);
+    ui->textPosY->setValue(0.72); // 0.67 for two-lined texts
     connect(ui->textButton, SIGNAL(toggled(bool)), this, SLOT(textButtonToggled(bool)));
     connect(ui->logoButton, SIGNAL(toggled(bool)), this, SLOT(logoButtonToggled(bool)));
     connect(ui->logoFileSelectButton, SIGNAL(clicked()), this, SLOT(selectNewLogoFile()));
+
+    connect(ui->textBackgroundSelectorBox, SIGNAL(clicked()), this, SLOT(selectNewTextBackground()));
+    connect(ui->textFontConfigureButton, SIGNAL(clicked()), this, SLOT(editTextFont()));
 
     //////////////////// Paths for runtime dumping data and logging ////////////////////
     startUp = QDateTime::currentDateTime();
@@ -372,24 +385,29 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 void MainWindow::textButtonToggled(bool checked)
 {
     if (checked) {
-        ui->textButton->setText("Text deaktivieren");
+        textItem = scene.addText(ui->textEdit->toPlainText(), textFont);
+        textItem->setPos(ui->textPosX->value()*640, ui->textPosY->value()*360);
+        textItem->setZValue(0.95);
 
-        // Render the text to image using imagemagick's convert
-        QString fileName = QString("%1/streaming/%2/sprites/%3.png")
-                .arg(QDir::homePath())
-                .arg(startUp.toString("yyyy-MM-dd_hh-mm-ss"))
-                .arg(QDateTime().currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
-        QProcess* imProc = new QProcess();
-        imProc->start("convert", QStringList() <<
-                     "-size" << "960x540" << "canvas:transparent" <<
-                     "-font" << "Impact" << "-pointsize" << "48" <<
-                     "-fill" << "black" <<
-                      "-draw" << QString("text 180,440 '%1'").arg(ui->textEdit->text().replace("'", "\\'")) <<
-                     fileName);
-        imProc->waitForFinished();
+        QFileInfo fInfo(ui->textSpriteFilename->text());
 
+        if (!fInfo.exists() || !fInfo.isFile())
+        {
+            return;
+        }
+
+        QImage image;
+
+        if (!image.load(ui->textSpriteFilename->text()))
+        {
+            return;
+        }
+        image = image.scaledToWidth(640, Qt::SmoothTransformation);
+        textSpriteItem->setPixmap(QPixmap::fromImage(image));
+        textSpriteOpacityEffect.setOpacity(1.0);
     } else {
-        ui->textButton->setText("Text aktivieren");
+        scene.removeItem((QGraphicsItem*)textItem);
+        textSpriteOpacityEffect.setOpacity(0.0);
     }
 }
 
@@ -420,6 +438,16 @@ void MainWindow::logoButtonToggled(bool checked)
 void MainWindow::selectNewLogoFile()
 {
     ui->logoFileLineEdit->setText(QFileDialog::getOpenFileName(this, tr("Open Logo"), "", tr("PNG images (*.png)")));
+}
+
+void MainWindow::editTextFont()
+{
+    textFont = QFontDialog::getFont(0, textFont);
+}
+
+void MainWindow::selectNewTextBackground()
+{
+    ui->textSpriteFilename->setText(QFileDialog::getOpenFileName(this, tr("Open Textsprite"), "", tr("PNG images (*.png)")));
 }
 
 void MainWindow::newOpacityHandler(qreal newValue)

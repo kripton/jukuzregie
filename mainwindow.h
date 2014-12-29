@@ -14,6 +14,7 @@
 #include <QByteArray>
 #include <QNetworkInterface>
 #include <QFileDialog>
+#include <QFontDialog>
 
 #include "cambox.h"
 #include "jackthread.h"
@@ -60,6 +61,8 @@ private slots:
     void textButtonToggled(bool checked);
     void logoButtonToggled(bool checked);
     void selectNewLogoFile();
+    void editTextFont();
+    void selectNewTextBackground();
 
     // Events by CamBoxes
     void fadeMeInHandler();
@@ -95,6 +98,11 @@ private:
     QGraphicsScene scene;
     QGraphicsPixmapItem* logoItem;
     QGraphicsOpacityEffect logoOpacityEffect;
+
+    QFont textFont;
+    QGraphicsPixmapItem* textSpriteItem;
+    QGraphicsOpacityEffect textSpriteOpacityEffect;
+    QGraphicsTextItem* textItem;
 
     void onBusMessage(const QGst::MessagePtr & message);
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
