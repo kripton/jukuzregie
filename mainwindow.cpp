@@ -92,6 +92,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    if (!audioPipe.isNull())
+    {
+        audioPipe->setState(QGst::StateNull);
+    }
     delete ui;
 }
 

@@ -8,8 +8,12 @@ JackThread::JackThread() :
 {
 }
 
-JackThread::~JackThread() {
-
+JackThread::~JackThread()
+{
+    if (client != 0)
+    {
+        jack_client_close(client);
+    }
 }
 
 void JackThread::setup() {
