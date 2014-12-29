@@ -1,5 +1,6 @@
 TODO:
-- Output encoders (Save + stream)
+- Output encoders (Save + stream) => Done as in save to file and provide via tcpserversink
++- Verify that other incoming formats (H264 with AAC audio) are working
 - Draw stuff onto the scene (logos, sprites, text on sprite, ...)
 - Add videplayer (from local file) to UI
 - Disconnect button on camBox?
