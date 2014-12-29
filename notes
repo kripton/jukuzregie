@@ -2,7 +2,6 @@ TODO:
 - Output encoders (Save + stream)
 - Draw stuff onto the scene (logos, sprites, text on sprite, ...)
 - Add videplayer (from local file) to UI
-- Save the inputs' incoming, encoded stream to disk
 - Disconnect button on camBox?
 - Remove fading or make it optional
 - Visual indicator of audio clipping
