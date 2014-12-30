@@ -7,8 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     //////////////////// UI ////////////////////
     ui->setupUi(this);
-    setStatusBar(0);
-    ui->textEdit->installEventFilter(this);
+    ui->textEdit->installEventFilter(this); // To catch Ctrl+Return on textEdit
 
     logoItem = scene.addPixmap(QPixmap());
     logoItem->setGraphicsEffect(&logoOpacityEffect);
