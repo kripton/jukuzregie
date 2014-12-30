@@ -1,7 +1,7 @@
 TODO:
 - Output encoders (Save + stream) => Done as in save to file and provide via tcpserversink
 - Verify that other incoming formats (H264 with AAC audio) are working => H264 with vorbis is working (see below)
-- Draw stuff onto the scene (logos, sprites, text on sprite, ...) => DONE! Enhancement: Toggle text on Ctrl+Enter. Maybe fade text in and out?
+- Draw stuff onto the scene (logos, sprites, text on sprite, ...) => DONE! Enhancement: Maybe fade text in and out?
 - Add videplayer (from local file) to UI
 - Disconnect button on camBox?
 - Remove fading or make it optional

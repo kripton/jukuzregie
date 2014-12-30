@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //////////////////// UI ////////////////////
     ui->setupUi(this);
     setStatusBar(0);
+    ui->textEdit->installEventFilter(this);
 
     logoItem = scene.addPixmap(QPixmap());
     logoItem->setGraphicsEffect(&logoOpacityEffect);
@@ -310,6 +311,24 @@ void MainWindow::prepareVideoData(uint length, char* data)
     memcpy((void*)data, (void*)vidImg.bits(), length);
 
     videoSrc->pushVideoBuffer();
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
+{
+    // Check for Ctrl+Enter and toggle textButton if so
+    if ((obj == ui->textEdit) && (ev->type() == QEvent::KeyPress)) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(ev);
+
+        if(keyEvent->key() == Qt::Key_Return && keyEvent->modifiers().testFlag(Qt::ControlModifier))
+        {
+            ui->textButton->toggle();
+            return true;
+        } else {
+            // pass the event on to the parent class
+            return QMainWindow::eventFilter(obj, ev);
+        }
+    }
+    return QMainWindow::eventFilter(obj, ev);
 }
 
 void MainWindow::onBusMessage(const QGst::MessagePtr & message)

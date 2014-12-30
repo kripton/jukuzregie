@@ -303,7 +303,7 @@
             </layout>
            </item>
            <item row="1" column="1" colspan="2">
-            <widget class="QTextEdit" name="textEdit">
+            <widget class="QPlainTextEdit" name="textEdit">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -323,10 +323,7 @@
               </size>
              </property>
              <property name="lineWrapMode">
-              <enum>QTextEdit::NoWrap</enum>
-             </property>
-             <property name="acceptRichText">
-              <bool>false</bool>
+              <enum>QPlainTextEdit::NoWrap</enum>
              </property>
             </widget>
            </item>
