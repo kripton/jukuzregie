@@ -9,6 +9,11 @@ TcpAppSrc::TcpAppSrc(QObject *parent) :
     connect(&sock, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 
+TcpAppSrc::~TcpAppSrc()
+{
+    stop();
+}
+
 bool TcpAppSrc::start(QString host, quint16 port, QString dumpFileName)
 {
     if (dumpFileName != "")
@@ -24,6 +29,7 @@ bool TcpAppSrc::start(QString host, quint16 port, QString dumpFileName)
 
 void TcpAppSrc::stop()
 {
+    qDebug() << "TcpAppSrc STOP";
     sock.disconnectFromHost();
     if (file.isOpen())
     {

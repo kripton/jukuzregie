@@ -21,6 +21,8 @@ class TcpAppSrc : public QObject, public QGst::Utils::ApplicationSource
     Q_OBJECT
 public:
     explicit TcpAppSrc(QObject *parent = 0);
+    ~TcpAppSrc();
+
     bool start(QString host, quint16 port, QString dumpFileName = QString(""));
     void stop();
 

@@ -14,6 +14,7 @@ CamBox::CamBox(QWidget *parent):
     connect(ui->volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeFaderChanged()));
     connect(ui->MonitorPushButton, SIGNAL(toggled(bool)), this, SLOT(preListenButtonToggled(bool)));
     connect(ui->GOButton, SIGNAL(clicked()), this, SLOT(goButtonClicked()));
+    connect(ui->disconnectButton, SIGNAL(clicked()), this, SLOT(disconnectSource()));
 
     this->setAlignment(Qt::AlignHCenter);
 
@@ -23,6 +24,7 @@ CamBox::CamBox(QWidget *parent):
     ui->opacitySlider->setEnabled(false);
     ui->MonitorPushButton->setEnabled(false);
     ui->GOButton->setEnabled(false);
+    ui->disconnectButton->setEnabled(false);
 
     ui->VideoBox->setScene(&scene);
     pixmapItem = 0;
@@ -226,6 +228,16 @@ void CamBox::audioDiscontOn()
     audioDiscontTimer.start(1000);
 }
 
+void CamBox::disconnectSource()
+{
+    setVideoOpacity(0.0);
+    setVolume(0.0);
+    pipeline->setState(QGst::StateNull);
+    pipeline.clear();
+    camOnline = false;
+    sourceOffline();
+}
+
 void CamBox::audioDiscontOff()
 {
     ui->audioLabel->setPalette(defaultPalette);
@@ -324,6 +336,7 @@ void CamBox::sourceOnline() {
     ui->opacitySlider->setEnabled(true);
     ui->MonitorPushButton->setEnabled(true);
     ui->GOButton->setEnabled(true);
+    ui->disconnectButton->setEnabled(true);
 
     camOnline = true;
     updateBackground();
@@ -335,6 +348,7 @@ void CamBox::sourceOffline() {
     qDebug() << "SOURCE ID" << id << "LEFT US";
 
     audioData.clear();
+    m_tcpsrc->stop();
 
     camOnline = false;
     name = "";
@@ -348,6 +362,7 @@ void CamBox::sourceOffline() {
     ui->opacitySlider->setEnabled(false);
     ui->MonitorPushButton->setEnabled(false);
     ui->GOButton->setEnabled(false);
+    ui->disconnectButton->setEnabled(false);
 }
 
 void CamBox::updateBackground() {
@@ -358,6 +373,7 @@ void CamBox::updateBackground() {
             // Source online but pipeline not PLAYING ... (Still buffering input)
             p.setColor(QPalette::Window, Qt::yellow);
             this->setTitle(QString("%1 (%2) : Buffering").arg(id).arg(name));
+            ui->GOButton->setEnabled(false);
         } else if (ui->opacitySlider->value() != 0 || ui->volumeSlider->value() != 0) {
             // Source online and ONAIR (RED)
             p.setColor(QPalette::Window, Qt::red);
@@ -366,6 +382,7 @@ void CamBox::updateBackground() {
             // Source online but not ONAIR (PALE GREEN)
             p.setColor(QPalette::Window, QColor(180, 255, 180));
             this->setTitle(QString("%1 (%2) : Bereit").arg(id).arg(name));
+            ui->GOButton->setEnabled(true);
         }
     } else {
         // Source offline (LIGHT GRAY)

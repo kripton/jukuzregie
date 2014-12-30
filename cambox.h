@@ -60,6 +60,7 @@ public slots:
     void fadeStart(qreal stepSize, qint16 interval); // Start a fade on opacity
     void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
     void audioDiscontOn();                  // Cal this slot if a discontinuity in the audio stream has occured
+    void disconnectSource();
 
 private slots:
     void opcatiyFaderChanged();             // called when the opacity-fader got changed
