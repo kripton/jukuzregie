@@ -14,6 +14,8 @@
 #include <QGst/Pipeline>
 #include <QGst/Bus>
 #include <QGst/Message>
+#include <QGst/Query>
+#include <QGst/Event>
 
 #include "audioappsink.h"
 #include "videoappsink.h"
@@ -55,6 +57,14 @@ private slots:
     void selectFolder();
     void newFileSelected(QString newFile);
 
+    void onStateChanged();
+    void onPositionChanged();
+    void setPosition(int position);
+
+    void play();
+    void pause();
+    void stop();
+
     void opcatiyFaderChanged();             // called when the opacity-fader got changed
     void volumeFaderChanged();              // called when the volume-fader got changed
     void sourceOnline();                    // UI cleanups/defaults after the source has come online
@@ -95,7 +105,13 @@ private:
     QPalette defaultPalette;
     QTimer audioDiscontTimer;
 
+    QTimer m_positionTimer;
+
+    QTime length() const;
+    QTime position() const;
+    void setPosition(const QTime & pos);
     void onBusMessage(const QGst::MessagePtr & message);
+    void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
 };
 
 #endif // VIDEOPLAYER_H

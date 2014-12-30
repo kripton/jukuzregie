@@ -225,14 +225,14 @@ MONITOR</string>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QLabel" name="posLabel">
+     <widget class="QLabel" name="positionLabel">
       <property name="text">
        <string>00:00:00.000/00:00:00/000</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QSlider" name="posSlider">
+     <widget class="QSlider" name="positionSlider">
       <property name="maximum">
        <number>1000</number>
       </property>
