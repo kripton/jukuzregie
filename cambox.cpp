@@ -143,8 +143,24 @@ void CamBox::fadeStart(qreal stepSize, qint16 interval)
         fadeTimer.stop();
         return;
     }
-    fadeStepSize = stepSize;
-    fadeTimer.start(interval);
+
+    if (ui->fadeCheck->isChecked())
+    {
+        // Legacy behavior: Fade
+        fadeStepSize = stepSize;
+        fadeTimer.start(interval);
+    }
+    else
+    {
+        if (stepSize > 0)
+        {
+            setVideoOpacity(1.0);
+        }
+        else
+        {
+            setVideoOpacity(0.0);
+        }
+    }
 }
 
 void CamBox::setDumpDir(QString dir)
