@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     //////////////////// CamBoxes ////////////////////
-    allCamBoxes << ui->groupBox << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4 << ui->groupBox_5 << ui->groupBox_6;
+    allCamBoxes << ui->groupBox_1 << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4 << ui->groupBox_5 << ui->groupBox_6 << ui->groupBox_7 << ui->groupBox_8 << ui->groupBox_9;
 
     int i = 1;
     foreach (QObject* boxObject, allCamBoxes) {
@@ -363,12 +363,14 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
     // Determine target by 2nd nibble
     CamBox* box;
     switch (c1 & 0x0f) {
-      case 0: box = (CamBox*)ui->groupBox; break;
+      case 0: box = (CamBox*)ui->groupBox_1; break;
       case 1: box = (CamBox*)ui->groupBox_2; break;
       case 2: box = (CamBox*)ui->groupBox_3; break;
       case 3: box = (CamBox*)ui->groupBox_4; break;
       case 4: box = (CamBox*)ui->groupBox_5; break;
       case 5: box = (CamBox*)ui->groupBox_6; break;
+      case 6: box = (CamBox*)ui->groupBox_7; break;
+      case 7: box = (CamBox*)ui->groupBox_8; break;
       default: box = 0;
     }
 

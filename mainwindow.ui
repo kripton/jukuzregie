@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1410</width>
+    <width>1793</width>
     <height>835</height>
    </rect>
   </property>
@@ -25,90 +25,11 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>768</width>
+      <width>1144</width>
       <height>841</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="2" column="1">
-      <widget class="CamBox" name="groupBox_4">
-       <property name="minimumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>GroupBox</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="CamBox" name="groupBox_6">
-       <property name="minimumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>GroupBox</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="CamBox" name="groupBox_5">
-       <property name="minimumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>GroupBox</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="CamBox" name="groupBox_3">
-       <property name="minimumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>378</width>
-         <height>277</height>
-        </size>
-       </property>
-       <property name="title">
-        <string>GroupBox</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2" rowspan="3">
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
-     </item>
      <item row="1" column="1">
       <widget class="CamBox" name="groupBox_2">
        <property name="minimumSize">
@@ -129,7 +50,140 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="CamBox" name="groupBox">
+      <widget class="CamBox" name="groupBox_1">
+       <property name="minimumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="CamBox" name="groupBox_9">
+       <property name="minimumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="CamBox" name="groupBox_4">
+       <property name="minimumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="CamBox" name="groupBox_5">
+       <property name="minimumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="CamBox" name="groupBox_6">
+       <property name="minimumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="CamBox" name="groupBox_8">
+       <property name="minimumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="CamBox" name="groupBox_7">
+       <property name="minimumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>378</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>GroupBox</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="CamBox" name="groupBox_3">
        <property name="minimumSize">
         <size>
          <width>378</width>
