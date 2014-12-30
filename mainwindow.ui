@@ -407,6 +407,41 @@
     </widget>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockWidget_3">
+   <property name="minimumSize">
+    <size>
+     <width>642</width>
+     <height>280</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>642</width>
+     <height>280</height>
+    </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable</set>
+   </property>
+   <property name="windowTitle">
+    <string>Videoplayer</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <widget class="VideoPlayer" name="widget" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>642</width>
+       <height>250</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -414,6 +449,12 @@
    <class>CamBox</class>
    <extends>QGroupBox</extends>
    <header>cambox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>VideoPlayer</class>
+   <extends>QWidget</extends>
+   <header location="global">videoplayer.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

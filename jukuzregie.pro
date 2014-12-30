@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     audioappsink.cpp \
     audioappsrc.cpp \
     tcpappsrc.cpp \
-    videoappsrc.cpp
+    videoappsrc.cpp \
+    videoplayer.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
@@ -32,10 +33,12 @@ HEADERS  += mainwindow.h \
     audioappsink.h \
     audioappsrc.h \
     tcpappsrc.h \
-    videoappsrc.h
+    videoappsrc.h \
+    videoplayer.h
 
 FORMS    += mainwindow.ui \
-    cambox.ui
+    cambox.ui \
+    videoplayer.ui
 
 # Tell qmake to use pkg-config to find QtGStreamer.and jack
 CONFIG += link_pkgconfig
