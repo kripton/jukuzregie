@@ -5,7 +5,6 @@ TODO:
 - Add videplayer (from local file) to UI
 - Disconnect button on camBox?
 - Remove fading or make it optional
-- Visual indicator of audio clipping
 - Visual indicator of audio underrun or overflow
 - Make the user interface localisable (by using tr() a little more often :)
 - Support pipelines/sources/videos with only video or only audio. Maybe by using bins and listening to NeePad events?

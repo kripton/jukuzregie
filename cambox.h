@@ -63,6 +63,8 @@ public slots:
 private slots:
     void newVideoFrameFromSink(QImage image);
     void newAudioBufferFromSink(QByteArray data);
+    void audioPeakOn();
+    void audioPeakOff();
 
 private slots:
     void opcatiyFaderChanged();             // called when the opacity-fader got changed
@@ -92,7 +94,9 @@ private:
     QGraphicsPixmapItem* pixmapItem;
 
     qreal fadeStepSize;
-    QTimer* fadeTimer;
+    QTimer fadeTimer;
+
+    QTimer audioPeakTimer;
 };
 
 #endif // CAMBOX_H

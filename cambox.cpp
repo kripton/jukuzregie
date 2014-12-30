@@ -35,9 +35,9 @@ CamBox::CamBox(QWidget *parent):
     m_audiosink = new AudioAppSink(this);
     connect(m_audiosink, SIGNAL(newAudioBuffer(QByteArray)), this, SLOT(newAudioBufferFromSink(QByteArray)));
 
+    connect(&fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
 
-    fadeTimer = new QTimer(this);
-    connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
+    connect(&audioPeakTimer, SIGNAL(timeout()), this, SLOT(audioPeakOff()));
 
     // This is a bit awkward. Somehow, the title gets changed back
     // if we just call the SLOT here. So, use a single-shot timer
@@ -134,14 +134,12 @@ void CamBox::setVolume(qreal volume, bool diff) {
 
 void CamBox::fadeStart(qreal stepSize, qint16 interval)
 {
-    //qDebug() << "fadeStart" << stepSize << interval;
     if (stepSize == 0) {
-        fadeTimer->stop();
+        fadeTimer.stop();
         return;
     }
-    if (fadeTimer->isActive()) fadeTimer->stop();
     fadeStepSize = stepSize;
-    fadeTimer->start(interval);
+    fadeTimer.start(interval);
 }
 
 void CamBox::setDumpDir(QString dir)
@@ -193,6 +191,27 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
     // Set the new value to the avarage of the old and the new value. This makes the display less twitchy
     ui->AudioMeterSliderL->setValue(((maxleft * 100) + ui->AudioMeterSliderL->value()) / 2);
     ui->AudioMeterSliderR->setValue(((maxright * 100) + ui->AudioMeterSliderR->value()) / 2);
+
+    if ((maxleft >= 1.0) || (maxright >= 1.0))
+    {
+        audioPeakOn();
+    }
+}
+
+void CamBox::audioPeakOn()
+{
+    QFont font = ui->audioLabel->font();
+    font.setBold(true);
+    ui->audioLabel->setFont(font);
+    audioPeakTimer.start(1000);
+}
+
+void CamBox::audioPeakOff()
+{
+    QFont font = ui->audioLabel->font();
+    font.setBold(false);
+    ui->audioLabel->setFont(font);
+    audioPeakTimer.stop();
 }
 
 void CamBox::fadeTimeEvent()
@@ -200,10 +219,10 @@ void CamBox::fadeTimeEvent()
     //qDebug() << "fadeTimeEvent" << ui->opacitySlider->value();
     if ((fadeStepSize > 0) && ((ui->opacitySlider->value() / 1000.0 + fadeStepSize) >= 1.0)) {
         setVideoOpacity(1.0);
-        fadeTimer->stop();
+        fadeTimer.stop();
     } else if ((fadeStepSize < 0) && ((ui->opacitySlider->value() / 1000.0  + fadeStepSize) <= 0.0)) {
         setVideoOpacity(0.0);
-        fadeTimer->stop();
+        fadeTimer.stop();
     } else {
         setVideoOpacity(fadeStepSize, true);
     }
