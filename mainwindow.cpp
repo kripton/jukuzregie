@@ -114,14 +114,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Basic parts: Audio MONITOR to JACK, Audio MAIN to JACK and to MUX to FILE, Video to MUX, MUX to tcpserversink
     QString outputPipeDesc = QString(" appsrc name=audiosrc_monitor caps=\"%1\" is-live=true blocksize=32768 ! "
-                                     " jackaudiosink provide-clock=false sync=false client-name=jukuzregie_monitor"
+                                     " audiorate ! jackaudiosink sync=false client-name=jukuzregie_monitor"
 
-                                     " appsrc name=audiosrc_main caps=\"%1\" is-live=true blocksize=32768 format=time do-timestamp=true ! tee name=audio_main !"
-                                     " queue ! jackaudiosink provide-clock=false sync=false client-name=jukuzregie_main connect=0"
+                                     " appsrc name=audiosrc_main caps=\"%1\" is-live=true blocksize=32768 format=time do-timestamp=true ! audiorate ! tee name=audio_main !"
+                                     " queue ! jackaudiosink sync=false client-name=jukuzregie_main connect=0"
                                      " audio_main. ! queue ! audioconvert ! vorbisenc ! webmmux streamable=true name=mux ! tee name=muxout !"
-                                     "queue ! filesink location=\"%4\" sync=false"
+                                     " queue ! filesink location=\"%4\" sync=false"
 
-                                     " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true !"
+                                     " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true ! videorate !"
                                      " videoconvert ! vp8enc threads=4 deadline=35000 ! mux."
 
                                      " muxout. ! queue ! tcpserversink host=0.0.0.0 port=6000")
