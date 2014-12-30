@@ -277,8 +277,9 @@ void MainWindow::prepareAudioData(uint length, char* data)
 
         if ((box->audioData.size() * sizeof(float)) < length)
         {
-            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->id << "HAS" << box->audioData.size() * sizeof(float);
             // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
+            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->id << "HAS" << box->audioData.size() * sizeof(float);
+            box->audioDiscontOn();
             continue;
         }
 

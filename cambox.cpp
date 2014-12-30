@@ -39,6 +39,9 @@ CamBox::CamBox(QWidget *parent):
 
     connect(&audioPeakTimer, SIGNAL(timeout()), this, SLOT(audioPeakOff()));
 
+    defaultPalette = ui->audioLabel->palette();
+    connect(&audioDiscontTimer, SIGNAL(timeout()), this, SLOT(audioDiscontOff()));
+
     // This is a bit awkward. Somehow, the title gets changed back
     // if we just call the SLOT here. So, use a single-shot timer
     QTimer::singleShot(200, this, SLOT(updateBackground()));
@@ -184,8 +187,9 @@ void CamBox::newAudioBufferFromSink(QByteArray data)
     }
     else
     {
-        qWarning() << "AUDIO BUFFER OVERFLOW in camBox" << id << "Samples have been dropped";
         // The samples are not saved anywhere and are dropped. THIS IS AUDIBLE!
+        qWarning() << "AUDIO BUFFER OVERFLOW in camBox" << id << "Samples have been dropped";
+        audioDiscontOn();
     }
 
     // Set the new value to the avarage of the old and the new value. This makes the display less twitchy
@@ -212,6 +216,20 @@ void CamBox::audioPeakOff()
     font.setBold(false);
     ui->audioLabel->setFont(font);
     audioPeakTimer.stop();
+}
+
+void CamBox::audioDiscontOn()
+{
+    QPalette pal = ui->audioLabel->palette();
+    pal.setColor(QPalette::WindowText, Qt::white);
+    ui->audioLabel->setPalette(pal);
+    audioDiscontTimer.start(1000);
+}
+
+void CamBox::audioDiscontOff()
+{
+    ui->audioLabel->setPalette(defaultPalette);
+    audioDiscontTimer.stop();
 }
 
 void CamBox::fadeTimeEvent()

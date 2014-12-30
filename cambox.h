@@ -59,12 +59,7 @@ public slots:
     void startCam(QHostAddress host, quint16 port, QString videocaps, QString audiocaps); // start playing from a source
     void fadeStart(qreal stepSize, qint16 interval); // Start a fade on opacity
     void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
-
-private slots:
-    void newVideoFrameFromSink(QImage image);
-    void newAudioBufferFromSink(QByteArray data);
-    void audioPeakOn();
-    void audioPeakOff();
+    void audioDiscontOn();                  // Cal this slot if a discontinuity in the audio stream has occured
 
 private slots:
     void opcatiyFaderChanged();             // called when the opacity-fader got changed
@@ -75,6 +70,11 @@ private slots:
     void preListenButtonToggled(bool checked);// Internal slot to handle Pre-Listen button state changes
     void goButtonClicked();                 // Internal slot to handle GO-Button clicks
     void fadeTimeEvent();
+    void newVideoFrameFromSink(QImage image);
+    void newAudioBufferFromSink(QByteArray data);
+    void audioPeakOn();
+    void audioPeakOff();
+    void audioDiscontOff();
 
 private:
     Ui::CamBox *ui;
@@ -97,6 +97,9 @@ private:
     QTimer fadeTimer;
 
     QTimer audioPeakTimer;
+
+    QPalette defaultPalette;
+    QTimer audioDiscontTimer;
 };
 
 #endif // CAMBOX_H
