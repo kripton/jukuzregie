@@ -38,6 +38,7 @@ public:
 
     bool getPreListen();                    // read-only public access to state of Pre-Listen button
     qreal getVolume();                      // read-only public access to the current volume
+    QGst::State getState();
 
 signals:
     void fadeMeIn();                        // emitted for parent when the GO-Button is clicked

@@ -60,8 +60,11 @@ private slots:
 
     // Events by CamBoxes
     void fadeMeInHandler();
+    void fadeMeInHandlerVideoPlayer();
     void newOpacityHandler(qreal newValue);
+    void newOpacityHandlerVideoPlayer(qreal newValue);
     void newVideoFrame(QImage image);
+    void newVideoFrameFromVideoPlayer(QImage image);
 
     // UDP stuff
     void newNotifyDatagram();

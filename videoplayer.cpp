@@ -80,6 +80,15 @@ qreal VideoPlayer::getVolume()
     return ui->volumeSlider->value() / 1000.0;
 }
 
+QGst::State VideoPlayer::getState()
+{
+    if (pipeline.isNull())
+    {
+        return QGst::StateNull;
+    }
+    return pipeline->currentState();
+}
+
 void VideoPlayer::init(QString videocaps, QString audiocaps)
 {
     this->videocaps = videocaps;
@@ -321,6 +330,9 @@ void VideoPlayer::handlePipelineStateChange(const QGst::StateChangedMessagePtr &
     case QGst::StatePlaying:
         //start the timer when the pipeline starts playing
         m_positionTimer.start(100);
+
+        playerReady = false; // TODO: Feels hackerish
+        sourceOnline();
         break;
     case QGst::StatePaused:
         //stop the timer when the pipeline pauses
@@ -357,6 +369,7 @@ void VideoPlayer::setPreListen(bool value)
 void VideoPlayer::sourceOnline() {
     if (playerReady) return;
 
+    qDebug() << "VIDEOPLAYER READY!";
     ui->volumeSlider->setValue(0);
     ui->opacitySlider->setValue(0);
     ui->volumeSlider->setEnabled(true);

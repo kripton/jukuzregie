@@ -65,6 +65,18 @@ MainWindow::MainWindow(QWidget *parent) :
         i++;
     }
 
+    //////////////////// VideoPlayer ////////////////////
+    camBoxMgmtData* mgmtdata = new camBoxMgmtData;
+    ui->videoPlayer->userData = mgmtdata;
+    mgmtdata->pixmapItem = scene.addPixmap(QPixmap());
+    mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
+    mgmtdata->opacityEffect->setOpacity(0.0);
+    mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
+
+    connect(ui->videoPlayer, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandlerVideoPlayer()));
+    connect(ui->videoPlayer, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandlerVideoPlayer(qreal)));
+    connect(ui->videoPlayer, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrameFromVideoPlayer(QImage)));
+
     //////////////////// JACK thread for midi control ////////////////////
     QThread* jackThread = new QThread;
     worker = new JackThread();
@@ -106,7 +118,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //////////////////// Video scene and preview box ////////////////////
     QImage backgroundSprite;
     backgroundSprite.load("/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
-    scene.addPixmap(QPixmap::fromImage(backgroundSprite));
+    QGraphicsPixmapItem* item = scene.addPixmap(QPixmap::fromImage(backgroundSprite));
+    item->setZValue(-0.1);
     ui->videoBox->setScene(&scene);
 
     //////////////////// GStreamer pipeline that handles the output and monitoring ////////////////////
@@ -301,6 +314,49 @@ void MainWindow::prepareAudioData(uint length, char* data)
         }
     }
 
+    // Add the audio of the videoPlayer
+    for (uint j = 0; j < 1; j++)
+    {
+        VideoPlayer* player = ui->videoPlayer;
+
+        if (player->getState() != QGst::StatePlaying)
+        {
+            continue;
+        }
+
+        qreal vol = player->getVolume();
+        bool preListen = player->getPreListen();
+
+        if ((vol == 0.0) && !preListen)
+        {
+            // Clear the currently queued audio data in the cambox
+            // so we could use this to re-sync the audio data with the current input (video & from other camboxes)
+            player->audioData.clear();
+            continue;
+        }
+
+        if ((player->audioData.size() * sizeof(float)) < length)
+        {
+            // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
+            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, PLAYER HAS" << player->audioData.size() * sizeof(float);
+            player->audioDiscontOn();
+            continue;
+        }
+
+        // No use of omp parallel for here since the .dequeue() needs to be done in the correct order!
+        for (uint i = 0; i < (length / sizeof(float)); i++)
+        {
+            float sample = player->audioData.dequeue();
+
+            ((float*)mainAudioData.data())[i] += sample * vol;
+            if (preListen)
+            {
+                ((float*)data)[i] += sample;
+            }
+
+        }
+    }
+
     // Push the buffer to the pipelines
     audioSrc_monitor->pushAudioBuffer();
     audioSrc_main->pushAudioBuffer(mainAudioData);
@@ -485,10 +541,41 @@ void MainWindow::newOpacityHandler(qreal newValue)
     mgmtdata->opacityEffect->setOpacity(newValue);
 }
 
+void MainWindow::newOpacityHandlerVideoPlayer(qreal newValue)
+{
+    VideoPlayer* sender = (VideoPlayer*)QObject::sender();
+    if (sender == 0) return;
+    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
+    if ((mgmtdata == 0) || (mgmtdata->opacityEffect == 0)) return;
+    mgmtdata->opacityEffect->setOpacity(newValue);
+}
+
 void MainWindow::newVideoFrame(QImage image)
 {
     // overlay it to the main scene
     CamBox* sender = (CamBox*)QObject::sender();
+    if (sender == 0) return;
+    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
+    if (mgmtdata == 0) return;
+
+    if (mgmtdata->pixmapItem == 0)
+    {
+        mgmtdata->pixmapItem = scene.addPixmap(QPixmap::fromImage(image));
+        mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
+        mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
+        mgmtdata->opacityEffect->setOpacity(0.0);
+    }
+    else
+    {
+        mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
+    }
+}
+
+// This is a copy from the above. We really need the common baseclass!
+void MainWindow::newVideoFrameFromVideoPlayer(QImage image)
+{
+    // overlay it to the main scene
+    VideoPlayer* sender = (VideoPlayer*)QObject::sender();
     if (sender == 0) return;
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
     if (mgmtdata == 0) return;
@@ -520,6 +607,19 @@ void MainWindow::fadeMeInHandler()
             box->fadeStart(-0.04, 40);
         }
     }
+    // Fade out the videoPlayer, too
+    ui->videoPlayer->fadeStart(-0.04, 40);
+}
+
+void MainWindow::fadeMeInHandlerVideoPlayer()
+{
+    // Do 25 steps in one second => timer interval = 0.04s = 40ms
+    foreach (QObject* boxObject, allCamBoxes) {
+        ((CamBox*)boxObject)->fadeStart(-0.04, 40);
+    }
+
+    // Fade in the videoPlayer
+    ui->videoPlayer->fadeStart(0.04, 40);
 }
 
 void MainWindow::setOnAirLED(QObject *boxObject, bool newState)

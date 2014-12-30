@@ -261,6 +261,9 @@ MONITOR</string>
    <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
      <widget class="QToolButton" name="playButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="minimumSize">
        <size>
         <width>36</width>
@@ -274,6 +277,9 @@ MONITOR</string>
     </item>
     <item>
      <widget class="QToolButton" name="pauseButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="minimumSize">
        <size>
         <width>36</width>
@@ -287,6 +293,9 @@ MONITOR</string>
     </item>
     <item>
      <widget class="QToolButton" name="stopButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="minimumSize">
        <size>
         <width>36</width>
