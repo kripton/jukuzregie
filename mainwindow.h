@@ -16,22 +16,16 @@
 #include <QFileDialog>
 #include <QFontDialog>
 
+#include <QGlib/Connect>
+#include <QGst/Parse>
+#include <QGst/Pipeline>
+#include <QGst/Bus>
+#include <QGst/Message>
+
 #include "cambox.h"
 #include "jackthread.h"
 #include "audioappsrc.h"
 #include "videoappsrc.h"
-
-#include <QGlib/Connect>
-#include <QGst/Element>
-#include <QGst/ElementFactory>
-#include <QGst/Pad>
-#include <QGst/GhostPad>
-#include <QGst/Bin>
-#include <QGst/Pipeline>
-#include <QGst/Bus>
-#include <QGst/Message>
-#include <QGst/Ui/VideoWidget>
-
 
 namespace Ui {
 class MainWindow;

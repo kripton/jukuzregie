@@ -12,15 +12,15 @@
 #include <QGraphicsItem>
 #include <QQueue>
 
-#include "tcpappsrc.h"
-#include "videoappsink.h"
-#include "audioappsink.h"
+#include <QGlib/Connect>
+#include <QGst/Parse>
+#include <QGst/Pipeline>
+#include <QGst/Bus>
+#include <QGst/Message>
 
-#include <QGst/Clock>
-#include <QGst/Bin>
-#include <QGst/Memory>
-#include <QGst/Buffer>
-#include <QGst/Utils/ApplicationSink>
+#include "tcpappsrc.h"
+#include "audioappsink.h"
+#include "videoappsink.h"
 
 namespace Ui {
 class CamBox;

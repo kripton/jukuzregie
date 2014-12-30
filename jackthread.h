@@ -1,11 +1,11 @@
 #ifndef JACKTHREAD_H
 #define JACKTHREAD_H
 
-#include <jack/jack.h>
-#include <jack/midiport.h>
-
 #include <QObject>
 #include <QDebug>
+
+#include <jack/jack.h>
+#include <jack/midiport.h>
 
 class JackThread : public QObject {
     Q_OBJECT
