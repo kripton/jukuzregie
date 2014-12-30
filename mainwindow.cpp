@@ -5,9 +5,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    startUp = QDateTime::currentDateTime();
+
     //////////////////// UI ////////////////////
     ui->setupUi(this);
     ui->textEdit->installEventFilter(this); // To catch Ctrl+Return on textEdit
+
+    setWindowTitle(QString("%1 (instance id %2)").arg(windowTitle()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
 
     logoItem = scene.addPixmap(QPixmap());
     logoItem->setGraphicsEffect(&logoOpacityEffect);
@@ -32,7 +36,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->textFontConfigureButton, SIGNAL(clicked()), this, SLOT(editTextFont()));
 
     //////////////////// Paths for runtime dumping data and logging ////////////////////
-    startUp = QDateTime::currentDateTime();
     QString dumpDir = QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss"));
     QDir().mkpath(dumpDir);
 
