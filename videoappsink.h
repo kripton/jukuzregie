@@ -17,12 +17,14 @@ public:
     explicit VideoAppSink(QObject *parent = 0);
 
 signals:
+    void newPrerollImage(QImage image);
     void newImage(QImage image);
 
 public slots:
 
 protected:
     virtual void eos();
+    virtual QGst::FlowReturn newPreroll();
     virtual QGst::FlowReturn newSample();
 
 private:

@@ -46,6 +46,7 @@ VideoPlayer::VideoPlayer(QWidget *parent) :
 
     m_videosink = new VideoAppSink(this);
     connect(m_videosink, SIGNAL(newImage(QImage)), this, SLOT(newVideoFrameFromSink(QImage)));
+    connect(m_videosink, SIGNAL(newPrerollImage(QImage)), this, SLOT(newVideoFrameFromSink(QImage)));
 
     m_audiosink = new AudioAppSink(this);
     connect(m_audiosink, SIGNAL(newAudioBuffer(QByteArray)), this, SLOT(newAudioBufferFromSink(QByteArray)));
@@ -186,6 +187,8 @@ void VideoPlayer::newFileSelected(QString newFile)
         pipeline->setState(QGst::StateNull);
         pipeline.clear();
     }
+
+    onPositionChanged();
 
     QString desc = QString(" filesrc location=\"%1\" ! decodebin name=decode !"
                            " queue ! videorate ! videoscale ! videoconvert ! appsink name=videosink caps=\"%2\""
@@ -484,7 +487,13 @@ void VideoPlayer::onPositionChanged()
     QTime len(0,0);
     QTime curpos(0,0);
 
-    if ((pipeline->currentState() != QGst::StateReady) && (pipeline->currentState() != QGst::StateNull))
+    QGst::State state = QGst::StateNull;
+    if (!pipeline.isNull())
+    {
+        state = pipeline->currentState();
+    }
+
+    if ((state != QGst::StateReady) && (state != QGst::StateNull))
     {
         len = length();
         curpos = position();
