@@ -7,7 +7,7 @@ CamBox::CamBox(QWidget *parent):
 {
     ui->setupUi(this);
 
-    this->setAutoFillBackground(true);
+    setAutoFillBackground(true);
     camOnline = false;
 
     connect(ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opcatiyFaderChanged()));

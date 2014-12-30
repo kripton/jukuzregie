@@ -113,6 +113,8 @@ MainWindow::MainWindow(QWidget *parent) :
     rawvideocaps = QString("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
     rawaudiocaps = QString("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
 
+    ui->videoPlayer->init(rawvideocaps, rawaudiocaps);
+
     QString dumpFileName = QString("%1/out.webm").arg(dumpDir);
 
     // Basic parts: Audio MONITOR to JACK, Audio MAIN to JACK and to MUX to FILE, Video to MUX, MUX to tcpserversink

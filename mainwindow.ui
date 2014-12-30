@@ -430,7 +430,7 @@
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_3">
-    <widget class="VideoPlayer" name="widget" native="true">
+    <widget class="VideoPlayer" name="videoPlayer" native="true">
      <property name="geometry">
       <rect>
        <x>0</x>

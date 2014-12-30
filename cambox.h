@@ -59,7 +59,7 @@ public slots:
     void startCam(QHostAddress host, quint16 port, QString videocaps, QString audiocaps); // start playing from a source
     void fadeStart(qreal stepSize, qint16 interval); // Start a fade on opacity
     void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
-    void audioDiscontOn();                  // Cal this slot if a discontinuity in the audio stream has occured
+    void audioDiscontOn();                  // Call this slot if a discontinuity in the audio stream has occured
     void disconnectSource();
 
 private slots:
