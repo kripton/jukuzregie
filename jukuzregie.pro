@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     audioappsrc.cpp \
     tcpappsrc.cpp \
     videoappsrc.cpp \
-    videoplayer.cpp
+    videoplayer.cpp \
+    mediasourcebase.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     audioappsrc.h \
     tcpappsrc.h \
     videoappsrc.h \
-    videoplayer.h
+    videoplayer.h \
+    mediasourcebase.h
 
 FORMS    += mainwindow.ui \
     cambox.ui \
