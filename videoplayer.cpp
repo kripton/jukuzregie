@@ -2,7 +2,7 @@
 #include "ui_videoplayer.h"
 
 VideoPlayer::VideoPlayer(QWidget *parent) :
-    QWidget(parent),
+    QGroupBox(parent),
     ui(new Ui::VideoPlayer)
 {
     ui->setupUi(this);
@@ -310,6 +310,7 @@ void VideoPlayer::onBusMessage(const QGst::MessagePtr &message)
     qDebug() << "VIDEOPLAYER MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
     case QGst::MessageEos:
+        pause();
         break;
     case QGst::MessageError: //Some error occurred.
         qCritical() << message.staticCast<QGst::ErrorMessage>()->error();

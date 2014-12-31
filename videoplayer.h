@@ -2,7 +2,7 @@
 #define VIDEOPLAYER_H
 
 #include <QDebug>
-#include <QWidget>
+#include <QGroupBox>
 #include <QFileDialog>
 #include <QQueue>
 #include <QGraphicsScene>
@@ -24,7 +24,7 @@ namespace Ui {
 class VideoPlayer;
 }
 
-class VideoPlayer : public QWidget
+class VideoPlayer : public QGroupBox
 {
     Q_OBJECT
 
