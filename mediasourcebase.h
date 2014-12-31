@@ -3,6 +3,11 @@
 
 #include <QObject>
 #include <QDebug>
+#include <QGroupBox>
+#include <QSlider>
+#include <QLabel>
+#include <QPushButton>
+#include <QCheckBox>
 #include <QQueue>
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
@@ -19,7 +24,7 @@
 #include "audioappsink.h"
 #include "videoappsink.h"
 
-class MediaSourceBase : public QObject
+class MediaSourceBase : public QGroupBox
 {
     Q_OBJECT
 
@@ -28,12 +33,11 @@ public:
     void* userData;
 
     /// PROPERTIES ///
-    bool getReady(); // Maybe completely replaced by getState() ?
     int getQueuedSamplesCount();
     QGst::State getState();
 
     /// METHODS ///
-    explicit MediaSourceBase(QObject *parent = 0);
+    explicit MediaSourceBase(QGroupBox *parent);
     /* TODO: Add paramters for the pointers to the UI elements so we can access them in this "base class":
      *
      * groupbox (element itself for background changes)
@@ -49,10 +53,28 @@ public:
      */
     ~MediaSourceBase();
 
+    void init(QSlider* leftMeterSlider, QSlider* rightMeterSlider, QLabel* meterLabel,
+            QPushButton* goButton, QGraphicsView* previewGraphicsView,
+            QSlider* opacitySlider, QCheckBox* fadeCheckBox, QPushButton* monitorButton,
+            QSlider* volumeSlider, QCheckBox* syncVolToOpacityCheckBox);
+
     float dequeueSample();
 
 private:
+    /// POINTERS TO UI ELEMENTS ///
+    QSlider* leftMeterSlider;
+    QSlider* rightMeterSlider;
+    QLabel* meterLabel;
+    QPushButton* goButton;
+    QGraphicsView* previewGraphicsView;
+    QSlider* opacitySlider;
+    QCheckBox* fadeCheckBox;
+    QPushButton* monitorButton;
+    QSlider* volumeSlider;
+    QCheckBox* syncVolToOpacityCheckBox;
+
     /// FIELDS ///
+    QGst::PipelinePtr pipeline;
     bool ready;
     QQueue<float> audioData;
 
@@ -71,7 +93,9 @@ private:
 
     /// METHODS ///
     void onBusMessage(const QGst::MessagePtr & message);
-    void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
+
+    virtual QString id() = 0;
+    virtual QString name() = 0;
 
 signals:
     void goButtonClicked();                     // emitted for parent when the GO-Button is clicked
@@ -79,6 +103,9 @@ signals:
     void opacityChanged(qreal newOpacity);      // emitted for parent when the opacity changed
     void volumeChanged(qreal newVolume);        // emitted for parent when the volume changed
     void newVideoFrame(QImage image);
+    void pipelineEOS();
+    void pipelineError(QString error, QString debugMsg);
+    void pipelineNewState(QGst::State newState);
 
 public slots:
     void setVideoOpacity(qreal opacity, bool diff = false);  // set the opacity slider to a new, absolute value or modifiy the current one in a relative manner
@@ -93,7 +120,7 @@ private slots:
     void sourceOnline();                           // UI cleanups/defaults after the source has come online
     void sourceOffline();                          // UI cleanups/defaults after the source has gone offline
     void updateBackground();                       // Update the background color and title of the groupBox
-    void preListenButtonToggled(bool checked);     // Handle Pre-Listen button state changes
+    //RE EMIT //void preListenButtonToggled(bool checked);     // Handle Pre-Listen button state changes
     void fadeTimeEvent();                          // fadeStepTimer had a timeout
     void newVideoFrameFromSink(QImage image);      // handle images provided by the VideoAppSink
     void newAudioBufferFromSink(QByteArray data);  // handle audio buffers provided by the AudioAppSink
