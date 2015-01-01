@@ -2,246 +2,29 @@
 #include "ui_cambox.h"
 
 CamBox::CamBox(QWidget *parent):
-    QGroupBox(parent),
+    MediaSourceBase(parent),
     ui(new Ui::CamBox)
 {
     ui->setupUi(this);
+    init(ui->AudioMeterSliderL, ui->AudioMeterSliderR, ui->audioLabel, ui->GOButton, ui->VideoBox, ui->opacitySlider, ui->fadeCheck, ui->MonitorPushButton, ui->volumeSlider, ui->volSync);
 
-    setAutoFillBackground(true);
-    camOnline = false;
-
-    connect(ui->opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opcatiyFaderChanged()));
-    connect(ui->volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeFaderChanged()));
-    connect(ui->MonitorPushButton, SIGNAL(toggled(bool)), this, SLOT(preListenButtonToggled(bool)));
-    connect(ui->GOButton, SIGNAL(clicked()), this, SLOT(goButtonClicked()));
     connect(ui->disconnectButton, SIGNAL(clicked()), this, SLOT(disconnectSource()));
 
-    this->setAlignment(Qt::AlignHCenter);
-
-    ui->volumeSlider->setValue(0);
-    ui->opacitySlider->setValue(0);
-    ui->volumeSlider->setEnabled(false);
-    ui->opacitySlider->setEnabled(false);
-    ui->MonitorPushButton->setEnabled(false);
-    ui->GOButton->setEnabled(false);
     ui->disconnectButton->setEnabled(false);
-
-    ui->VideoBox->setScene(&scene);
-    pixmapItem = 0;
-
-    m_tcpsrc = new TcpAppSrc(this);
-
-    m_videosink = new VideoAppSink(this);
-    connect(m_videosink, SIGNAL(newImage(QImage)), this, SLOT(newVideoFrameFromSink(QImage)));
-
-    m_audiosink = new AudioAppSink(this);
-    connect(m_audiosink, SIGNAL(newAudioBuffer(QByteArray)), this, SLOT(newAudioBufferFromSink(QByteArray)));
-
-    connect(&fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimeEvent()));
-
-    connect(&audioPeakTimer, SIGNAL(timeout()), this, SLOT(audioPeakOff()));
-
-    defaultPalette = ui->audioLabel->palette();
-    connect(&audioDiscontTimer, SIGNAL(timeout()), this, SLOT(audioDiscontOff()));
 
     // This is a bit awkward. Somehow, the title gets changed back
     // if we just call the SLOT here. So, use a single-shot timer
-    QTimer::singleShot(200, this, SLOT(updateBackground()));
+    QTimer::singleShot(200, this, SLOT(updateTitle()));
 }
 
 CamBox::~CamBox()
 {
-    if (pipeline) pipeline->setState(QGst::StateNull);
     delete ui;
-}
-
-bool CamBox::getPreListen()
-{
-    return ui->MonitorPushButton->isChecked();
-}
-
-qreal CamBox::getVolume()
-{
-    return ui->volumeSlider->value() / 1000.0;
-}
-
-bool CamBox::getCamOnline() {
-    return camOnline;
-}
-
-QHash<QString, QString> CamBox::sourceInfo()
-{
-    QHash<QString, QString> info;
-
-    info["online"] = QString("%1").arg(camOnline);
-    info["name"] = name;
-    info["audiobuffersize"] = QString("%1").arg(audioData.size());
-    info["volume"] = QString("%1").arg(ui->volumeSlider->value() / 1000.0);
-    info["opacity"] = QString("%1").arg(ui->opacitySlider->value() / 1000.0);
-
-    return info;
-}
-
-void CamBox::opcatiyFaderChanged()
-{
-    if (ui->volSync->isChecked())
-    {
-        setVolume(ui->opacitySlider->value() / 1000.0);
-        volumeFaderChanged();
-    }
-    updateBackground();
-    emit newOpacity(ui->opacitySlider->value() / 1000.0);
-}
-
-void CamBox::volumeFaderChanged()
-{
-    updateBackground();
-    emit newVolume(ui->volumeSlider->value() / 1000.0);
-}
-
-void CamBox::setVideoOpacity(qreal opacity, bool diff) {
-    qreal newValue;
-
-    if (diff)
-    {
-        qreal currentValue = ui->opacitySlider->value() / 1000.0;
-        newValue = currentValue + opacity;
-    }
-    else
-    {
-        newValue = opacity;
-    }
-    if (newValue > 1.0) newValue = 1.0;
-    if (newValue < 0.0) newValue = 0.0;
-    ui->opacitySlider->setValue(newValue * 1000);
-
-    opcatiyFaderChanged();
-}
-
-void CamBox::setVolume(qreal volume, bool diff) {
-    qreal newValue;
-
-    if (diff)
-    {
-        qreal currentValue = ui->volumeSlider->value() / 1000.0;
-        newValue = currentValue + volume;
-    }
-    else
-    {
-        newValue = volume;
-    }
-    if (newValue > 1.0) newValue = 1.0;
-    if (newValue < 0.0) newValue = 0.0;
-    ui->volumeSlider->setValue(newValue * 1000);
-
-    volumeFaderChanged();
-}
-
-void CamBox::fadeStart(qreal stepSize, qint16 interval)
-{
-    if (stepSize == 0) {
-        fadeTimer.stop();
-        return;
-    }
-
-    if (ui->fadeCheck->isChecked())
-    {
-        // Legacy behavior: Fade
-        fadeStepSize = stepSize;
-        fadeTimer.start(interval);
-    }
-    else
-    {
-        if (stepSize > 0)
-        {
-            setVideoOpacity(1.0);
-        }
-        else
-        {
-            setVideoOpacity(0.0);
-        }
-    }
 }
 
 void CamBox::setDumpDir(QString dir)
 {
     dumpDir = dir;
-}
-
-void CamBox::newVideoFrameFromSink(QImage image)
-{
-    // display it in the preview
-    QImage previewImage = image.scaled(320, 180, Qt::KeepAspectRatio, Qt::FastTransformation);
-    if (pixmapItem == 0)
-    {
-        pixmapItem = scene.addPixmap(QPixmap::fromImage(previewImage));
-    }
-    pixmapItem->setPixmap(QPixmap::fromImage(previewImage));
-
-    // Emit it so that the mainWindow can pick it up for the main image
-    emit newVideoFrame(image);
-}
-
-void CamBox::newAudioBufferFromSink(QByteArray data)
-{
-    //qDebug() << "NEW BUFFER FROM SINK. SIZE:" << data.size();
-
-    float* buffer = (float*)data.data();
-
-    // Most simple peak calculation
-    float maxleft = 0.0;
-    float maxright = 0.0;
-
-    if (audioData.size() < 131070)
-    {
-        // No use of omp parallel for here since the .enqueue() needs to be done in the correct order!
-        for (int i = 0; i < (data.size() / (int)sizeof(float)); i = i + 2)
-        {
-            maxleft = std::max(maxleft, buffer[i]);
-            maxright = std::max(maxright, buffer[i + 1]);
-            audioData.enqueue(buffer[i]);
-            audioData.enqueue(buffer[i+1]);
-        }
-    }
-    else
-    {
-        // The samples are not saved anywhere and are dropped. THIS IS AUDIBLE!
-        qWarning() << "AUDIO BUFFER OVERFLOW in camBox" << id << "Samples have been dropped";
-        audioDiscontOn();
-    }
-
-    // Set the new value to the avarage of the old and the new value. This makes the display less twitchy
-    ui->AudioMeterSliderL->setValue(((maxleft * 100) + ui->AudioMeterSliderL->value()) / 2);
-    ui->AudioMeterSliderR->setValue(((maxright * 100) + ui->AudioMeterSliderR->value()) / 2);
-
-    if ((maxleft >= 1.0) || (maxright >= 1.0))
-    {
-        audioPeakOn();
-    }
-}
-
-void CamBox::audioPeakOn()
-{
-    QFont font = ui->audioLabel->font();
-    font.setBold(true);
-    ui->audioLabel->setFont(font);
-    audioPeakTimer.start(1000);
-}
-
-void CamBox::audioPeakOff()
-{
-    QFont font = ui->audioLabel->font();
-    font.setBold(false);
-    ui->audioLabel->setFont(font);
-    audioPeakTimer.stop();
-}
-
-void CamBox::audioDiscontOn()
-{
-    QPalette pal = ui->audioLabel->palette();
-    pal.setColor(QPalette::WindowText, Qt::white);
-    ui->audioLabel->setPalette(pal);
-    audioDiscontTimer.start(1000);
 }
 
 void CamBox::disconnectSource()
@@ -250,64 +33,30 @@ void CamBox::disconnectSource()
     setVolume(0.0);
     pipeline->setState(QGst::StateNull);
     pipeline.clear();
-    camOnline = false;
     sourceOffline();
-}
-
-void CamBox::audioDiscontOff()
-{
-    ui->audioLabel->setPalette(defaultPalette);
-    audioDiscontTimer.stop();
-}
-
-void CamBox::fadeTimeEvent()
-{
-    //qDebug() << "fadeTimeEvent" << ui->opacitySlider->value();
-    if ((fadeStepSize > 0) && ((ui->opacitySlider->value() / 1000.0 + fadeStepSize) >= 1.0)) {
-        setVideoOpacity(1.0);
-        fadeTimer.stop();
-    } else if ((fadeStepSize < 0) && ((ui->opacitySlider->value() / 1000.0  + fadeStepSize) <= 0.0)) {
-        setVideoOpacity(0.0);
-        fadeTimer.stop();
-    } else {
-        setVideoOpacity(fadeStepSize, true);
-    }
 }
 
 void CamBox::onBusMessage(const QGst::MessagePtr &message)
 {
-    qDebug() << "MESSAGE" << message->type() << message->typeName();
+    //qDebug() << "CamBox::MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
-    case QGst::MessageEos:
-        camOnline = false;
-        sourceOffline();
-        break;
-    case QGst::MessageError: //Some error occurred.
-        qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
-        camOnline = false;
-        sourceOffline();
-        break;
-    case QGst::MessageStateChanged:
-        updateBackground(); // Change between Online/Buffering/Ready
-        break;
-    case QGst::MessageTag:
-    {
-        QGst::TagList taglist = message.staticCast<QGst::TagMessage>()->taglist();
-        if (taglist.comment() != "")
+        case QGst::MessageStateChanged:
+            updateTitle();
+            break;
+        case QGst::MessageTag:
         {
-            name = taglist.comment();
+            QGst::TagList taglist = message.staticCast<QGst::TagMessage>()->taglist();
+            if (taglist.comment() != "")
+            {
+                name = taglist.comment();
+                updateTitle();
+            }
+            break;
         }
-        break;
-    }
 
-    default:
-        break;
+        default:
+            break;
     }
-}
-
-void CamBox::setPreListen(bool value)
-{
-    ui->MonitorPushButton->setChecked(value);
 }
 
 void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QString audiocaps)
@@ -327,15 +76,16 @@ void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QStrin
     qDebug() << "Pipeline:" << desc;
     pipeline = QGst::Parse::launch(desc).dynamicCast<QGst::Pipeline>();
 
+    QGlib::connect(pipeline->bus(), "message", (MediaSourceBase*)this, &MediaSourceBase::onBusMessage);
     QGlib::connect(pipeline->bus(), "message", this, &CamBox::onBusMessage);
     pipeline->bus()->addSignalWatch();
 
-    m_tcpsrc->setElement(pipeline->getElementByName("source"));
-    m_tcpsrc->start(host.toString(), port, dumpFileName);
+    m_tcpsrc.setElement(pipeline->getElementByName("source"));
+    m_tcpsrc.start(host.toString(), port, dumpFileName);
 
-    m_videosink->setElement(pipeline->getElementByName("videosink"));
+    videoSink.setElement(pipeline->getElementByName("videosink"));
 
-    m_audiosink->setElement(pipeline->getElementByName("audiosink"));
+    audioSink.setElement(pipeline->getElementByName("audiosink"));
 
     // start playing
     pipeline->setState(QGst::StatePlaying);
@@ -343,77 +93,44 @@ void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QStrin
     sourceOnline();
 }
 
+
 void CamBox::sourceOnline() {
-    if (camOnline) return;
+    MediaSourceBase::sourceOnline();
 
-    ui->volumeSlider->setValue(0);
-    ui->opacitySlider->setValue(0);
-    ui->volumeSlider->setEnabled(true);
-    ui->opacitySlider->setEnabled(true);
-    ui->MonitorPushButton->setEnabled(true);
-    ui->GOButton->setEnabled(true);
     ui->disconnectButton->setEnabled(true);
-
-    camOnline = true;
-    updateBackground();
 }
 
 void CamBox::sourceOffline() {
-    if (camOnline) return;
+    MediaSourceBase::sourceOffline();
 
-    qDebug() << "SOURCE ID" << id << "LEFT US";
+    m_tcpsrc.stop();
 
-    audioData.clear();
-    m_tcpsrc->stop();
-
-    camOnline = false;
-    name = "";
-    updateBackground();
-
-    ui->AudioMeterSliderL->setValue(0);
-    ui->AudioMeterSliderR->setValue(0);
-    ui->volumeSlider->setValue(0);
-    ui->opacitySlider->setValue(0);
-    ui->volumeSlider->setEnabled(false);
-    ui->opacitySlider->setEnabled(false);
-    ui->MonitorPushButton->setEnabled(false);
-    ui->GOButton->setEnabled(false);
     ui->disconnectButton->setEnabled(false);
 }
 
-void CamBox::updateBackground() {
-    QPalette p = this->palette();
-    if (camOnline == true) {
-        if (pipeline->currentState() != QGst::StatePlaying)
-        {
+void CamBox::updateTitle() {
+    switch (getState())
+    {
+        case QGst::StateReady:
+        case QGst::StatePaused:
             // Source online but pipeline not PLAYING ... (Still buffering input)
-            p.setColor(QPalette::Window, Qt::yellow);
-            this->setTitle(QString("%1 (%2) : Buffering").arg(id).arg(name));
-            ui->GOButton->setEnabled(false);
-        } else if (ui->opacitySlider->value() != 0 || ui->volumeSlider->value() != 0) {
-            // Source online and ONAIR (RED)
-            p.setColor(QPalette::Window, Qt::red);
-            this->setTitle(QString("%1 (%2) : ON AIR").arg(id).arg(name));
-        } else {
-            // Source online but not ONAIR (PALE GREEN)
-            p.setColor(QPalette::Window, QColor(180, 255, 180));
-            this->setTitle(QString("%1 (%2) : Bereit").arg(id).arg(name));
-            ui->GOButton->setEnabled(true);
-        }
-    } else {
-        // Source offline (LIGHT GRAY)
-        p.setColor(QPalette::Window, Qt::lightGray);
-        this->setTitle(QString("%1 : Nicht verbunden").arg(id));
+            setTitle(QString("%1 (%2) : Buffering").arg(id).arg(name));
+            break;
+        case QGst::StatePlaying:
+            if ((ui->opacitySlider->value() != 0) || (ui->volumeSlider->value() != 0)) {
+                // Source online and ONAIR (RED)
+                setTitle(QString("%1 (%2) : ON AIR").arg(id).arg(name));
+            } else {
+                // Source online but not ONAIR (PALE GREEN)
+                setTitle(QString("%1 (%2) : Bereit").arg(id).arg(name));
+            }
+            break;
+        case QGst::StateNull:
+           // Source offline (LIGHT GRAY)
+           setTitle(QString("%1 : Nicht verbunden").arg(id));
+            break;
+
+        default:
+            break;
     }
-    this->setPalette(p);
-}
-
-void CamBox::preListenButtonToggled(bool checked)
-{
-    emit newPreListen(checked);
-}
-
-void CamBox::goButtonClicked()
-{
-    emit fadeMeIn();
 }

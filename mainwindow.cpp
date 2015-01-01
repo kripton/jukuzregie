@@ -56,10 +56,10 @@ MainWindow::MainWindow(QWidget *parent) :
         box->userData = mgmtdata;
         mgmtdata->pixmapItem = 0;
         mgmtdata->opacityEffect = 0;
-        box->id = QString("cam_%1").arg(i, 2).replace(' ', '0');
+        box->setId(QString("cam_%1").arg(i, 2).replace(' ', '0'));
 
-        connect(box, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandler()));
-        connect(box, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandler(qreal)));
+        connect(box, SIGNAL(goButtonClicked()), this, SLOT(fadeMeInHandler()));
+        connect(box, SIGNAL(opacityChanged(qreal)), this, SLOT(newOpacityHandler(qreal)));
         connect(box, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
 
         i++;
@@ -193,7 +193,7 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
     foreach (QObject* boxobj, allCamBoxes)
     {
         CamBox* box = (CamBox*) boxobj;
-        if ((box->id == hash.value("id") || "" == hash.value("id")) && !box->getCamOnline())
+        if ((box->getId() == hash.value("id") || "" == hash.value("id")) && box->getState() == QGst::StateNull)
         {
             if (hash.value("host") != "")
             {
@@ -244,7 +244,7 @@ void MainWindow::broadcastSourceInfo()
     foreach (QObject* boxobj, allCamBoxes)
     {
         CamBox* box = (CamBox*) boxobj;
-        sources.insert(box->id, box->sourceInfo());
+        sources.insert(box->getId(), box->getSourceInfo());
     }
 
     //qDebug() << "Broadcasting source info" << sources;
@@ -276,26 +276,26 @@ void MainWindow::prepareAudioData(uint length, char* data)
     {
         CamBox* box = (CamBox*) obj;
 
-        if (!box->getCamOnline())
+        if (box->getState() != QGst::StatePlaying)
         {
             continue;
         }
 
         qreal vol = box->getVolume();
-        bool preListen = box->getPreListen();
+        bool preListen = box->getMonitor();
 
         if ((vol == 0.0) && !preListen)
         {
             // Clear the currently queued audio data in the cambox
             // so we could use this to re-sync the audio data with the current input (video & from other camboxes)
-            box->audioData.clear();
+            box->clearQueuedSamples();
             continue;
         }
 
-        if ((box->audioData.size() * sizeof(float)) < length)
+        if ((box->getQueuedSamplesCount() * sizeof(float)) < length)
         {
             // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
-            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->id << "HAS" << box->audioData.size() * sizeof(float);
+            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->getId() << "HAS" << box->getQueuedSamplesCount() * sizeof(float);
             box->audioDiscontOn();
             continue;
         }
@@ -303,7 +303,7 @@ void MainWindow::prepareAudioData(uint length, char* data)
         // No use of omp parallel for here since the .dequeue() needs to be done in the correct order!
         for (uint i = 0; i < (length / sizeof(float)); i++)
         {
-            float sample = box->audioData.dequeue();
+            float sample = box->dequeueSample();
 
             ((float*)mainAudioData.data())[i] += sample * vol;
             if (preListen)
@@ -437,7 +437,10 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
     if (box == 0) return; // Button/Slider/Knob channel number is too high
 
-    if (!box->getCamOnline()) return; // Source not online -> do nothing
+    if (box->getState() != QGst::StatePlaying)
+    {
+        return; // Source not online -> do nothing
+    }
 
     // Determine action by 1st nibble
     switch (c1 & 0xf0) {
@@ -450,7 +453,7 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
       case 0x20: // Solo = toggle prelisten
         if (c2 == 0) return; // no reaction on button up
-        box->setPreListen(!box->getPreListen());
+        box->setPreListen(!box->getMonitor());
         return;
 
       case 0x30: // Mute
@@ -625,7 +628,7 @@ void MainWindow::fadeMeInHandlerVideoPlayer()
 void MainWindow::setOnAirLED(QObject *boxObject, bool newState)
 {
     CamBox* box = (CamBox*) boxObject;
-    uchar num = box->id.split("_")[1].toUInt() - 1;
+    uchar num = box->getId().split("_")[1].toUInt() - 1;
 
     worker->set_led(num, newState ? 0x7f : 0x00);
 }

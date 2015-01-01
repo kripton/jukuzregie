@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QCheckBox>
 #include <QQueue>
+#include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 #include <QTimer>
@@ -33,24 +34,17 @@ public:
     void* userData;
 
     /// PROPERTIES ///
+    QString getId();
+    void setId(QString id);
+    QString getName();
     int getQueuedSamplesCount();
+    bool getMonitor();
+    qreal getVolume();
     QGst::State getState();
+    virtual QHash<QString, QString> getSourceInfo();
 
     /// METHODS ///
-    explicit MediaSourceBase(QGroupBox *parent);
-    /* TODO: Add paramters for the pointers to the UI elements so we can access them in this "base class":
-     *
-     * groupbox (element itself for background changes)
-     *
-     * leftMeterSlider rightMeterSlider
-     * meterLabel
-     *
-     * goButton
-     * previewGraphicsView
-     *
-     * opacitySlider fadeCheckbox monitorButton
-     * volumeSlider syncVolToOpacityCheckbox
-     */
+    explicit MediaSourceBase(QWidget *parent);
     ~MediaSourceBase();
 
     void init(QSlider* leftMeterSlider, QSlider* rightMeterSlider, QLabel* meterLabel,
@@ -59,6 +53,9 @@ public:
             QSlider* volumeSlider, QCheckBox* syncVolToOpacityCheckBox);
 
     float dequeueSample();
+    void clearQueuedSamples();
+
+    void onBusMessage(const QGst::MessagePtr & message);
 
 private:
     /// POINTERS TO UI ELEMENTS ///
@@ -73,9 +70,11 @@ private:
     QSlider* volumeSlider;
     QCheckBox* syncVolToOpacityCheckBox;
 
+protected:
     /// FIELDS ///
+    QString id;
+    QString name;
     QGst::PipelinePtr pipeline;
-    bool ready;
     QQueue<float> audioData;
 
     VideoAppSink videoSink;
@@ -90,12 +89,6 @@ private:
     QTimer audioPeakTimer;
     QPalette defaultPalette;
     QTimer audioDiscontTimer;
-
-    /// METHODS ///
-    void onBusMessage(const QGst::MessagePtr & message);
-
-    virtual QString id() = 0;
-    virtual QString name() = 0;
 
 signals:
     void goButtonClicked();                     // emitted for parent when the GO-Button is clicked
@@ -114,13 +107,12 @@ public slots:
     void fadeStart(qreal stepSize, qint16 interval);         // Start a fade on opacity
     void audioDiscontOn();                                   // Call this slot if a discontinuity in the audio stream has been detected
 
-private slots:
+protected slots:
     void opcatiyFaderChanged();                    // called when the opacity-fader got changed
     void volumeFaderChanged();                     // called when the volume-fader got changed
     void sourceOnline();                           // UI cleanups/defaults after the source has come online
     void sourceOffline();                          // UI cleanups/defaults after the source has gone offline
     void updateBackground();                       // Update the background color and title of the groupBox
-    //RE EMIT //void preListenButtonToggled(bool checked);     // Handle Pre-Listen button state changes
     void fadeTimeEvent();                          // fadeStepTimer had a timeout
     void newVideoFrameFromSink(QImage image);      // handle images provided by the VideoAppSink
     void newAudioBufferFromSink(QByteArray data);  // handle audio buffers provided by the AudioAppSink
