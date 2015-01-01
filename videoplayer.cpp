@@ -120,7 +120,10 @@ void VideoPlayer::handlePipelineStateChange(const QGst::StateChangedMessagePtr &
         //start the timer when the pipeline starts playing
         positionTimer.start(100);
 
-        sourceOnline();
+        if (scm->oldState() == QGst::StateNull)
+        {
+            sourceOnline();
+        }
         break;
     case QGst::StatePaused:
         //stop the timer when the pipeline pauses
@@ -147,10 +150,14 @@ void VideoPlayer::onStateChanged()
     ui->stopButton->setEnabled(newState != QGst::StateNull);
     ui->positionSlider->setEnabled(newState != QGst::StateNull);
 
+    ui->opacitySlider->setEnabled((newState == QGst::StatePlaying) || (newState == QGst::StatePaused));
+    ui->volumeSlider->setEnabled((newState == QGst::StatePlaying) || (newState == QGst::StatePaused));
+
     //if we are in Null state, call onPositionChanged() to restore
     //the position of the slider and the text on the label
     if (newState == QGst::StateNull) {
         onPositionChanged();
+        ui->playButton->setEnabled(false);
     }
 
     updateBackground();
