@@ -71,6 +71,10 @@ MainWindow::MainWindow(QWidget *parent) :
         i++;
     }
 
+    //////////////////// VideoPlayer ////////////////////
+    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)ui->videoPlayer->userData;
+    mgmtdata->pixmapItem->setZValue(0.1); // draw the video on top of the camBoxes
+
     //////////////////// JACK thread for midi control ////////////////////
     QThread* jackThread = new QThread;
     worker = new JackThread();

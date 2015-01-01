@@ -248,6 +248,11 @@ void VideoPlayer::play()
 {
     if (pipeline) {
         pipeline->setState(QGst::StatePlaying);
+
+        if (ui->goOnPlaycheckBox->isChecked())
+        {
+            setVideoOpacity(1.0);
+        }
     }
 }
 
@@ -255,6 +260,11 @@ void VideoPlayer::pause()
 {
     if (pipeline) {
         pipeline->setState(QGst::StatePaused);
+    }
+
+    if (ui->unggoOnPauseCheckBox->isChecked())
+    {
+        setVideoOpacity(0.0);
     }
 }
 
