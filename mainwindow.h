@@ -60,11 +60,8 @@ private slots:
 
     // Events by CamBoxes
     void fadeMeInHandler();
-    void fadeMeInHandlerVideoPlayer();
     void newOpacityHandler(qreal newValue);
-    void newOpacityHandlerVideoPlayer(qreal newValue);
     void newVideoFrame(QImage image);
-    void newVideoFrameFromVideoPlayer(QImage image);
 
     // UDP stuff
     void newNotifyDatagram();
@@ -81,7 +78,9 @@ private:
     Ui::MainWindow *ui;
     QProcess* process;
     QStringList arguments;
-    QList<QObject*> allCamBoxes;
+
+    QList<CamBox*> allCamBoxes;
+    QList<MediaSourceBase*> allSources;
 
     QList<QUdpSocket*> notifySockets;
 

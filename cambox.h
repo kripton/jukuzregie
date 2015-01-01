@@ -3,15 +3,8 @@
 
 #include <QDebug>
 #include <QGroupBox>
-#include <QUrl>
-#include <QTimer>
-#include <QMutex>
-#include <QWaitCondition>
 #include <QImage>
 #include <QHostAddress>
-#include <QGraphicsScene>
-#include <QGraphicsItem>
-#include <QQueue>
 
 #include <QGlib/Connect>
 #include <QGst/Parse>
@@ -22,6 +15,7 @@
 #include "mediasourcebase.h"
 
 #include "tcpappsrc.h"
+
 #include "audioappsink.h"
 #include "videoappsink.h"
 

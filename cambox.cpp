@@ -6,7 +6,7 @@ CamBox::CamBox(QWidget *parent):
     ui(new Ui::CamBox)
 {
     ui->setupUi(this);
-    init(ui->AudioMeterSliderL, ui->AudioMeterSliderR, ui->audioLabel, ui->GOButton, ui->VideoBox, ui->opacitySlider, ui->fadeCheck, ui->MonitorPushButton, ui->volumeSlider, ui->volSync);
+    MediaSourceBase::init(ui->AudioMeterSliderL, ui->AudioMeterSliderR, ui->audioLabel, ui->GOButton, ui->VideoBox, ui->opacitySlider, ui->fadeCheck, ui->MonitorPushButton, ui->volumeSlider, ui->volSync);
 
     connect(ui->disconnectButton, SIGNAL(clicked()), this, SLOT(disconnectSource()));
 

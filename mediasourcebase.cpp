@@ -98,7 +98,8 @@ void MediaSourceBase::init(QSlider *leftMeterSlider, QSlider *rightMeterSlider, 
     connect(goButton, SIGNAL(clicked()), this, SIGNAL(goButtonClicked()));
 
     previewGraphicsView->setScene(&scene);
-    pixmapItem = 0;
+    previewPixmapItem = scene.addPixmap(QPixmap());
+
 
     connect(&videoSink, SIGNAL(newImage(QImage)), this, SLOT(newVideoFrameFromSink(QImage)));
     connect(&audioSink, SIGNAL(newAudioBuffer(QByteArray)), this, SLOT(newAudioBufferFromSink(QByteArray)));
@@ -333,11 +334,7 @@ void MediaSourceBase::newVideoFrameFromSink(QImage image)
 
     // display it in the preview
     QImage previewImage = image.scaled(320, 180, Qt::KeepAspectRatio, Qt::FastTransformation);
-    if (pixmapItem == 0)
-    {
-        pixmapItem = scene.addPixmap(QPixmap::fromImage(previewImage));
-    }
-    pixmapItem->setPixmap(QPixmap::fromImage(previewImage));
+    previewPixmapItem->setPixmap(QPixmap::fromImage(previewImage));
 
     // Emit it so that the mainWindow can pick it up for the main image
     emit newVideoFrame(image);

@@ -81,7 +81,7 @@ protected:
     AudioAppSink audioSink;
 
     QGraphicsScene scene;
-    QGraphicsPixmapItem* pixmapItem;
+    QGraphicsPixmapItem* previewPixmapItem;
 
     qreal fadeStepSize;
     QTimer fadeStepTimer;

@@ -43,39 +43,33 @@ MainWindow::MainWindow(QWidget *parent) :
         QDir().mkpath(QString("%1/streaming/%2/logs").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
     }
 
+    //////////////////// MediaSources generics ////////////////////
+    allSources << ui->groupBox_1 << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4 << ui->groupBox_5 << ui->groupBox_6 << ui->groupBox_7 << ui->groupBox_8 << ui->groupBox_9 << ui->videoPlayer;
+
+    foreach (MediaSourceBase* source, allSources)
+    {
+        camBoxMgmtData* mgmtdata = new camBoxMgmtData;
+        source->userData = mgmtdata;
+
+        mgmtdata->pixmapItem = scene.addPixmap(QPixmap());
+        mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
+        mgmtdata->opacityEffect->setOpacity(0.0);
+        mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
+
+        connect(source, SIGNAL(goButtonClicked()), this, SLOT(fadeMeInHandler()));
+        connect(source, SIGNAL(opacityChanged(qreal)), this, SLOT(newOpacityHandler(qreal)));
+        connect(source, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
+    }
+
     //////////////////// CamBoxes ////////////////////
     allCamBoxes << ui->groupBox_1 << ui->groupBox_2 << ui->groupBox_3 << ui->groupBox_4 << ui->groupBox_5 << ui->groupBox_6 << ui->groupBox_7 << ui->groupBox_8 << ui->groupBox_9;
 
     int i = 1;
-    foreach (QObject* boxObject, allCamBoxes) {
-        CamBox* box = (CamBox*)boxObject;
-
+    foreach (CamBox* box, allCamBoxes) {
         box->setDumpDir(dumpDir);
-
-        camBoxMgmtData* mgmtdata = new camBoxMgmtData;
-        box->userData = mgmtdata;
-        mgmtdata->pixmapItem = 0;
-        mgmtdata->opacityEffect = 0;
         box->setId(QString("cam_%1").arg(i, 2).replace(' ', '0'));
-
-        connect(box, SIGNAL(goButtonClicked()), this, SLOT(fadeMeInHandler()));
-        connect(box, SIGNAL(opacityChanged(qreal)), this, SLOT(newOpacityHandler(qreal)));
-        connect(box, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
-
         i++;
     }
-
-    //////////////////// VideoPlayer ////////////////////
-    camBoxMgmtData* mgmtdata = new camBoxMgmtData;
-    ui->videoPlayer->userData = mgmtdata;
-    mgmtdata->pixmapItem = scene.addPixmap(QPixmap());
-    mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
-    mgmtdata->opacityEffect->setOpacity(0.0);
-    mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
-
-    connect(ui->videoPlayer, SIGNAL(fadeMeIn()), this, SLOT(fadeMeInHandlerVideoPlayer()));
-    connect(ui->videoPlayer, SIGNAL(newOpacity(qreal)), this, SLOT(newOpacityHandlerVideoPlayer(qreal)));
-    connect(ui->videoPlayer, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrameFromVideoPlayer(QImage)));
 
     //////////////////// JACK thread for midi control ////////////////////
     QThread* jackThread = new QThread;
@@ -271,82 +265,37 @@ void MainWindow::prepareAudioData(uint length, char* data)
     // Makes a deep copy, so the mainData is also pre-filled with float-zeroes
     QByteArray mainAudioData = QByteArray(data, length);
 
-    // Add the audio of all camBoxes
-    foreach (QObject* obj, allCamBoxes)
+    // Add the audio of all camBoxes and the videoPlayer
+    foreach (MediaSourceBase* source, allSources)
     {
-        CamBox* box = (CamBox*) obj;
-
-        if (box->getState() != QGst::StatePlaying)
+        if (source->getState() != QGst::StatePlaying)
         {
             continue;
         }
 
-        qreal vol = box->getVolume();
-        bool preListen = box->getMonitor();
+        qreal vol = source->getVolume();
+        bool preListen = source->getMonitor();
 
         if ((vol == 0.0) && !preListen)
         {
             // Clear the currently queued audio data in the cambox
             // so we could use this to re-sync the audio data with the current input (video & from other camboxes)
-            box->clearQueuedSamples();
+            source->clearQueuedSamples();
             continue;
         }
 
-        if ((box->getQueuedSamplesCount() * sizeof(float)) < length)
+        if ((source->getQueuedSamplesCount() * sizeof(float)) < length)
         {
             // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
-            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << box->getId() << "HAS" << box->getQueuedSamplesCount() * sizeof(float);
-            box->audioDiscontOn();
+            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, CAMBOX" << source->getId() << "HAS" << source->getQueuedSamplesCount() * sizeof(float);
+            source->audioDiscontOn();
             continue;
         }
 
         // No use of omp parallel for here since the .dequeue() needs to be done in the correct order!
         for (uint i = 0; i < (length / sizeof(float)); i++)
         {
-            float sample = box->dequeueSample();
-
-            ((float*)mainAudioData.data())[i] += sample * vol;
-            if (preListen)
-            {
-                ((float*)data)[i] += sample;
-            }
-
-        }
-    }
-
-    // Add the audio of the videoPlayer
-    for (uint j = 0; j < 1; j++)
-    {
-        VideoPlayer* player = ui->videoPlayer;
-
-        if (player->getState() != QGst::StatePlaying)
-        {
-            continue;
-        }
-
-        qreal vol = player->getVolume();
-        bool preListen = player->getPreListen();
-
-        if ((vol == 0.0) && !preListen)
-        {
-            // Clear the currently queued audio data in the cambox
-            // so we could use this to re-sync the audio data with the current input (video & from other camboxes)
-            player->audioData.clear();
-            continue;
-        }
-
-        if ((player->audioData.size() * sizeof(float)) < length)
-        {
-            // Don't dequeue anything from the box to give it a chance to catch up. This means that the buffer will not have any data from this camBox. THIS IS AUDIBLE!
-            qWarning() << "AUDIO BUFFER UNDERRUN! WANT" << length << "BYTES, PLAYER HAS" << player->audioData.size() * sizeof(float);
-            player->audioDiscontOn();
-            continue;
-        }
-
-        // No use of omp parallel for here since the .dequeue() needs to be done in the correct order!
-        for (uint i = 0; i < (length / sizeof(float)); i++)
-        {
-            float sample = player->audioData.dequeue();
+            float sample = source->dequeueSample();
 
             ((float*)mainAudioData.data())[i] += sample * vol;
             if (preListen)
@@ -537,92 +486,38 @@ void MainWindow::selectNewTextBackground()
 
 void MainWindow::newOpacityHandler(qreal newValue)
 {
-    CamBox* sender = (CamBox*)QObject::sender();
+    MediaSourceBase* sender = (MediaSourceBase*)QObject::sender();
     if (sender == 0) return;
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
     if ((mgmtdata == 0) || (mgmtdata->opacityEffect == 0)) return;
-    mgmtdata->opacityEffect->setOpacity(newValue);
-}
 
-void MainWindow::newOpacityHandlerVideoPlayer(qreal newValue)
-{
-    VideoPlayer* sender = (VideoPlayer*)QObject::sender();
-    if (sender == 0) return;
-    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
-    if ((mgmtdata == 0) || (mgmtdata->opacityEffect == 0)) return;
     mgmtdata->opacityEffect->setOpacity(newValue);
 }
 
 void MainWindow::newVideoFrame(QImage image)
 {
     // overlay it to the main scene
-    CamBox* sender = (CamBox*)QObject::sender();
+    MediaSourceBase* sender = (MediaSourceBase*)QObject::sender();
     if (sender == 0) return;
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
     if (mgmtdata == 0) return;
 
-    if (mgmtdata->pixmapItem == 0)
-    {
-        mgmtdata->pixmapItem = scene.addPixmap(QPixmap::fromImage(image));
-        mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
-        mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
-        mgmtdata->opacityEffect->setOpacity(0.0);
-    }
-    else
-    {
-        mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
-    }
-}
-
-// This is a copy from the above. We really need the common baseclass!
-void MainWindow::newVideoFrameFromVideoPlayer(QImage image)
-{
-    // overlay it to the main scene
-    VideoPlayer* sender = (VideoPlayer*)QObject::sender();
-    if (sender == 0) return;
-    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
-    if (mgmtdata == 0) return;
-
-    if (mgmtdata->pixmapItem == 0)
-    {
-        mgmtdata->pixmapItem = scene.addPixmap(QPixmap::fromImage(image));
-        mgmtdata->opacityEffect = new QGraphicsOpacityEffect(this);
-        mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
-        mgmtdata->opacityEffect->setOpacity(0.0);
-    }
-    else
-    {
-        mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
-    }
+    mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
 }
 
 void MainWindow::fadeMeInHandler()
 {
     // Do 25 steps in one second => timer interval = 0.04s = 40ms
-    foreach (QObject* boxObject, allCamBoxes) {
-        CamBox* box = (CamBox*)boxObject;
-        if (boxObject == QObject::sender())
+    foreach (MediaSourceBase* source, allSources) {
+        if (source == QObject::sender())
         {
-            box->fadeStart(0.04, 40);
+            source->fadeStart(0.04, 40);
         }
         else
         {
-            box->fadeStart(-0.04, 40);
+            source->fadeStart(-0.04, 40);
         }
     }
-    // Fade out the videoPlayer, too
-    ui->videoPlayer->fadeStart(-0.04, 40);
-}
-
-void MainWindow::fadeMeInHandlerVideoPlayer()
-{
-    // Do 25 steps in one second => timer interval = 0.04s = 40ms
-    foreach (QObject* boxObject, allCamBoxes) {
-        ((CamBox*)boxObject)->fadeStart(-0.04, 40);
-    }
-
-    // Fade in the videoPlayer
-    ui->videoPlayer->fadeStart(0.04, 40);
 }
 
 void MainWindow::setOnAirLED(QObject *boxObject, bool newState)
