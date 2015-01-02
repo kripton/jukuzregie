@@ -92,6 +92,11 @@ void VideoPlayer::newFileSelected(QString newFile)
     updateBackground();
 }
 
+void VideoPlayer::goButtonClicked()
+{
+    emit fadeMeIn(false);
+}
+
 void VideoPlayer::onBusMessage(const QGst::MessagePtr &message)
 {
     qDebug() << "VIDEOPLAYER MESSAGE" << message->type() << message->typeName();

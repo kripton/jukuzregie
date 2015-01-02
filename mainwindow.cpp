@@ -56,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
         mgmtdata->opacityEffect->setOpacity(0.0);
         mgmtdata->pixmapItem->setGraphicsEffect(mgmtdata->opacityEffect);
 
-        connect(source, SIGNAL(goButtonClicked()), this, SLOT(fadeMeInHandler()));
+        connect(source, SIGNAL(fadeMeIn(bool)), this, SLOT(fadeMeInHandler(bool)));
         connect(source, SIGNAL(opacityChanged(qreal)), this, SLOT(newOpacityHandler(qreal)));
         connect(source, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
     }
@@ -509,7 +509,7 @@ void MainWindow::newVideoFrame(QImage image)
     mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
 }
 
-void MainWindow::fadeMeInHandler()
+void MainWindow::fadeMeInHandler(bool fadeOutOthers)
 {
     // Do 25 steps in one second => timer interval = 0.04s = 40ms
     foreach (MediaSourceBase* source, allSources) {
@@ -517,7 +517,7 @@ void MainWindow::fadeMeInHandler()
         {
             source->fadeStart(0.04, 40);
         }
-        else
+        else if (fadeOutOthers)
         {
             source->fadeStart(-0.04, 40);
         }

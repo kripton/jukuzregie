@@ -34,6 +34,7 @@ public:
 private slots:
     void selectFolder();
     void newFileSelected(QString newFile);
+    void goButtonClicked();
 
     void onStateChanged();
     void onPositionChanged();

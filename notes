@@ -2,9 +2,7 @@ TODO:
 - Output encoders (Save + stream) => Done as in save to file and provide via tcpserversink
 - Verify that other incoming formats (H264 with AAC audio) are working => H264 with vorbis is working (see below)
 - Draw stuff onto the scene (logos, sprites, text on sprite, ...) => DONE! Enhancement: Maybe fade text in and out?
-- Add videplayer (from local file) to UI
-- Make cambox and videoplayer use a common base class!!!!
-- Handle EOS properly (problem seems to exist in CamBox and VideoPlayer!
+- Handle EOS properly (problem seems to exist in CamBox and VideoPlayer! => RECHECK
 - Remove fading or make it optional => DONE! TODO: make that work via MIDI?
 - Make the user interface localisable (by using tr() a little more often :)
 - Support pipelines/sources/videos with only video or only audio. Maybe by using bins and listening to PadAdded events?

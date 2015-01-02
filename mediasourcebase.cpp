@@ -95,7 +95,7 @@ void MediaSourceBase::init(QSlider *leftMeterSlider, QSlider *rightMeterSlider, 
 
     connect(opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opcatiyFaderChanged()));
     connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeFaderChanged()));
-    connect(goButton, SIGNAL(clicked()), this, SIGNAL(goButtonClicked()));
+    connect(goButton, SIGNAL(clicked()), this, SLOT(goButtonClicked()));
 
     previewGraphicsView->setScene(&scene);
     previewPixmapItem = scene.addPixmap(QPixmap());
@@ -241,6 +241,11 @@ void MediaSourceBase::volumeFaderChanged()
 {
     updateBackground();
     emit volumeChanged(volumeSlider->value() / 1000.0);
+}
+
+void MediaSourceBase::goButtonClicked()
+{
+    emit fadeMeIn(true);
 }
 
 void MediaSourceBase::sourceOnline()

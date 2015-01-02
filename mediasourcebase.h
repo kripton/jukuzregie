@@ -91,7 +91,7 @@ protected:
     QTimer audioDiscontTimer;
 
 signals:
-    void goButtonClicked();                     // emitted for parent when the GO-Button is clicked
+    void fadeMeIn(bool fadeOutOthers = true);   // emitted for parent when the GO-Button is clicked
     void preListenChanged(bool newState);       // emitted for parent when the state of the Pre-Listen value changed
     void opacityChanged(qreal newOpacity);      // emitted for parent when the opacity changed
     void volumeChanged(qreal newVolume);        // emitted for parent when the volume changed
@@ -110,6 +110,7 @@ public slots:
 protected slots:
     void opcatiyFaderChanged();                    // called when the opacity-fader got changed
     void volumeFaderChanged();                     // called when the volume-fader got changed
+    void goButtonClicked();                        // called when the GO button is clicked
     void sourceOnline();                           // UI cleanups/defaults after the source has come online
     void sourceOffline();                          // UI cleanups/defaults after the source has gone offline
     void updateBackground();                       // Update the background color and title of the groupBox

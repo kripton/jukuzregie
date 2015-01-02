@@ -59,7 +59,7 @@ private slots:
     void selectNewTextBackground();
 
     // Events by CamBoxes
-    void fadeMeInHandler();
+    void fadeMeInHandler(bool fadeOutOthers = true);
     void newOpacityHandler(qreal newValue);
     void newVideoFrame(QImage image);
 
