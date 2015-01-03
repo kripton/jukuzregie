@@ -253,6 +253,7 @@ void VideoPlayer::play()
 {
     if (pipeline) {
         pipeline->setState(QGst::StatePlaying);
+        sourceOnline();
 
         if (ui->goOnPlaycheckBox->isChecked())
         {

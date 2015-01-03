@@ -279,6 +279,12 @@ void MediaSourceBase::sourceOffline()
 
     name = "";
 
+    if (!pipeline.isNull())
+    {
+        pipeline->setState(QGst::StateNull);
+        pipeline.clear();
+    }
+
     updateBackground();
 
 }
