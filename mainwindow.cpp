@@ -282,9 +282,9 @@ void MainWindow::prepareAudioData(uint length, char* data)
 
         if ((vol == 0.0) && !preListen)
         {
-            // Clear the currently queued audio data in the cambox
-            // so we could use this to re-sync the audio data with the current input (video & from other camboxes)
-            source->clearQueuedSamples();
+            // Remove old samples but leave the latest ones in there, so we have one complete block remaining in the queue
+            // This is done so we can re-sync the audio data with the current input (video & from other camboxes) by dropping old data in a time no one can hear it anyways
+            source->trimQueuedSamples((int)length);
             continue;
         }
 

@@ -54,6 +54,7 @@ public:
 
     float dequeueSample();
     void clearQueuedSamples();
+    void trimQueuedSamples(int remainingSamplesCount);
 
     void onBusMessage(const QGst::MessagePtr & message);
 

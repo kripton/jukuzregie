@@ -120,6 +120,17 @@ void MediaSourceBase::clearQueuedSamples()
     audioData.clear();
 }
 
+void MediaSourceBase::trimQueuedSamples(int remainingSamplesCount)
+{
+    int numToTrim = audioData.size() - remainingSamplesCount;
+
+    #pragma omp parallel for
+    for (int i = 0; i < numToTrim; i++)
+    {
+        audioData.dequeue();
+    }
+}
+
 void MediaSourceBase::onBusMessage(const QGst::MessagePtr &message)
 {
     qDebug() << "SOURCEPIPELINE" << id << "MESSAGE" << message->type() << message->typeName();
