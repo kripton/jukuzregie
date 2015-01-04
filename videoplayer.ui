@@ -308,6 +308,13 @@ MONITOR</string>
      </widget>
     </item>
     <item>
+     <widget class="QCheckBox" name="loopCheckBox">
+      <property name="text">
+       <string>LOOP</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <spacer name="horizontalSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>

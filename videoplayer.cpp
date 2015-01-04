@@ -78,7 +78,6 @@ void VideoPlayer::newFileSelected(QString newFile)
     qDebug() << "Pipeline:" << desc;
     pipeline = QGst::Parse::launch(desc).dynamicCast<QGst::Pipeline>();
 
-    QGlib::connect(pipeline->bus(), "message", (MediaSourceBase*)this, &MediaSourceBase::onBusMessage);
     QGlib::connect(pipeline->bus(), "message", this, &VideoPlayer::onBusMessage);
     pipeline->bus()->addSignalWatch();
 
@@ -102,7 +101,14 @@ void VideoPlayer::onBusMessage(const QGst::MessagePtr &message)
     qDebug() << "VIDEOPLAYER MESSAGE" << message->type() << message->typeName();
     switch (message->type()) {
     case QGst::MessageEos:
-        pause();
+        if (ui->loopCheckBox->isChecked())
+        {
+            setPosition(QTime(0, 0));
+        }
+        else
+        {
+            pause();
+        }
         break;
     case QGst::MessageError: //Some error occurred.
         qCritical() << message.staticCast<QGst::ErrorMessage>()->error();
@@ -110,6 +116,7 @@ void VideoPlayer::onBusMessage(const QGst::MessagePtr &message)
         break;
     case QGst::MessageStateChanged:
         if (message->source() == pipeline) {
+            qDebug() << "VIDEOPLAYER NEWSTATE" << pipeline->currentState();
             handlePipelineStateChange(message.staticCast<QGst::StateChangedMessage>());
         }
         break;

@@ -13,6 +13,7 @@ TODO:
 - Add AudioMeters for MAIN and MONITOR out
 - Add a "clear monitor" button in the "master" section
 - Add a "new connection" dialog so the command line doesn't have to be used
+- Move all file selection dialogs to new threads!!!
 
 gst-launch pipeline used as sender to the regie program:
 gst-launch-1.0 jackaudiosrc provide-clock=false ! audio/x-raw,channels=2 ! audiorate ! audioconvert ! taginject tags="comment=audioComment" ! vorbisenc ! matroskamux name=mux streamable=true ! tcpserversink host=192.168.189.220 port=5000 videotestsrc ! video/x-raw,width=640,height=360,pixel-ascpect-ratio=1/1,framerate=25/1 ! timeoverlay ! clockoverlay deltay=50 ! taginject tags="comment=videoComment" ! vp8enc threads=2 deadline=20000 ! mux.
@@ -20,3 +21,6 @@ gst-launch-1.0 jackaudiosrc provide-clock=false ! audio/x-raw,channels=2 ! tee n
 
 Alternative using h264 instead of VP8:
 gst-launch-1.0 jackaudiosrc provide-clock=false ! audio/x-raw,channels=2 ! tee name=audio ! queue ! audiorate ! audioconvert ! taginject tags=comment=ayantaGOOM ! vorbisenc ! matroskamux name=mux streamable=true ! tcpserversink sync=false host=192.168.189.201 port=5005 audio. ! queue ! audioconvert ! goom ! video/x-raw,width=640,height=360,pixel-ascpect-ratio=1/1,framerate=25/1 ! timeoverlay ! clockoverlay deltay=50 ! taginject tags=comment=ayantaGOOM ! videoconvert ! x264enc tune=zerolatency byte-stream=true bitrate=4096 speed_preset=superfast ! mux.
+
+Pipeline for direct C920 h264-streaming (with audiotestsrc):
+gst-launch-1.0 v4l2src do-timestamp=true ! video/x-h264,width=640,height=360,framerate=30/1 ! h264parse ! matroskamux streamable=true name=mux ! tcpserversink host=192.168.189.253 port=5005 audiotestsrc ! vorbisenc ! mux.

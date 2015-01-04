@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = jukuzregie
 TEMPLATE = app
 
-QMAKE_CXXFLAGS_RELEASE += -O3 -march=native -fopenmp -D_GLIBCXX_PARALLEL
+QMAKE_CXXFLAGS_RELEASE += -Ofast -march=native -fopenmp -D_GLIBCXX_PARALLEL -fomit-frame-pointer
 QMAKE_LFLAGS_RELEASE += -fopenmp
 
 SOURCES += main.cpp\
