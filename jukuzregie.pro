@@ -14,6 +14,9 @@ TEMPLATE = app
 QMAKE_CXXFLAGS_RELEASE += -Ofast -march=native -fopenmp -D_GLIBCXX_PARALLEL -fomit-frame-pointer
 QMAKE_LFLAGS_RELEASE += -fopenmp
 
+QMAKE_CXXFLAGS_DEBUG += -Ofast -march=native -fopenmp -D_GLIBCXX_PARALLEL -g
+QMAKE_LFLAGS_DEBUG += -fopenmp
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     cambox.cpp \

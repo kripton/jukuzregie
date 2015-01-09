@@ -124,7 +124,6 @@ void MediaSourceBase::trimQueuedSamples(int remainingSamplesCount)
 {
     int numToTrim = audioData.size() - remainingSamplesCount;
 
-    #pragma omp parallel for
     for (int i = 0; i < numToTrim; i++)
     {
         audioData.dequeue();

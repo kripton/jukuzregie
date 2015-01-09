@@ -177,7 +177,7 @@ void VideoPlayer::onStateChanged()
 
 QTime VideoPlayer::length() const
 {
-    if (pipeline) {
+    if (!pipeline.isNull()) {
         //here we query the pipeline about the content's duration
         //and we request that the result is returned in time format
         QGst::DurationQueryPtr query = QGst::DurationQuery::create(QGst::FormatTime);
@@ -190,7 +190,7 @@ QTime VideoPlayer::length() const
 
 QTime VideoPlayer::position() const
 {
-    if (pipeline) {
+    if (!pipeline.isNull()) {
         //here we query the pipeline about its position
         //and we request that the result is returned in time format
         QGst::PositionQueryPtr query = QGst::PositionQuery::create(QGst::FormatTime);
@@ -229,9 +229,7 @@ void VideoPlayer::onPositionChanged()
         curpos = position();
     }
 
-    ui->positionLabel->setText(curpos.toString("hh:mm:ss.zzz")
-                                        + "/" +
-                             len.toString("hh:mm:ss.zzz"));
+    ui->positionLabel->setText(QString("%1/%2").arg(curpos.toString("hh:mm:ss.zzz")).arg(len.toString("hh:mm:ss.zzz")));
 
     if (len != QTime(0,0)) {
         ui->positionSlider->setValue(curpos.msecsTo(QTime(0,0)) * 1000 / len.msecsTo(QTime(0,0)));
