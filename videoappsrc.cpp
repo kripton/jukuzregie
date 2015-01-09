@@ -3,9 +3,6 @@
 VideoAppSrc::VideoAppSrc(QObject *parent) :
     QObject(parent)
 {
-    enableBlock(false);
-    setStreamType(QGst::AppStreamTypeStream);
-    setLive(true);
 }
 
 void VideoAppSrc::needData(uint length)

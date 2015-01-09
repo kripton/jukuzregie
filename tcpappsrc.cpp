@@ -3,9 +3,6 @@
 TcpAppSrc::TcpAppSrc(QObject *parent) :
     QObject(parent), QGst::Utils::ApplicationSource()
 {
-    enableBlock(false);
-    setStreamType(QGst::AppStreamTypeStream);
-    setLive(true);
     connect(&sock, SIGNAL(readyRead()), this, SLOT(readyRead()));
 }
 

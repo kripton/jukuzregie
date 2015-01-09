@@ -3,9 +3,6 @@
 AudioAppSrc::AudioAppSrc(QObject *parent) :
     QObject(parent), QGst::Utils::ApplicationSource()
 {
-    enableBlock(false);
-    setStreamType(QGst::AppStreamTypeStream);
-    setLive(true);
     preAlloc = false;
 }
 
