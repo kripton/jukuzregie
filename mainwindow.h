@@ -106,6 +106,7 @@ private:
     void onBusMessage(const QGst::MessagePtr & message);
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
     void setOnAirLED(QObject *boxObject, bool newState);
+    void pushInitialAudioData();
 };
 
 #endif // MAINWINDOW_H

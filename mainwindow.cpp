@@ -129,10 +129,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QString dumpFileName = QString("%1/out.webm").arg(dumpDir);
 
     // Basic parts: Audio MONITOR to JACK, Audio MAIN to JACK and to MUX to FILE, Video to MUX, MUX to tcpserversink
-    QString outputPipeDesc = QString(" appsrc name=audiosrc_monitor caps=\"%1\" is-live=true blocksize=32768 ! "
+    QString outputPipeDesc = QString(" appsrc name=audiosrc_monitor caps=\"%1\" is-live=true blocksize=8192 ! "
                                      " audiorate ! jackaudiosink sync=false client-name=jukuzregie_monitor"
 
-                                     " appsrc name=audiosrc_main caps=\"%1\" is-live=true blocksize=32768 format=time do-timestamp=true ! audiorate ! tee name=audio_main !"
+                                     " appsrc name=audiosrc_main caps=\"%1\" is-live=true blocksize=8192 format=time do-timestamp=true ! audiorate ! tee name=audio_main !"
                                      " queue ! jackaudiosink sync=false client-name=jukuzregie_main connect=0"
                                      " audio_main. ! queue ! audioconvert ! vorbisenc ! webmmux streamable=true name=mux ! tee name=muxout !"
                                      " queue ! filesink location=\"%4\" sync=false"
@@ -153,6 +153,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     audioSrc_monitor = new AudioAppSrc(this);
     audioSrc_monitor->setElement(outputPipe->getElementByName("audiosrc_monitor"));
+    pushInitialAudioData();
     audioSrc_monitor->preAlloc = true;
     connect (audioSrc_monitor, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
 
@@ -255,6 +256,23 @@ void MainWindow::broadcastSourceInfo()
     {
         notifySocket->writeDatagram(array, QHostAddress::Broadcast, 12007);
     }
+}
+
+void MainWindow::pushInitialAudioData()
+{
+    QByteArray data;
+    data.resize(32768);
+
+    // Make sure the buffer has all float-zeroes
+    #pragma omp parallel for
+    for (uint i = 0; i < (32768 / sizeof(float)); i++)
+    {
+        ((float*)data.data())[i] = 0.0;
+    }
+
+    // Push the buffer to the pipelines
+    audioSrc_monitor->pushAudioBuffer(data);
+    audioSrc_main->pushAudioBuffer(data);
 }
 
 void MainWindow::prepareAudioData(uint length, char* data)
