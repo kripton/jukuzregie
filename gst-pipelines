@@ -8,6 +8,9 @@ Alternative using h264 instead of VP8:
                                                                                                                                                                                                                                                                                
 Pipeline for direct C920 h264-streaming (with audiotestsrc):                                                                                                                                                                                                                   
   gst-launch-1.0 v4l2src do-timestamp=true ! video/x-h264,width=640,height=360,framerate=30/1 ! h264parse ! matroskamux streamable=true name=mux ! tcpserversink host=192.168.189.253 port=5005 audiotestsrc ! vorbisenc ! mux.
+Better quality, will be scaled down by jukuzregie for output but recorded in incoming quality:
+  gst-launch-1.0 v4l2src do-timestamp=true ! video/x-h264,width=1280,height=720,framerate=30/1 ! h264parse ! matroskamux streamable=true name=mux ! tcpserversink host=192.168.189.220 port=5006 audiotestsrc ! vorbisenc ! mux.
+Note about USB cable length: Not working: PC -> 3m ext. cord -> CAM (with 1.8m cord). WORKING: PC -> 3m ext. cord -> 1m USB A to USB B cable -> powered hub -> CAM (with 1.8m cable)
 
 Re-Mux the Wansview NCM625W with audio but without re-encoding:
   gst-launch-1.0 rtspsrc user-id=admin user-pw=123456 location=rtsp://192.168.189.79:554/12 name=src ! rtph264depay ! h264parse ! matroskamux streamable=true name=mux ! tcpserversink host=192.168.189.220 port=6005 src. ! rtpg726depay ! decodebin ! audioresample ! audio/x-raw,rate=48000 ! audioconvert ! vorbisenc ! mux.
