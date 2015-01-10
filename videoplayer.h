@@ -38,6 +38,7 @@ private slots:
 
     void onStateChanged();
     void onPositionChanged();
+    void updatePositionLabel(QTime len, QTime pos);
     void setPosition(int position);
 
     void play();

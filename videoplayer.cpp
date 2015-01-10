@@ -173,6 +173,7 @@ void VideoPlayer::onStateChanged()
     }
 
     updateBackground();
+    updatePositionLabel(length(), QTime(0, 0));
 }
 
 QTime VideoPlayer::length() const
@@ -210,6 +211,8 @@ void VideoPlayer::setPosition(const QTime & pos)
     );
 
     pipeline->sendEvent(evt);
+
+    updatePositionLabel(length(), pos);
 }
 
 void VideoPlayer::onPositionChanged()
@@ -229,7 +232,7 @@ void VideoPlayer::onPositionChanged()
         curpos = position();
     }
 
-    ui->positionLabel->setText(QString("%1/%2").arg(curpos.toString("hh:mm:ss.zzz")).arg(len.toString("hh:mm:ss.zzz")));
+    updatePositionLabel(len, curpos);
 
     if (len != QTime(0,0)) {
         ui->positionSlider->setValue(curpos.msecsTo(QTime(0,0)) * 1000 / len.msecsTo(QTime(0,0)));
@@ -241,6 +244,14 @@ void VideoPlayer::onPositionChanged()
         ui->positionLabel->setEnabled(true);
         ui->positionSlider->setEnabled(true);
     }
+}
+
+void VideoPlayer::updatePositionLabel(QTime len, QTime pos)
+{
+    QTime remaining = QTime(0, 0);
+    remaining = remaining.addMSecs(pos.msecsTo(len));
+
+    ui->positionLabel->setText(QString("Position: %1   Duration: %2   Remaining: -%3").arg(pos.toString("hh:mm:ss.zzz")).arg(len.toString("hh:mm:ss.zzz")).arg(remaining.toString("hh:mm:ss.zzz")));
 }
 
 /* Called when the user changes the slider's position */
