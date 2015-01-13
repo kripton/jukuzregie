@@ -12,7 +12,9 @@ TODO:
 - Optimize buffering time by using parameters for the tcpserversink like "sync-method", "burst-format" and finally "burst-value" => played with it, no good
 - Add AudioMeters for MAIN and MONITOR out
 - Add a "clear monitor" button in the "master" section
-- Add a "new connection" dialog so the command line doesn't have to be used
+- Add a "new connection" dialog so the command line doesn't have to be used << !! NEXT !!
+- Make sure all MIDI control stuff works
+- Hook up the nanoKontrol's Transport buttons to the videoPlayer
 
 - Move all file selection dialogs to new threads!!!
 - Basically the UI stuff and media stuff has to be in different threads since on regain-focus of the mainwindow, there are glitches (hearable audio dropouts and short video stall on the UI!

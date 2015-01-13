@@ -60,4 +60,5 @@ PKGCONFIG += jack
 
 OTHER_FILES += \
     settings.txt \
-    notes
+    TODO \
+    gst-pipelines
