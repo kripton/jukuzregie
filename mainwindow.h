@@ -26,6 +26,7 @@
 #include "jackthread.h"
 #include "audioappsrc.h"
 #include "videoappsrc.h"
+#include "camconnectdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -67,6 +68,8 @@ private slots:
     void newNotifyDatagram();
     void broadcastSourceInfo();
 
+    void startCam(CamBox* cam, QHostAddress host, quint16 port);
+
     // Audio and Video stuff
     void prepareAudioData(uint length, char* data);
     void prepareVideoData(uint length, char* data);
@@ -102,6 +105,8 @@ private:
     QGraphicsPixmapItem* textSpriteItem;
     QGraphicsOpacityEffect textSpriteOpacityEffect;
     QGraphicsTextItem* textItem;
+
+    CamConnectDialog* camConnectDialog;
 
     void onBusMessage(const QGst::MessagePtr & message);
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);

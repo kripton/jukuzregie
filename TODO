@@ -16,5 +16,16 @@ TODO:
 - Make sure all MIDI control stuff works
 - Hook up the nanoKontrol's Transport buttons to the videoPlayer
 
+- BUG: VideoPlayer: UNGO on pause doesn't work
+- Add smartphone-compatible preview for a specific cam (webm-"stream" to embed on HTML-page OR works with VLC (adding sync-mode=latest-keyframe to
+  output-directed tcpserversink makes the video play in VLC)
+
 - Move all file selection dialogs to new threads!!!
 - Basically the UI stuff and media stuff has to be in different threads since on regain-focus of the mainwindow, there are glitches (hearable audio dropouts and short video stall on the UI!
+
+
+- BUG: Somehow a stream failed to start once since the dump file was still open:
+Starting stream from "127.0.0.1:5006" "cam_01"
+Pipeline: "appsrc name=source ! decodebin name=decode ! queue ! videoscale ! videoconvert ! videorate ! appsink name=videosink caps="video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1" decode. ! queue ! audioconvert ! audioresample ! appsink name=audiosink caps="audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2""
+QFile::setFileName: File (/home/kripton/streaming/2015-01-15_19-07-52/aufnahmen//2015-13-15_19-13-40_cam_01.mkv) is already opened
+SOURCE "cam_01" IS NOW ONLINE

@@ -71,6 +71,11 @@ MainWindow::MainWindow(QWidget *parent) :
         i++;
     }
 
+    camConnectDialog = new CamConnectDialog(allCamBoxes, this);
+    camConnectDialog->hide();
+    connect(ui->camConnectButton, SIGNAL(clicked()), camConnectDialog, SLOT(show()));
+    connect(camConnectDialog, SIGNAL(connectCam(CamBox*,QHostAddress,quint16)), this, SLOT(startCam(CamBox*,QHostAddress,quint16)));
+
     //////////////////// VideoPlayer ////////////////////
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)ui->videoPlayer->userData;
     mgmtdata->pixmapItem->setZValue(0.1); // draw the video on top of the camBoxes
@@ -140,7 +145,7 @@ MainWindow::MainWindow(QWidget *parent) :
                                      " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true ! videorate !"
                                      " videoconvert ! vp8enc threads=4 deadline=35000 ! mux."
 
-                                     " muxout. ! queue ! tcpserversink host=0.0.0.0 port=6000")
+                                     " muxout. ! queue ! tcpserversink host=0.0.0.0 port=6000") //sync-method=latest-keyframe
             .arg(rawaudiocaps)
             .arg(rawvideocaps)
             .arg(640*360*4)
@@ -255,6 +260,15 @@ void MainWindow::broadcastSourceInfo()
     {
         notifySocket->writeDatagram(array, QHostAddress::Broadcast, 12007);
     }
+}
+
+void MainWindow::startCam(CamBox *cam, QHostAddress host, quint16 port)
+{
+    if (cam->getState() != QGst::StateNull)
+    {
+        return;
+    }
+    cam->startCam(host, port, rawvideocaps, rawaudiocaps);
 }
 
 void MainWindow::prepareAudioData(uint length, char* data)
