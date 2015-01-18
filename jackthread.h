@@ -2,6 +2,8 @@
 #define JACKTHREAD_H
 
 #include <QObject>
+#include <QByteArray>
+#include <QQueue>
 #include <QDebug>
 
 #include <jack/jack.h>
@@ -29,6 +31,9 @@ private:
     jack_port_t *output_port;
     jack_port_t *feedback_port;
     jack_port_t *input_port;
+
+    bool ready;
+    QQueue<QByteArray*> midiEventsToBeSent;
 };
 
 #endif // JACKTHREAD_H

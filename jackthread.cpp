@@ -18,6 +18,8 @@ JackThread::~JackThread()
 }
 
 void JackThread::setup() {
+    ready = false;
+
     if((client = jack_client_open ("RegieControl", JackNullOption, NULL)) == 0)
     {
         emit error("Jack server not running?");
@@ -61,11 +63,33 @@ void JackThread::setup() {
         }
         free (ports);
     }
+
+    ready = true;
 }
 
 int JackThread::process(jack_nframes_t nframes, void *arg) {
     Q_UNUSED(arg);
     uint32_t i = 0;
+
+    if (!ready)
+    {
+        return 0;
+    }
+
+    void* feedback_port_buf = jack_port_get_buffer(feedback_port, 1);
+    jack_midi_clear_buffer(feedback_port_buf);
+
+    while (midiEventsToBeSent.length() > 0)
+    {
+        QByteArray* data = midiEventsToBeSent.dequeue();
+
+        unsigned char* out;
+        out = jack_midi_event_reserve(feedback_port_buf, 0, data->size());
+        memcpy(out, data->data(), data->size());
+
+        free(data);
+    }
+
     void* in_port_buf  = jack_port_get_buffer(input_port , nframes);
 
     if (in_port_buf == 0)
@@ -85,16 +109,15 @@ int JackThread::process(jack_nframes_t nframes, void *arg) {
 
         emit midiEvent((char)in_event.buffer[0], (char)in_event.buffer[1], (char)in_event.buffer[2]);
     }
+
     return 0;
 }
 
 void JackThread::set_led(unsigned char num, unsigned char value)
 {
-    void* feedback_port_buf = jack_port_get_buffer(feedback_port, 1);
-    jack_midi_clear_buffer(feedback_port_buf);
-    unsigned char* out;
-    out = jack_midi_event_reserve(feedback_port_buf, 0, 3);
-    out[0] = 0xb0; // MIDI ControlChange
-    out[1] = num;
-    out[2] = value;
+    QByteArray* array = new QByteArray();
+    array->append(0xb0); // MIDI ControlChange
+    array->append(num);
+    array->append(value);
+    midiEventsToBeSent.enqueue(array);
 }
