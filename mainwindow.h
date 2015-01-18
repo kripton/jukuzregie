@@ -22,6 +22,8 @@
 #include <QGst/Bus>
 #include <QGst/Message>
 
+#include "nanoKontrol2.h"
+
 #include "cambox.h"
 #include "jackthread.h"
 #include "audioappsrc.h"
@@ -49,7 +51,7 @@ public:
     QDateTime startUp;
 
 public slots:
-    void midiEvent(char c0, char c1, char c2);
+    void handleMidiEvent(char c0, char c1, char c2);
 
 private slots:
     // UI events
@@ -59,12 +61,14 @@ private slots:
     void editTextFont();
     void selectNewTextBackground();
 
-    // Events by CamBoxes
+    // Events by CamBoxes (and VideoPlayer maybe)
     void fadeMeInHandler(bool fadeOutOthers = true, MediaSourceBase *sourceOverride = NULL);
     void newOpacityHandler(qreal newValue);
     void newVolumeHandler(qreal newValue);
     void newPrelistenHandler(bool newState);
     void newVideoFrame(QImage image);
+    void loopChangedHandler(bool newState);
+    void stateChangedHandler(QGst::State newState);
 
     // UDP stuff
     void newNotifyDatagram();
@@ -113,6 +117,7 @@ private:
     void onBusMessage(const QGst::MessagePtr & message);
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
     void setOnAirLED(MediaSourceBase *boxObject, bool newState);
+    void setLed(unsigned char num, bool newState);
 };
 
 #endif // MAINWINDOW_H

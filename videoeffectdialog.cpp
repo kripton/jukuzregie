@@ -6,6 +6,9 @@ VideoEffectDialog::VideoEffectDialog(QWidget *parent) :
     ui(new Ui::VideoEffectDialog)
 {
     ui->setupUi(this);
+    QStringList effects;
+    effects << "None" << "Fisheye";
+    ui->effectListWidget->addItems(effects);
 }
 
 VideoEffectDialog::~VideoEffectDialog()

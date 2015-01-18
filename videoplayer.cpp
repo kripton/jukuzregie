@@ -29,6 +29,8 @@ VideoPlayer::VideoPlayer(QWidget *parent) :
 
     connect(ui->positionSlider, SIGNAL(sliderMoved(int)), this, SLOT(setPosition(int)));
 
+    connect(ui->loopCheckBox, SIGNAL(toggled(bool)), this, SIGNAL(loopChanged(bool)));
+
     connect(&videoSink, SIGNAL(newPrerollImage(QImage)), this, SLOT(newVideoFrameFromSink(QImage)));
 
     connect(&positionTimer, SIGNAL(timeout()), this, SLOT(onPositionChanged()));
@@ -39,10 +41,33 @@ VideoPlayer::~VideoPlayer()
     delete ui;
 }
 
+bool VideoPlayer::getLoop()
+{
+    return ui->loopCheckBox->isChecked();
+}
+
+void VideoPlayer::setLoop(bool newState)
+{
+    ui->loopCheckBox->setChecked(newState);
+}
+
 void VideoPlayer::init(QString videocaps, QString audiocaps)
 {
     this->videocaps = videocaps;
     this->audiocaps = audiocaps;
+}
+
+void VideoPlayer::setPosition(const QTime & pos)
+{
+    QGst::SeekEventPtr evt = QGst::SeekEvent::create(
+        1.0, QGst::FormatTime, QGst::SeekFlagFlush,
+        QGst::SeekTypeSet, QGst::ClockTime::fromTime(pos),
+        QGst::SeekTypeNone, QGst::ClockTime::None
+    );
+
+    pipeline->sendEvent(evt);
+
+    updatePositionLabel(length(), pos);
 }
 
 void VideoPlayer::selectFolder()
@@ -173,6 +198,7 @@ void VideoPlayer::onStateChanged()
     }
 
     updateBackground();
+    emit pipelineNewState(newState);
     updatePositionLabel(length(), QTime(0, 0));
 }
 
@@ -200,19 +226,6 @@ QTime VideoPlayer::position() const
     } else {
         return QTime(0,0);
     }
-}
-
-void VideoPlayer::setPosition(const QTime & pos)
-{
-    QGst::SeekEventPtr evt = QGst::SeekEvent::create(
-        1.0, QGst::FormatTime, QGst::SeekFlagFlush,
-        QGst::SeekTypeSet, QGst::ClockTime::fromTime(pos),
-        QGst::SeekTypeNone, QGst::ClockTime::None
-    );
-
-    pipeline->sendEvent(evt);
-
-    updatePositionLabel(length(), pos);
 }
 
 void VideoPlayer::onPositionChanged()
@@ -287,6 +300,23 @@ void VideoPlayer::pause()
     if (ui->unggoOnPauseCheckBox->isChecked())
     {
         setVideoOpacity(0.0);
+    }
+}
+
+void VideoPlayer::playOrPause()
+{
+    if (!pipeline)
+    {
+        return;
+    }
+
+    if (pipeline->currentState() == QGst::StatePlaying)
+    {
+        pause();
+    }
+    else
+    {
+        play();
     }
 }
 

@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(source, SIGNAL(volumeChanged(qreal)), this, SLOT(newVolumeHandler(qreal)));
         connect(source, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
         connect(source, SIGNAL(preListenChanged(bool)), this, SLOT(newPrelistenHandler(bool)));
+        connect(source, SIGNAL(pipelineNewState(QGst::State)), this, SLOT(stateChangedHandler(QGst::State)));
     }
 
     //////////////////// CamBoxes ////////////////////
@@ -82,6 +83,8 @@ MainWindow::MainWindow(QWidget *parent) :
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)ui->videoPlayer->userData;
     mgmtdata->pixmapItem->setZValue(0.1); // draw the video on top of the camBoxes
 
+    connect(ui->videoPlayer, SIGNAL(loopChanged(bool)), this, SLOT(loopChangedHandler(bool)));
+
     //////////////////// JACK thread for midi control ////////////////////
     QThread* jackThread = new QThread;
     worker = new JackThread();
@@ -90,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(jackThread, SIGNAL(started()), worker, SLOT(setup()));
     connect(jackThread, SIGNAL(finished()), jackThread, SLOT(deleteLater()));
 
-    connect(worker, SIGNAL(midiEvent(char, char, char)), this, SLOT(midiEvent(char, char, char)));
+    connect(worker, SIGNAL(midiEvent(char, char, char)), this, SLOT(handleMidiEvent(char, char, char)));
 
     //////////////////// UDP info broadcasting and listener for new source requests ////////////////////
     // Sockets for sending
@@ -173,6 +176,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //////////////////// Start the midi control ////////////////////
     jackThread->start();
+
+    foreach (MediaSourceBase* source, allSources)
+    {
+        setOnAirLED(source, false);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -379,7 +387,7 @@ void MainWindow::onBusMessage(const QGst::MessagePtr & message)
     }
 }
 
-void MainWindow::midiEvent(char c0, char c1, char c2) {
+void MainWindow::handleMidiEvent(char c0, char c1, char c2) {
     if ((uchar)c0 != 0xb0) return;
     qDebug() << "MIDI event:" << QString("Channel 0x%1 Value: 0x%2")
                 .arg((short)c1,2,16, QChar('0'))
@@ -389,50 +397,86 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
     opacity = (float)c2 / (float)127;
 
-
     // Determine target by 2nd nibble
-    CamBox* box;
+    MediaSourceBase* target = NULL;
     switch (c1 & 0x0f) {
-      case 0: box = (CamBox*)ui->groupBox_1; break;
-      case 1: box = (CamBox*)ui->groupBox_2; break;
-      case 2: box = (CamBox*)ui->groupBox_3; break;
-      case 3: box = (CamBox*)ui->groupBox_4; break;
-      case 4: box = (CamBox*)ui->groupBox_5; break;
-      case 5: box = (CamBox*)ui->groupBox_6; break;
-      case 6: box = (CamBox*)ui->groupBox_7; break;
-      case 7: box = (CamBox*)ui->groupBox_8; break;
-      default: box = 0;
+      case 0: target = ui->groupBox_1; break;
+      case 1: target = ui->groupBox_2; break;
+      case 2: target = ui->groupBox_3; break;
+      case 3: target = ui->groupBox_4; break;
+      case 4: target = ui->groupBox_5; break;
+      case 5: target = ui->groupBox_6; break;
+      case 6: target = ui->groupBox_7; break;
+      case 7: target = ui->groupBox_8; break;
+      default: target = ui->videoPlayer; break;
     }
 
-    if (box == 0) return; // Button/Slider/Knob channel number is too high
-
-    if (box->getState() != QGst::StatePlaying)
+    if (target == NULL)
     {
-        return; // Source not online -> do nothing
+        return; // Button/Slider/Knob channel number is too high for "normal" channel control
     }
 
-    // Determine action by 1st nibble
-    switch (c1 & 0xf0) {
-      case 0x00: // Fader = set opacity
-        box->setVideoOpacity(opacity);
-        return;
-
-      case 0x10: // Knob
-        return;
-
-      case 0x20: // Solo = toggle prelisten
+    if (target == ui->videoPlayer)
+    {
         if (c2 == 0) return; // no reaction on button up
-        box->setPreListen(!box->getMonitor());
-        return;
 
-      case 0x30: // Mute
-        return;
+        switch (c1)
+        {
+            case KNK2_Transport_Rev:
+                ui->videoPlayer->setPosition(QTime(0, 0));
+                break;
 
-      case 0x40: // Rec = fade in this source, fade out all others
-        if (c2 == 0) return; // no reaction on button up
-        fadeMeInHandler(true, box);
-        return;
+            case KNK2_Transport_Fwd:
+                target->setPreListen(!target->getMonitor());
+                break;
 
+            case KNK2_Transport_Stop:
+                ui->videoPlayer->stop();
+                break;
+
+            case KNK2_Transport_Play:
+                ui->videoPlayer->playOrPause();
+                break;
+
+            case KNK2_Transport_Rec:
+                fadeMeInHandler(false, target);
+                break;
+
+            case KNK2_Cycle:
+                ui->videoPlayer->setLoop(!(ui->videoPlayer->getLoop()));
+                break;
+        }
+    }
+    else
+    {
+        if (target->getState() != QGst::StatePlaying)
+        {
+            return; // Source not online -> do nothing
+        }
+
+        // Determine action by 1st nibble
+        switch (c1 & 0xf0)
+        {
+          case 0x00: // Fader = set opacity
+            target->setVideoOpacity(opacity);
+            return;
+
+          case 0x10: // Knob
+            return;
+
+          case 0x20: // Solo = toggle prelisten
+            if (c2 == 0) return; // no reaction on button up
+            target->setPreListen(!target->getMonitor());
+            return;
+
+          case 0x30: // Mute
+            return;
+
+          case 0x40: // Rec = fade in this source, fade out all others
+            if (c2 == 0) return; // no reaction on button up
+            fadeMeInHandler(true, target);
+            return;
+        }
     }
 }
 
@@ -548,11 +592,11 @@ void MainWindow::newPrelistenHandler(bool newState)
     if (sender->getId().startsWith("cam_"))
     {
         uchar num = sender->getId().split("_")[1].toUInt() - 1;
-        worker->set_led(num + 0x20, newState ? 0x7f : 0x00);
+        setLed(num + 0x20, newState);
     }
     else if (sender->getId() == "VideoPlayer")
     {
-
+        setLed(KNK2_Transport_Fwd, newState);
     }
 }
 
@@ -565,6 +609,33 @@ void MainWindow::newVideoFrame(QImage image)
     if (mgmtdata == 0) return;
 
     mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
+}
+
+void MainWindow::loopChangedHandler(bool newState)
+{
+    setLed(KNK2_Cycle, newState);
+}
+
+void MainWindow::stateChangedHandler(QGst::State newState)
+{
+    MediaSourceBase* sender = (MediaSourceBase*)QObject::sender();
+    if (sender == 0) return;
+
+    bool state = false;
+    if (newState == QGst::StatePlaying)
+    {
+        state = true;
+    }
+
+    if (sender->getId().startsWith("cam_"))
+    {
+        uchar num = sender->getId().split("_")[1].toUInt() - 1;
+        setLed(num + 0x30, state);
+    }
+    else if (sender->getId() == "VideoPlayer")
+    {
+        setLed(KNK2_Transport_Play, state);
+    }
 }
 
 void MainWindow::fadeMeInHandler(bool fadeOutOthers, MediaSourceBase* sourceOverride)
@@ -587,10 +658,15 @@ void MainWindow::setOnAirLED(MediaSourceBase *boxObject, bool newState)
     if (boxObject->getId().startsWith("cam_"))
     {
         uchar num = boxObject->getId().split("_")[1].toUInt() - 1;
-        worker->set_led(num + 0x40, newState ? 0x7f : 0x00);
+        setLed(num + KNK2_Rec1, newState);
     }
     else if (boxObject->getId() == "VideoPlayer")
     {
-
+        setLed(KNK2_Transport_Rec, newState);
     }
+}
+
+void MainWindow::setLed(unsigned char num, bool newState)
+{
+    worker->set_led(num, newState ? 0x7f : 0x00);
 }

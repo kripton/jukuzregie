@@ -27,9 +27,16 @@ class VideoPlayer : public MediaSourceBase
     Q_OBJECT
 
 public:
+    /// PROPERTIES ///
+    bool getLoop();
+    void setLoop(bool newState);
+
+    /// METHODS ///
     explicit VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
     void init(QString videocaps, QString audiocaps);
+
+    void setPosition(const QTime & pos);
 
 private slots:
     void selectFolder();
@@ -41,9 +48,14 @@ private slots:
     void updatePositionLabel(QTime len, QTime pos);
     void setPosition(int position);
 
+public slots:
     void play();
     void pause();
+    void playOrPause();
     void stop();
+
+signals:
+    void loopChanged(bool newState);
 
 private:
     Ui::VideoPlayer *ui;
@@ -56,7 +68,6 @@ private:
 
     QTime length() const;
     QTime position() const;
-    void setPosition(const QTime & pos);
     void onBusMessage(const QGst::MessagePtr & message);
     void handlePipelineStateChange(const QGst::StateChangedMessagePtr & scm);
 };

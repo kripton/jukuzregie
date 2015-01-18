@@ -13,7 +13,11 @@ TODO:
 - Add AudioMeters for MAIN and MONITOR out
 - Add a "clear monitor" button in the "master" section
 - Add a "new connection" dialog so the command line doesn't have to be used << !! NEXT !!
+
 - Make sure all MIDI control stuff works
+    TODO:   Next, prev video by < TRACK > buttons
+            Make PLAY button blink on video paused
+
 - Hook up the nanoKontrol's Transport buttons to the videoPlayer
 
 - BUG: VideoPlayer: UNGO on pause doesn't work
