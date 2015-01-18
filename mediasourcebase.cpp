@@ -218,15 +218,14 @@ void MediaSourceBase::fadeStart(qreal stepSize, qint16 interval)
     }
     else
     {
+        // new behaviour: No fade, just GO ;)
         if (stepSize > 0)
         {
             setVideoOpacity(1.0);
-            emit opacityChanged(1.0);
         }
         else
         {
             setVideoOpacity(0.0);
-            emit opacityChanged(0.0);
         }
     }
 }
