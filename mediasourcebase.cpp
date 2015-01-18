@@ -96,6 +96,7 @@ void MediaSourceBase::init(QSlider *leftMeterSlider, QSlider *rightMeterSlider, 
     connect(opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opcatiyFaderChanged()));
     connect(volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeFaderChanged()));
     connect(goButton, SIGNAL(clicked()), this, SLOT(goButtonClicked()));
+    connect(monitorButton, SIGNAL(toggled(bool)), this, SIGNAL(preListenChanged(bool)));
 
     previewGraphicsView->setScene(&scene);
     previewPixmapItem = scene.addPixmap(QPixmap());
@@ -220,10 +221,12 @@ void MediaSourceBase::fadeStart(qreal stepSize, qint16 interval)
         if (stepSize > 0)
         {
             setVideoOpacity(1.0);
+            emit opacityChanged(1.0);
         }
         else
         {
             setVideoOpacity(0.0);
+            emit opacityChanged(0.0);
         }
     }
 }

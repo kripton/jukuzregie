@@ -60,8 +60,10 @@ private slots:
     void selectNewTextBackground();
 
     // Events by CamBoxes
-    void fadeMeInHandler(bool fadeOutOthers = true);
+    void fadeMeInHandler(bool fadeOutOthers = true, MediaSourceBase *sourceOverride = NULL);
     void newOpacityHandler(qreal newValue);
+    void newVolumeHandler(qreal newValue);
+    void newPrelistenHandler(bool newState);
     void newVideoFrame(QImage image);
 
     // UDP stuff
@@ -110,7 +112,7 @@ private:
 
     void onBusMessage(const QGst::MessagePtr & message);
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);
-    void setOnAirLED(QObject *boxObject, bool newState);
+    void setOnAirLED(MediaSourceBase *boxObject, bool newState);
 };
 
 #endif // MAINWINDOW_H

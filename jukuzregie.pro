@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     videoappsrc.cpp \
     videoplayer.cpp \
     mediasourcebase.cpp \
-    camconnectdialog.cpp
+    camconnectdialog.cpp \
+    videoeffectdialog.cpp
 
 HEADERS  += mainwindow.h \
     cambox.h \
@@ -41,12 +42,14 @@ HEADERS  += mainwindow.h \
     videoappsrc.h \
     videoplayer.h \
     mediasourcebase.h \
-    camconnectdialog.h
+    camconnectdialog.h \
+    videoeffectdialog.h
 
 FORMS    += mainwindow.ui \
     cambox.ui \
     videoplayer.ui \
-    camconnectdialog.ui
+    camconnectdialog.ui \
+    videoeffectdialog.ui
 
 # Tell qmake to use pkg-config to find QtGStreamer.and jack
 CONFIG += link_pkgconfig

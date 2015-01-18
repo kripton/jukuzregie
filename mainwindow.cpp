@@ -58,7 +58,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
         connect(source, SIGNAL(fadeMeIn(bool)), this, SLOT(fadeMeInHandler(bool)));
         connect(source, SIGNAL(opacityChanged(qreal)), this, SLOT(newOpacityHandler(qreal)));
+        connect(source, SIGNAL(volumeChanged(qreal)), this, SLOT(newVolumeHandler(qreal)));
         connect(source, SIGNAL(newVideoFrame(QImage)), this, SLOT(newVideoFrame(QImage)));
+        connect(source, SIGNAL(preListenChanged(bool)), this, SLOT(newPrelistenHandler(bool)));
     }
 
     //////////////////// CamBoxes ////////////////////
@@ -428,7 +430,7 @@ void MainWindow::midiEvent(char c0, char c1, char c2) {
 
       case 0x40: // Rec = fade in this source, fade out all others
         if (c2 == 0) return; // no reaction on button up
-        //fadeMeInHandler(box); TODO
+        fadeMeInHandler(true, box);
         return;
 
     }
@@ -510,6 +512,48 @@ void MainWindow::newOpacityHandler(qreal newValue)
     if ((mgmtdata == 0) || (mgmtdata->opacityEffect == 0)) return;
 
     mgmtdata->opacityEffect->setOpacity(newValue);
+
+    if ((newValue > 0.0) || (sender->getVolume() > 0.0))
+    {
+        setOnAirLED(sender, true);
+    }
+    else
+    {
+        setOnAirLED(sender, false);
+    }
+}
+
+void MainWindow::newVolumeHandler(qreal newValue)
+{
+    MediaSourceBase* sender = (MediaSourceBase*)QObject::sender();
+    if (sender == 0) return;
+    camBoxMgmtData* mgmtdata = (camBoxMgmtData*)sender->userData;
+    if ((mgmtdata == 0) || (mgmtdata->opacityEffect == 0)) return;
+
+    if ((newValue > 0.0) || (mgmtdata->opacityEffect->opacity() > 0.0))
+    {
+        setOnAirLED(sender, true);
+    }
+    else
+    {
+        setOnAirLED(sender, false);
+    }
+}
+
+void MainWindow::newPrelistenHandler(bool newState)
+{
+    MediaSourceBase* sender = (MediaSourceBase*)QObject::sender();
+    if (sender == 0) return;
+
+    if (sender->getId().startsWith("cam_"))
+    {
+        uchar num = sender->getId().split("_")[1].toUInt() - 1;
+        worker->set_led(num + 0x20, newState ? 0x7f : 0x00);
+    }
+    else if (sender->getId() == "VideoPlayer")
+    {
+
+    }
 }
 
 void MainWindow::newVideoFrame(QImage image)
@@ -523,11 +567,11 @@ void MainWindow::newVideoFrame(QImage image)
     mgmtdata->pixmapItem->setPixmap(QPixmap::fromImage(image));
 }
 
-void MainWindow::fadeMeInHandler(bool fadeOutOthers)
+void MainWindow::fadeMeInHandler(bool fadeOutOthers, MediaSourceBase* sourceOverride)
 {
     // Do 25 steps in one second => timer interval = 0.04s = 40ms
     foreach (MediaSourceBase* source, allSources) {
-        if (source == QObject::sender())
+        if ((source == QObject::sender()) || (source == sourceOverride))
         {
             source->fadeStart(0.04, 40);
         }
@@ -538,10 +582,15 @@ void MainWindow::fadeMeInHandler(bool fadeOutOthers)
     }
 }
 
-void MainWindow::setOnAirLED(QObject *boxObject, bool newState)
+void MainWindow::setOnAirLED(MediaSourceBase *boxObject, bool newState)
 {
-    CamBox* box = (CamBox*) boxObject;
-    uchar num = box->getId().split("_")[1].toUInt() - 1;
+    if (boxObject->getId().startsWith("cam_"))
+    {
+        uchar num = boxObject->getId().split("_")[1].toUInt() - 1;
+        worker->set_led(num + 0x40, newState ? 0x7f : 0x00);
+    }
+    else if (boxObject->getId() == "VideoPlayer")
+    {
 
-    worker->set_led(num, newState ? 0x7f : 0x00);
+    }
 }
