@@ -69,6 +69,7 @@ private slots:
     void newVideoFrame(QImage image);
     void loopChangedHandler(bool newState);
     void stateChangedHandler(QGst::State newState);
+    void playButtonBlinkTimerTimeout();
 
     // UDP stuff
     void newNotifyDatagram();
@@ -113,6 +114,9 @@ private:
     QGraphicsTextItem* textItem;
 
     CamConnectDialog* camConnectDialog;
+
+    QTimer playButtonBlinkTimer;
+    bool playButtonLEDState;
 
     void onBusMessage(const QGst::MessagePtr & message);
     void processNotifyDatagram(QByteArray datagram, QHostAddress senderHost, quint16 senderPort);

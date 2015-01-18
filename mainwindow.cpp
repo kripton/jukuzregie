@@ -35,6 +35,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->textBackgroundSelectorBox, SIGNAL(clicked()), this, SLOT(selectNewTextBackground()));
     connect(ui->textFontConfigureButton, SIGNAL(clicked()), this, SLOT(editTextFont()));
 
+    playButtonLEDState = false;
+    playButtonBlinkTimer.setInterval(500);
+    connect(&playButtonBlinkTimer, SIGNAL(timeout()), this, SLOT(playButtonBlinkTimerTimeout()));
+
     //////////////////// Paths for runtime dumping data and logging ////////////////////
     QString dumpDir = QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss"));
     QDir().mkpath(dumpDir);
@@ -642,8 +646,24 @@ void MainWindow::stateChangedHandler(QGst::State newState)
     }
     else if (sender->getId() == "VideoPlayer")
     {
-        setLed(KNK2_Transport_Play, state);
+        if (state)
+        {
+            // Now Playing, set the LED to ON and stop the pause blink timer
+            playButtonBlinkTimer.stop();
+            setLed(KNK2_Transport_Play, true);
+            playButtonLEDState = true;
+        }
+        else
+        {
+            playButtonBlinkTimer.start();
+        }
     }
+}
+
+void MainWindow::playButtonBlinkTimerTimeout()
+{
+    setLed(KNK2_Transport_Play, !playButtonLEDState);
+    playButtonLEDState = !playButtonLEDState;
 }
 
 void MainWindow::fadeMeInHandler(bool fadeOutOthers, MediaSourceBase* sourceOverride)
