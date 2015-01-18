@@ -27,7 +27,7 @@ bool TcpAppSrc::start(QString host, quint16 port, QString dumpFileName)
 void TcpAppSrc::stop()
 {
     qDebug() << "TcpAppSrc STOP";
-    sock.disconnectFromHost();
+    sock.abort();
     if (file.isOpen())
     {
         file.close();
