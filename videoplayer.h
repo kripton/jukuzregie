@@ -53,6 +53,8 @@ public slots:
     void pause();
     void playOrPause();
     void stop();
+    void prevFile();
+    void nextFile();
 
 signals:
     void loopChanged(bool newState);

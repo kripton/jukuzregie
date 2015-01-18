@@ -445,6 +445,14 @@ void MainWindow::handleMidiEvent(char c0, char c1, char c2) {
             case KNK2_Cycle:
                 ui->videoPlayer->setLoop(!(ui->videoPlayer->getLoop()));
                 break;
+
+            case KNK2_Track_Left:
+                ui->videoPlayer->prevFile();
+                break;
+
+            case KNK2_Track_Right:
+                ui->videoPlayer->nextFile();
+                break;
         }
     }
     else

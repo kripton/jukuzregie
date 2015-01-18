@@ -335,3 +335,13 @@ void VideoPlayer::stop()
         onStateChanged();
     }
 }
+
+void VideoPlayer::prevFile()
+{
+    ui->fileList->setCurrentRow(ui->fileList->currentRow() - 1);
+}
+
+void VideoPlayer::nextFile()
+{
+    ui->fileList->setCurrentRow(ui->fileList->currentRow() + 1);
+}
