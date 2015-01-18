@@ -177,9 +177,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //////////////////// Start the midi control ////////////////////
     jackThread->start();
 
-    foreach (MediaSourceBase* source, allSources)
+    for (unsigned char i = 0; i < 127; i++)
     {
-        setOnAirLED(source, false);
+        setLed(i, false);
     }
 }
 
