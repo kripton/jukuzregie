@@ -93,6 +93,8 @@ protected:
     QGst::ElementPtr gammaElement;
     QGst::ElementPtr videoBalanceElement;
     QGst::ElementPtr videoFlipElement;
+    QGst::ElementPtr blockQueueElement;
+    QGst::ElementPtr videoEffectElement;
 
     VideoAppSink videoSink;
     AudioAppSink audioSink;

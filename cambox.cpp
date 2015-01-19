@@ -70,7 +70,7 @@ void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QStrin
     QString desc = QString("appsrc name=source !"
                    " decodebin name=decode ! queue ! videoscale ! videoconvert ! videorate ! "
                    " gamma name=gamma ! videobalance name=balance ! videoflip name=flip ! "
-                   " appsink name=videosink caps=\"%1\""
+                   " queue name=blockqueue ! identity name=videoeffect ! videoconvert ! appsink name=videosink caps=\"%1\""
                    " decode. ! queue ! audioconvert ! audioresample ! appsink name=audiosink caps=\"%2\"")
             .arg(videocaps)
             .arg(audiocaps);

@@ -20,6 +20,10 @@ public:
 
 private:
     Ui::VideoEffectDialog *ui;
+    QList<MediaSourceBase*> sources;
+    bool blockChanges;
+
+    MediaSourceBase* getSourceById(QString id);
 };
 
 #endif // VIDEOEFFECTDIALOG_H
