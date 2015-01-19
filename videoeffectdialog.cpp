@@ -1,7 +1,7 @@
 #include "videoeffectdialog.h"
 #include "ui_videoeffectdialog.h"
 
-VideoEffectDialog::VideoEffectDialog(QWidget *parent) :
+VideoEffectDialog::VideoEffectDialog(QList<MediaSourceBase*> sources, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::VideoEffectDialog)
 {

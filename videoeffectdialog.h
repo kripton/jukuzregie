@@ -2,6 +2,9 @@
 #define VIDEOEFFECTDIALOG_H
 
 #include <QDialog>
+#include <QList>
+
+#include "mediasourcebase.h"
 
 namespace Ui {
 class VideoEffectDialog;
@@ -12,7 +15,7 @@ class VideoEffectDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit VideoEffectDialog(QWidget *parent = 0);
+    explicit VideoEffectDialog(QList<MediaSourceBase*> cams, QWidget *parent = 0);
     ~VideoEffectDialog();
 
 private:

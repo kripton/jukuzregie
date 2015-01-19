@@ -54,6 +54,96 @@ QHash<QString, QString> MediaSourceBase::getSourceInfo()
     return info;
 }
 
+float MediaSourceBase::getGamma()
+{
+    if (gammaElement.isNull())
+    {
+        return 1.0;
+    }
+    return gammaElement->property("gamma").get<float>();
+}
+
+void MediaSourceBase::setGamma(float gamma)
+{
+    if (gammaElement.isNull())
+    {
+        return;
+    }
+    gammaElement->setProperty("gamma", gamma);
+}
+
+float MediaSourceBase::getBrightness()
+{
+    if (videoBalanceElement.isNull())
+    {
+        return 0.0;
+    }
+    return videoBalanceElement->property("brightness").get<float>();
+}
+
+void MediaSourceBase::setBrightness(float brightness)
+{
+    if (videoBalanceElement.isNull())
+    {
+        return;
+    }
+    videoBalanceElement->setProperty("brightness", brightness);
+}
+
+float MediaSourceBase::getContrast()
+{
+    if (videoBalanceElement.isNull())
+    {
+        return 1.0;
+    }
+    return videoBalanceElement->property("contrast").get<float>();
+}
+
+void MediaSourceBase::setContrast(float contrast)
+{
+    if (videoBalanceElement.isNull())
+    {
+        return;
+    }
+    videoBalanceElement->setProperty("contrast", contrast);
+}
+
+float MediaSourceBase::getHue()
+{
+    if (videoBalanceElement.isNull())
+    {
+        return 0.0;
+    }
+    return videoBalanceElement->property("hue").get<float>();
+}
+
+void MediaSourceBase::setHue(float hue)
+{
+    if (videoBalanceElement.isNull())
+    {
+        return;
+    }
+    videoBalanceElement->setProperty("hue", hue);
+}
+
+float MediaSourceBase::getSaturation()
+{
+    if (videoBalanceElement.isNull())
+    {
+        return 1.0;
+    }
+    return videoBalanceElement->property("saturation").get<float>();
+}
+
+void MediaSourceBase::setSaturation(float saturation)
+{
+    if (videoBalanceElement.isNull())
+    {
+        return;
+    }
+    videoBalanceElement->setProperty("saturation", saturation);
+}
+
 MediaSourceBase::MediaSourceBase(QWidget *parent = 0) :
     QGroupBox(parent)
 {

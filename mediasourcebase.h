@@ -42,6 +42,16 @@ public:
     qreal getVolume();
     QGst::State getState();
     virtual QHash<QString, QString> getSourceInfo();
+    float getGamma();
+    void setGamma(float gamma);
+    float getBrightness();
+    void setBrightness(float brightness);
+    float getContrast();
+    void setContrast(float contrast);
+    float getHue();
+    void setHue(float hue);
+    float getSaturation();
+    void setSaturation(float saturation);
 
     /// METHODS ///
     explicit MediaSourceBase(QWidget *parent);
@@ -77,6 +87,9 @@ protected:
     QString name;
     QGst::PipelinePtr pipeline;
     QQueue<float> audioData;
+
+    QGst::ElementPtr gammaElement;
+    QGst::ElementPtr videoBalanceElement;
 
     VideoAppSink videoSink;
     AudioAppSink audioSink;

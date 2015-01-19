@@ -28,7 +28,10 @@
 #include "jackthread.h"
 #include "audioappsrc.h"
 #include "videoappsrc.h"
+
 #include "camconnectdialog.h"
+#include "videoadjustmentdialog.h"
+#include "videoeffectdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -114,6 +117,8 @@ private:
     QGraphicsTextItem* textItem;
 
     CamConnectDialog* camConnectDialog;
+    VideoAdjustmentDialog* videoAdjustmentDialog;
+    VideoEffectDialog* videoEffectDialog;
 
     QTimer playButtonBlinkTimer;
     bool playButtonLEDState;

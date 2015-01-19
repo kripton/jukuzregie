@@ -68,7 +68,9 @@ void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QStrin
             .arg(id);
 
     QString desc = QString("appsrc name=source !"
-                   " decodebin name=decode ! queue ! videoscale ! videoconvert ! videorate ! appsink name=videosink caps=\"%1\""
+                   " decodebin name=decode ! queue ! videoscale ! videoconvert ! videorate ! "
+                   " gamma name=gamma ! videobalance name=balance ! "
+                   " appsink name=videosink caps=\"%1\""
                    " decode. ! queue ! audioconvert ! audioresample ! appsink name=audiosink caps=\"%2\"")
             .arg(videocaps)
             .arg(audiocaps);
@@ -86,6 +88,9 @@ void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QStrin
     videoSink.setElement(pipeline->getElementByName("videosink"));
 
     audioSink.setElement(pipeline->getElementByName("audiosink"));
+
+    gammaElement = pipeline->getElementByName("gamma");
+    videoBalanceElement = pipeline->getElementByName("balance");
 
     // start playing
     pipeline->setState(QGst::StatePlaying);

@@ -83,6 +83,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->camConnectButton, SIGNAL(clicked()), camConnectDialog, SLOT(show()));
     connect(camConnectDialog, SIGNAL(connectCam(CamBox*,QHostAddress,quint16)), this, SLOT(startCam(CamBox*,QHostAddress,quint16)));
 
+    videoAdjustmentDialog = new VideoAdjustmentDialog(allSources, this);
+    videoAdjustmentDialog->hide();
+    connect(ui->videoAdjustmentButton, SIGNAL(clicked()), videoAdjustmentDialog, SLOT(show()));
+
+    videoEffectDialog = new VideoEffectDialog(allSources, this);
+    videoEffectDialog->hide();
+    connect(ui->videoEffectButton, SIGNAL(clicked()), videoEffectDialog, SLOT(show()));
+
     //////////////////// VideoPlayer ////////////////////
     camBoxMgmtData* mgmtdata = (camBoxMgmtData*)ui->videoPlayer->userData;
     mgmtdata->pixmapItem->setZValue(0.1); // draw the video on top of the camBoxes

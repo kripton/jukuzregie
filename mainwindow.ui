@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1788</width>
-    <height>835</height>
+    <height>851</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -461,6 +461,20 @@
        <widget class="QPushButton" name="camConnectButton">
         <property name="text">
          <string>Kamera verbinden</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="videoAdjustmentButton">
+        <property name="text">
+         <string>Videoanpassung</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="videoEffectButton">
+        <property name="text">
+         <string>Videoeffekte</string>
         </property>
        </widget>
       </item>
