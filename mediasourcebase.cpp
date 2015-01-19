@@ -144,6 +144,24 @@ void MediaSourceBase::setSaturation(float saturation)
     videoBalanceElement->setProperty("saturation", saturation);
 }
 
+int MediaSourceBase::getFlipMode()
+{
+    if (videoFlipElement.isNull())
+    {
+        return 1.0;
+    }
+    return videoFlipElement->property("method").get<int>();
+}
+
+void MediaSourceBase::setFlipMode(int flipMode)
+{
+    if (videoFlipElement.isNull())
+    {
+        return;
+    }
+    videoFlipElement->setProperty("method", flipMode);
+}
+
 MediaSourceBase::MediaSourceBase(QWidget *parent = 0) :
     QGroupBox(parent)
 {

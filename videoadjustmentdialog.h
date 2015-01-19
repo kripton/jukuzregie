@@ -32,6 +32,7 @@ public slots:
     void contrastChanged(int newValue);
     void hueChanged(int newValue);
     void saturationChanged(int newValue);
+    void flipModeChanged(int id);
 
 private:
     Ui::VideoAdjustmentDialog *ui;

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Videoanpassung</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -43,6 +43,16 @@
      <widget class="QLabel" name="label">
       <property name="text">
        <string>Gamma</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" rowspan="6">
+     <widget class="QListWidget" name="sourcesListWidget">
+      <property name="maximumSize">
+       <size>
+        <width>100</width>
+        <height>16777215</height>
+       </size>
       </property>
      </widget>
     </item>
@@ -89,6 +99,13 @@
       </property>
      </widget>
     </item>
+    <item row="3" column="3">
+     <widget class="QPushButton" name="hueResetButton">
+      <property name="text">
+       <string>Reset</string>
+      </property>
+     </widget>
+    </item>
     <item row="4" column="2">
      <widget class="QSlider" name="saturationSlider">
       <property name="maximum">
@@ -99,6 +116,13 @@
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QPushButton" name="contrastResetButton">
+      <property name="text">
+       <string>Reset</string>
       </property>
      </widget>
     </item>
@@ -135,23 +159,6 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="0" rowspan="5">
-     <widget class="QListWidget" name="sourcesListWidget">
-      <property name="maximumSize">
-       <size>
-        <width>100</width>
-        <height>16777215</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Brightness</string>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="3">
      <widget class="QPushButton" name="gammaResetButton">
       <property name="text">
@@ -166,17 +173,10 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="3">
-     <widget class="QPushButton" name="contrastResetButton">
+    <item row="1" column="1">
+     <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>Reset</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="3">
-     <widget class="QPushButton" name="hueResetButton">
-      <property name="text">
-       <string>Reset</string>
+       <string>Brightness</string>
       </property>
      </widget>
     </item>
@@ -186,6 +186,50 @@
        <string>Reset</string>
       </property>
      </widget>
+    </item>
+    <item row="5" column="1" colspan="3">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QRadioButton" name="flipModeNormalButton">
+        <property name="text">
+         <string>Normal</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">buttonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="flipModeRotate180Button">
+        <property name="text">
+         <string>Rotate 180</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">buttonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="flipModeHorizontalButton">
+        <property name="text">
+         <string>Flip Horizontal</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">buttonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="flipModeVerticalButton">
+        <property name="text">
+         <string>Flip Vertical</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">buttonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -225,4 +269,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+ </buttongroups>
 </ui>

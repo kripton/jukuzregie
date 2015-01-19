@@ -95,7 +95,7 @@ void VideoPlayer::newFileSelected(QString newFile)
 
     QString desc = QString(" filesrc location=\"%1\" ! decodebin name=decode !"
                            " queue ! videorate ! videoscale ! videoconvert ! "
-                           " gamma name=gamma ! videobalance name=balance ! "
+                           " gamma name=gamma ! videobalance name=balance ! videoflip name=flip ! "
                            " appsink name=videosink caps=\"%2\""
                            " decode. ! queue ! audioresample ! audioconvert ! appsink name=audiosink caps=\"%3\"")
             .arg(QString("%1/%2").arg(currentDir).arg(newFile))
@@ -114,6 +114,7 @@ void VideoPlayer::newFileSelected(QString newFile)
 
     gammaElement = pipeline->getElementByName("gamma");
     videoBalanceElement = pipeline->getElementByName("balance");
+    videoFlipElement = pipeline->getElementByName("flip");
 
     // Let the pipeline preroll to check for errors and such
     pipeline->setState(QGst::StatePaused);

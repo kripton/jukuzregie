@@ -14,6 +14,11 @@ VideoAdjustmentDialog::VideoAdjustmentDialog(QList<MediaSourceBase*> sources, QW
         ui->sourcesListWidget->addItem(source->getId());
     }
 
+    ui->buttonGroup->setId(ui->flipModeNormalButton, 0);
+    ui->buttonGroup->setId(ui->flipModeRotate180Button, 2);
+    ui->buttonGroup->setId(ui->flipModeHorizontalButton, 4);
+    ui->buttonGroup->setId(ui->flipModeVerticalButton, 5);
+
     connect(ui->sourcesListWidget, SIGNAL(currentTextChanged(QString)), this, SLOT(newSourceSelected(QString)));
 
     connect(ui->gammaResetButton, SIGNAL(clicked()), this, SLOT(resetGamma()));
@@ -27,6 +32,7 @@ VideoAdjustmentDialog::VideoAdjustmentDialog(QList<MediaSourceBase*> sources, QW
     connect(ui->contrastSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
     connect(ui->hueSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
     connect(ui->saturationSlider, SIGNAL(valueChanged(int)), this, SLOT(saturationChanged(int)));
+    connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(flipModeChanged(int)));
 
     blockChanges = false;
 }
@@ -50,6 +56,8 @@ void VideoAdjustmentDialog::newSourceSelected(QString newSource)
     ui->contrastSlider->setValue(source->getContrast() * 100);
     ui->hueSlider->setValue(source->getHue() * 100);
     ui->saturationSlider->setValue(source->getSaturation() * 100);
+    ui->buttonGroup->button(source->getFlipMode())->setChecked(true);
+
     blockChanges = false;
 }
 
@@ -156,6 +164,22 @@ void VideoAdjustmentDialog::saturationChanged(int newValue)
     }
 
     source->setSaturation(newValue / 100.0);
+}
+
+void VideoAdjustmentDialog::flipModeChanged(int id)
+{
+    if ((ui->sourcesListWidget->selectedItems().length() != 1) || blockChanges)
+    {
+        return;
+    }
+
+    MediaSourceBase* source = getSourceById(ui->sourcesListWidget->selectedItems().at(0)->text());
+    if (source == NULL)
+    {
+        return;
+    }
+
+    source->setFlipMode(id);
 }
 
 MediaSourceBase *VideoAdjustmentDialog::getSourceById(QString id)

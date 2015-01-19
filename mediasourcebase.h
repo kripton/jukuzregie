@@ -52,6 +52,8 @@ public:
     void setHue(float hue);
     float getSaturation();
     void setSaturation(float saturation);
+    int getFlipMode();
+    void setFlipMode(int flipMode);
 
     /// METHODS ///
     explicit MediaSourceBase(QWidget *parent);
@@ -90,6 +92,7 @@ protected:
 
     QGst::ElementPtr gammaElement;
     QGst::ElementPtr videoBalanceElement;
+    QGst::ElementPtr videoFlipElement;
 
     VideoAppSink videoSink;
     AudioAppSink audioSink;
