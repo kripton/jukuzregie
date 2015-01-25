@@ -1,0 +1,2 @@
+- Use a dedicated network card (for example a USB one) if possible
+- Set the IP address of the dedicated card to 192.168.168.56
