@@ -31,8 +31,11 @@ void CamBox::disconnectSource()
 {
     setVideoOpacity(0.0);
     setVolume(0.0);
-    pipeline->setState(QGst::StateNull);
-    pipeline.clear();
+    if (!pipeline.isNull())
+    {
+        pipeline->setState(QGst::StateNull);
+        pipeline.clear();
+    }
     sourceOffline();
 }
 
