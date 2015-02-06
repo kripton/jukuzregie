@@ -29,6 +29,10 @@ MainWindow::MainWindow(QWidget *parent) :
     textSpriteItem->setZValue(0.9);
     textSpriteOpacityEffect.setOpacity(0.0);
 
+    clockDisplayTimer.setInterval(1000);
+    connect(ui->clockDisplayCheckbox, SIGNAL(toggled(bool)), this, SLOT(clockDisplayCheckboxToggled(bool)));
+    connect(&clockDisplayTimer, SIGNAL(timeout()), this, SLOT(updateClockDisplay()));
+
     textFont.setPointSize(37);
     textFont.setBold(true);
 
@@ -588,6 +592,21 @@ void MainWindow::logoButtonToggled(bool checked)
     }
 }
 
+void MainWindow::clockDisplayCheckboxToggled(bool checked)
+{
+    if (checked)
+    {
+        clockDisplayTextItem = scene.addText("", textFont);
+        updateClockDisplay();
+        clockDisplayTimer.start();
+    }
+    else
+    {
+        clockDisplayTimer.stop();
+        scene.removeItem(clockDisplayTextItem);
+    }
+}
+
 void MainWindow::selectNewLogoFile()
 {
     ui->logoFileLineEdit->setText(QFileDialog::getOpenFileName(this, tr("Open Logo"), "", tr("PNG or MNG images (*.png *.mng)")));
@@ -601,6 +620,11 @@ void MainWindow::editTextFont()
 void MainWindow::selectNewTextBackground()
 {
     ui->textSpriteFilename->setText(QFileDialog::getOpenFileName(this, tr("Open Textsprite"), "", tr("PNG or MNG images (*.png *.mng)")));
+}
+
+void MainWindow::updateClockDisplay()
+{
+    clockDisplayTextItem->setPlainText(QTime::currentTime().toString("HH:mm:ss"));
 }
 
 void MainWindow::newOpacityHandler(qreal newValue)

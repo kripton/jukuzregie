@@ -62,9 +62,11 @@ private slots:
     // UI events
     void textButtonToggled(bool checked);
     void logoButtonToggled(bool checked);
+    void clockDisplayCheckboxToggled(bool checked);
     void selectNewLogoFile();
     void editTextFont();
     void selectNewTextBackground();
+    void updateClockDisplay();
 
     // Events by CamBoxes (and VideoPlayer maybe)
     void fadeMeInHandler(bool fadeOutOthers = true, MediaSourceBase *sourceOverride = NULL);
@@ -119,6 +121,9 @@ private:
     QGraphicsProxyWidget* textSpriteItem;
     QGraphicsOpacityEffect textSpriteOpacityEffect;
     QGraphicsTextItem* textItem;
+
+    QGraphicsTextItem* clockDisplayTextItem;
+    QTimer clockDisplayTimer;
 
     CamConnectDialog* camConnectDialog;
     VideoAdjustmentDialog* videoAdjustmentDialog;
