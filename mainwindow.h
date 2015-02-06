@@ -115,7 +115,8 @@ private:
     QGraphicsOpacityEffect logoOpacityEffect;
 
     QFont textFont;
-    QGraphicsPixmapItem* textSpriteItem;
+    QLabel* textSpriteLabel;
+    QGraphicsProxyWidget* textSpriteItem;
     QGraphicsOpacityEffect textSpriteOpacityEffect;
     QGraphicsTextItem* textItem;
 

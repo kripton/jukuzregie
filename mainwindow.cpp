@@ -21,7 +21,10 @@ MainWindow::MainWindow(QWidget *parent) :
     logoItem->setZValue(1.0);
     logoOpacityEffect.setOpacity(0.0);
 
-    textSpriteItem = scene.addPixmap(QPixmap());
+    textSpriteLabel = new QLabel();
+    textSpriteLabel->setGeometry(0, 0, 640, 360);
+    textSpriteLabel->setAttribute(Qt::WA_TranslucentBackground, true );
+    textSpriteItem = scene.addWidget(textSpriteLabel);
     textSpriteItem->setGraphicsEffect(&textSpriteOpacityEffect);
     textSpriteItem->setZValue(0.9);
     textSpriteOpacityEffect.setOpacity(0.0);
@@ -505,6 +508,8 @@ void MainWindow::handleMidiEvent(char c0, char c1, char c2) {
 
 void MainWindow::textButtonToggled(bool checked)
 {
+    QMovie* oldMovie = NULL;
+
     if (checked) {
         textItem = scene.addText(ui->textEdit->toPlainText(), textFont);
         textItem->setPos(ui->textPosX->value()*640, ui->textPosY->value()*360);
@@ -517,14 +522,26 @@ void MainWindow::textButtonToggled(bool checked)
             return;
         }
 
-        QImage image;
+        QMovie *movie = new QMovie(ui->textSpriteFilename->text());
 
-        if (!image.load(ui->textSpriteFilename->text()))
+        if (!movie->isValid())
         {
             return;
         }
-        image = image.scaledToWidth(640, Qt::SmoothTransformation);
-        textSpriteItem->setPixmap(QPixmap::fromImage(image));
+
+        oldMovie = textSpriteLabel->movie();
+
+        movie->setScaledSize(QSize(640,360));
+        movie->setCacheMode(QMovie::CacheAll);
+        textSpriteLabel->setMovie(movie);
+        movie->start();
+
+        if (oldMovie != NULL)
+        {
+            oldMovie->stop();
+            free(oldMovie);
+        }
+
         textSpriteOpacityEffect.setOpacity(1.0);
     } else {
         scene.removeItem((QGraphicsItem*)textItem);
@@ -582,7 +599,7 @@ void MainWindow::editTextFont()
 
 void MainWindow::selectNewTextBackground()
 {
-    ui->textSpriteFilename->setText(QFileDialog::getOpenFileName(this, tr("Open Textsprite"), "", tr("PNG images (*.png)")));
+    ui->textSpriteFilename->setText(QFileDialog::getOpenFileName(this, tr("Open Textsprite"), "", tr("PNG or MNG images (*.png *.mng)")));
 }
 
 void MainWindow::newOpacityHandler(qreal newValue)
