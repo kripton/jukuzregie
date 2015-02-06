@@ -514,6 +514,7 @@ void MainWindow::textButtonToggled(bool checked)
         textItem = scene.addText(ui->textEdit->toPlainText(), textFont);
         textItem->setPos(ui->textPosX->value()*640, ui->textPosY->value()*360);
         textItem->setZValue(0.95);
+        scene.setSceneRect(0, 0, 640, 360);
 
         QFileInfo fInfo(ui->textSpriteFilename->text());
 
