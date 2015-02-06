@@ -10,6 +10,8 @@
 #include <QUdpSocket>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QGraphicsProxyWidget>
+#include <QMovie>
 #include <QGraphicsOpacityEffect>
 #include <QByteArray>
 #include <QNetworkInterface>
@@ -108,7 +110,8 @@ private:
     VideoAppSrc* videoSrc;
 
     QGraphicsScene scene;
-    QGraphicsPixmapItem* logoItem;
+    QLabel* logoLabel;
+    QGraphicsProxyWidget* logoItem;
     QGraphicsOpacityEffect logoOpacityEffect;
 
     QFont textFont;

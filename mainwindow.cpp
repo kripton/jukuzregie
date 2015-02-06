@@ -13,7 +13,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowTitle(QString("%1 (instance id %2)").arg(windowTitle()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
 
-    logoItem = scene.addPixmap(QPixmap());
+    logoLabel = new QLabel();
+    logoLabel->setGeometry(0, 0, 640, 360);
+    logoLabel->setAttribute(Qt::WA_TranslucentBackground, true );
+    logoItem = scene.addWidget(logoLabel);
     logoItem->setGraphicsEffect(&logoOpacityEffect);
     logoItem->setZValue(1.0);
     logoOpacityEffect.setOpacity(0.0);
@@ -531,6 +534,8 @@ void MainWindow::textButtonToggled(bool checked)
 
 void MainWindow::logoButtonToggled(bool checked)
 {
+    QMovie* oldMovie = NULL;
+
     if (checked) {
         QFileInfo fInfo(ui->logoFileLineEdit->text());
 
@@ -539,14 +544,26 @@ void MainWindow::logoButtonToggled(bool checked)
             return;
         }
 
-        QImage image;
+        QMovie *movie = new QMovie(ui->logoFileLineEdit->text());
 
-        if (!image.load(ui->logoFileLineEdit->text()))
+        if (!movie->isValid())
         {
             return;
         }
-        image = image.scaledToWidth(640, Qt::SmoothTransformation);
-        logoItem->setPixmap(QPixmap::fromImage(image));
+
+        oldMovie = logoLabel->movie();
+
+        movie->setScaledSize(QSize(640,360));
+        movie->setCacheMode(QMovie::CacheAll);
+        logoLabel->setMovie(movie);
+        movie->start();
+
+        if (oldMovie != NULL)
+        {
+            oldMovie->stop();
+            free(oldMovie);
+        }
+
         logoOpacityEffect.setOpacity(1.0);
     } else {
         logoOpacityEffect.setOpacity(0.0);
@@ -555,7 +572,7 @@ void MainWindow::logoButtonToggled(bool checked)
 
 void MainWindow::selectNewLogoFile()
 {
-    ui->logoFileLineEdit->setText(QFileDialog::getOpenFileName(this, tr("Open Logo"), "", tr("PNG images (*.png)")));
+    ui->logoFileLineEdit->setText(QFileDialog::getOpenFileName(this, tr("Open Logo"), "", tr("PNG or MNG images (*.png *.mng)")));
 }
 
 void MainWindow::editTextFont()
