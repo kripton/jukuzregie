@@ -23,3 +23,8 @@ Play the mixed/produced output stream:
   nc ayanta 6000 | mplayer -nocache -
 OR
   gst-launch-1.0 tcpclientsrc host=ayanta port=6000 ! decodebin name=decode ! jackaudiosink provide-clock=false decode. ! videoconvert ! ximagesink
+
+
+
+Re-Stream output to icecast without re-encoding:
+gst-launch-1.0 tcpclientsrc host=127.0.0.1 port=6000 ! matroskademux name=demux ! queue ! video/x-vp8 ! webmmux streamable=true name=mux ! queue ! shout2send ip=127.0.0.1 port=12000 password=pass mount=/test.webm demux. ! queue max-size-time=0 ! audio/x-vorbis ! mux.
