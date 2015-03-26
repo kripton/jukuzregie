@@ -16,6 +16,8 @@ Re-Mux the Wansview NCM625W with audio but without re-encoding:
   gst-launch-1.0 rtspsrc user-id=admin user-pw=123456 location=rtsp://192.168.189.79:554/12 name=src ! rtph264depay ! h264parse ! matroskamux streamable=true name=mux ! tcpserversink host=192.168.189.220 port=6005 src. ! rtpg726depay ! decodebin ! audioresample ! audio/x-raw,rate=48000 ! audioconvert ! vorbisenc ! mux.
 
 
+Stream RPi's camera with DUMMY audio:
+gst-launch-1.0 v4l2src do-timestamp=true ! video/x-h264,width=1280,height=720,framerate=30/1 ! h264parse ! matroskamux streamable=true name=mux ! tcpserversink host=192.168.189.203 port=5005 audiotestsrc ! vorbisenc ! mux.
 
 
 
