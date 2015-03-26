@@ -169,7 +169,7 @@ MainWindow::MainWindow(QWidget *parent) :
                                      " audio_main. ! queue ! audioconvert ! vorbisenc ! webmmux streamable=true name=mux ! tee name=muxout !"
                                      " queue ! filesink location=\"%4\" sync=false"
 
-                                     " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true ! videorate !"
+                                     " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true ! queue ! videorate !"
                                      " videoconvert ! vp8enc threads=4 deadline=35000 ! mux."
 
                                      " muxout. ! queue ! tcpserversink host=0.0.0.0 port=6000") //sync-method=latest-keyframe
