@@ -33,3 +33,11 @@ Starting stream from "127.0.0.1:5006" "cam_01"
 Pipeline: "appsrc name=source ! decodebin name=decode ! queue ! videoscale ! videoconvert ! videorate ! appsink name=videosink caps="video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1" decode. ! queue ! audioconvert ! audioresample ! appsink name=audiosink caps="audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2""
 QFile::setFileName: File (/home/kripton/streaming/2015-01-15_19-07-52/aufnahmen//2015-13-15_19-13-40_cam_01.mkv) is already opened
 SOURCE "cam_01" IS NOW ONLINE
+
+
+
+- Add commands used to control certain v4l2 properties:
+    - Analog to USB grabber: PAL instead of NTSC, brightness
+    - C920: Autofocus off, manual focus setting, auto-brightness off, manual brightness control
+    - RPi-Cam: Brightness, Recording LED off
+- Add "software zoom" / frame cropping for each input

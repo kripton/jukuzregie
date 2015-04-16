@@ -26,6 +26,7 @@ QGst::FlowReturn VideoAppSink::newPreroll()
 
 QGst::FlowReturn VideoAppSink::newSample()
 {
+    // TODO: Allow to delay the buffer/frame here
     QGst::SamplePtr sample = pullSample();
 
     QGst::MapInfo mapInfo;
