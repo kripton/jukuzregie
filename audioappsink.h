@@ -2,6 +2,7 @@
 #define AUDIOAPPSINK_H
 
 #include <QObject>
+#include <QTimer>
 
 #include <QGst/Memory>
 #include <QGst/Buffer>
@@ -13,8 +14,10 @@ class AudioAppSink : public QObject, public QGst::Utils::ApplicationSink
 
 public:
     explicit AudioAppSink(QObject *parent = 0);
+    int delay;
 
 signals:
+    void queueBuffer(QByteArray *data, int delay);
     void newAudioBuffer(QByteArray data);
 
 public slots:
@@ -23,7 +26,11 @@ protected:
     virtual void eos();
     virtual QGst::FlowReturn newSample();
 
-private:
+private slots:
+    void doQueueBuffer(QByteArray *data, int delay);
+
+public slots:
+    void emitBuffer(QByteArray *data);
 };
 
 #endif // AUDIOAPPSINK_H

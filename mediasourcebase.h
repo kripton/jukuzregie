@@ -54,6 +54,10 @@ public:
     void setSaturation(float saturation);
     int getFlipMode();
     void setFlipMode(int flipMode);
+    int getVideoDelay();
+    void setVideoDelay(int delay);
+    int getAudioDelay();
+    void setAudioDelay(int delay);
 
     /// METHODS ///
     explicit MediaSourceBase(QWidget *parent);

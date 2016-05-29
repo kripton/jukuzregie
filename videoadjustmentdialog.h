@@ -26,12 +26,16 @@ public slots:
     void resetContrast();
     void resetHue();
     void resetSaturation();
+    void resetAudioDelay();
+    void resetVideoDelay();
 
     void gammaChanged(int newValue);
     void brightnessChanged(int newValue);
     void contrastChanged(int newValue);
     void hueChanged(int newValue);
     void saturationChanged(int newValue);
+    void audioDelayChanged(int newValue);
+    void videoDelayChanged(int newValue);
     void flipModeChanged(int id);
 
 private:

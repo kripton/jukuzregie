@@ -3,6 +3,9 @@
 AudioAppSink::AudioAppSink(QObject *parent) :
     QObject(parent)
 {
+    delay = 0;
+
+    connect(this, SIGNAL(queueBuffer(QByteArray*,int)), this, SLOT(doQueueBuffer(QByteArray*,int)), Qt::QueuedConnection);
 }
 
 void AudioAppSink::eos()
@@ -17,10 +20,31 @@ QGst::FlowReturn AudioAppSink::newSample()
     QGst::MapInfo mapInfo;
     sample->buffer()->map(mapInfo, QGst::MapRead);
 
-    QByteArray data((char*)mapInfo.data(), mapInfo.size());
+    QByteArray* data = new QByteArray((char*)mapInfo.data(), mapInfo.size());
     sample->buffer()->unmap(mapInfo);
 
-    emit newAudioBuffer(data);
+    qDebug() << "AUDIO DELAY:" << delay << "ms";
+
+    if (delay == 0)
+    {
+        emit newAudioBuffer(*data);
+        delete data;
+    }
+    else
+    {
+        emit queueBuffer(data, delay);
+    }
 
     return QGst::FlowOk;
+}
+
+void AudioAppSink::doQueueBuffer(QByteArray* data, int delay)
+{
+    QTimer::singleShot(delay, this, SLOT(emitBuffer(data)));
+}
+
+void AudioAppSink::emitBuffer(QByteArray *data)
+{
+    emit newAudioBuffer(*data);
+    delete data;
 }

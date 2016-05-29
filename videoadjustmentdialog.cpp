@@ -26,12 +26,16 @@ VideoAdjustmentDialog::VideoAdjustmentDialog(QList<MediaSourceBase*> sources, QW
     connect(ui->contrastResetButton, SIGNAL(clicked()), this, SLOT(resetContrast()));
     connect(ui->hueResetButton, SIGNAL(clicked()), this, SLOT(resetHue()));
     connect(ui->saturationResetButton, SIGNAL(clicked()), this, SLOT(resetSaturation()));
+    connect(ui->audioDelayResetButton, SIGNAL(clicked(bool)), this, SLOT(resetAudioDelay()));
+    connect(ui->videoDelayResetButton, SIGNAL(clicked(bool)), this, SLOT(resetVideoDelay()));
 
     connect(ui->gammaSlider, SIGNAL(valueChanged(int)), this, SLOT(gammaChanged(int)));
     connect(ui->brightnessSlider, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
     connect(ui->contrastSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
     connect(ui->hueSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
     connect(ui->saturationSlider, SIGNAL(valueChanged(int)), this, SLOT(saturationChanged(int)));
+    connect(ui->audioDelaySlider, SIGNAL(valueChanged(int)), this, SLOT(audioDelayChanged(int)));
+    connect(ui->videoDelaySlider, SIGNAL(valueChanged(int)), this, SLOT(videoDelayChanged(int)));
     connect(ui->buttonGroup, SIGNAL(buttonClicked(int)), this, SLOT(flipModeChanged(int)));
 
     blockChanges = false;
@@ -84,6 +88,16 @@ void VideoAdjustmentDialog::resetHue()
 void VideoAdjustmentDialog::resetSaturation()
 {
     ui->saturationSlider->setValue(100);
+}
+
+void VideoAdjustmentDialog::resetAudioDelay()
+{
+    ui->audioDelaySlider->setValue(0);
+}
+
+void VideoAdjustmentDialog::resetVideoDelay()
+{
+    ui->videoDelaySlider->setValue(0);
 }
 
 void VideoAdjustmentDialog::gammaChanged(int newValue)
@@ -164,6 +178,38 @@ void VideoAdjustmentDialog::saturationChanged(int newValue)
     }
 
     source->setSaturation(newValue / 100.0);
+}
+
+void VideoAdjustmentDialog::audioDelayChanged(int newValue)
+{
+    if ((ui->sourcesListWidget->selectedItems().length() != 1) || blockChanges)
+    {
+        return;
+    }
+
+    MediaSourceBase* source = getSourceById(ui->sourcesListWidget->selectedItems().at(0)->text());
+    if (source == NULL)
+    {
+        return;
+    }
+
+    source->setAudioDelay(newValue);
+}
+
+void VideoAdjustmentDialog::videoDelayChanged(int newValue)
+{
+    if ((ui->sourcesListWidget->selectedItems().length() != 1) || blockChanges)
+    {
+        return;
+    }
+
+    MediaSourceBase* source = getSourceById(ui->sourcesListWidget->selectedItems().at(0)->text());
+    if (source == NULL)
+    {
+        return;
+    }
+
+    source->setVideoDelay(newValue);
 }
 
 void VideoAdjustmentDialog::flipModeChanged(int id)

@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QImage>
 #include <QColor>
+#include <QQueue>
+#include <QTimer>
 
 #include <QGst/Memory>
 #include <QGst/Buffer>
@@ -15,10 +17,15 @@ class VideoAppSink : public QObject, public QGst::Utils::ApplicationSink
 
 public:
     explicit VideoAppSink(QObject *parent = 0);
+    int delay;
+
+private:
+    QQueue<QImage*> bufferQueue;
 
 signals:
     void newPrerollImage(QImage image);
     void newImage(QImage image);
+    void queueBuffer(QImage* image, int delay);
 
 public slots:
 
@@ -27,8 +34,11 @@ protected:
     virtual QGst::FlowReturn newPreroll();
     virtual QGst::FlowReturn newSample();
 
-private:
-    QImage image2;
+private slots:
+    void doQueueBuffer(QImage* image, int delay);
+
+public slots:
+    void emitOldestBuffer();
 };
 
 #endif // VIDEOAPPSINK_H

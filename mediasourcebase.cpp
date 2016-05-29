@@ -162,6 +162,26 @@ void MediaSourceBase::setFlipMode(int flipMode)
     videoFlipElement->setProperty("method", flipMode);
 }
 
+int MediaSourceBase::getVideoDelay()
+{
+    return videoSink.delay;
+}
+
+void MediaSourceBase::setVideoDelay(int delay)
+{
+    videoSink.delay = delay;
+}
+
+int MediaSourceBase::getAudioDelay()
+{
+    return audioSink.delay;
+}
+
+void MediaSourceBase::setAudioDelay(int delay)
+{
+    audioSink.delay = delay;
+}
+
 MediaSourceBase::MediaSourceBase(QWidget *parent = 0) :
     QGroupBox(parent)
 {
