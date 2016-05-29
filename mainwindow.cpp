@@ -173,9 +173,14 @@ MainWindow::MainWindow(QWidget *parent) :
                                      " queue ! filesink location=\"%4\" sync=false"
 
                                      " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true ! queue !"
-                                     " videoconvert ! vp8enc threads=4 deadline=35000 name=encoder_primary ! mux."
+                                     " videoconvert ! tee name=rawvideo ! vp8enc threads=4 deadline=35000 name=encoder_primary ! mux."
 
-                                     " muxout. ! queue ! tcpserversink host=0.0.0.0 port=6000") //sync-method=latest-keyframe
+                                     " muxout. ! queue ! tcpserversink host=0.0.0.0 port=6000" //sync-method=latest-keyframe
+
+                                     " audio_main. ! queue ! matroskamux streamable=true name=rawmux ! "
+                                     " queue ! tcpserversink host=0.0.0.0 port=6001"
+                                     " rawvideo. ! queue ! rawmux.")
+
             .arg(rawaudiocaps)
             .arg(rawvideocaps)
             .arg(640*360*4)
