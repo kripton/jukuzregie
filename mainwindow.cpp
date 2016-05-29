@@ -49,6 +49,9 @@ MainWindow::MainWindow(QWidget *parent) :
     playButtonBlinkTimer.setInterval(500);
     connect(&playButtonBlinkTimer, SIGNAL(timeout()), this, SLOT(playButtonBlinkTimerTimeout()));
 
+
+    connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(encoderSliderValueChanged(int)));
+
     //////////////////// Paths for runtime dumping data and logging ////////////////////
     QString dumpDir = QString("%1/streaming/%2/aufnahmen/").arg(QDir::homePath()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss"));
     QDir().mkpath(dumpDir);
@@ -169,8 +172,8 @@ MainWindow::MainWindow(QWidget *parent) :
                                      " audio_main. ! queue ! audioconvert ! vorbisenc ! webmmux streamable=true name=mux ! tee name=muxout !"
                                      " queue ! filesink location=\"%4\" sync=false"
 
-                                     " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true ! queue ! videorate !"
-                                     " videoconvert ! vp8enc threads=4 deadline=35000 ! mux."
+                                     " appsrc name=videosrc caps=\"%2\" is-live=true blocksize=%3 format=time do-timestamp=true ! queue !"
+                                     " videoconvert ! vp8enc threads=4 deadline=35000 name=encoder_primary ! mux."
 
                                      " muxout. ! queue ! tcpserversink host=0.0.0.0 port=6000") //sync-method=latest-keyframe
             .arg(rawaudiocaps)
@@ -368,9 +371,24 @@ void MainWindow::prepareVideoData(uint length, char* data)
     //painter.setRenderHint(QPainter::Antialiasing);
     scene.render(&painter);
 
+    //vidImg.save(QString("/home/kripton/test/FRAME-%1.bmp").arg(QTime::currentTime().toString("HHmmsszzz")));
+
     memcpy((void*)data, (void*)vidImg.bits(), length);
 
     videoSrc->pushVideoBuffer();
+}
+
+void MainWindow::encoderSliderValueChanged(int value)
+{
+    setEncoderBitrate("encoder_primary", value);
+}
+
+void MainWindow::setEncoderBitrate(QString encoderName, int bitrate)
+{
+    QGst::ElementPtr elem = outputPipe->getElementByName(encoderName.toUtf8());
+    elem->setProperty("target-bitrate", bitrate);
+
+    qDebug() << "Requested bitrate:" << bitrate << "\tReadBack value:" << elem->property("target-bitrate");
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev)

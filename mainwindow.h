@@ -88,6 +88,9 @@ private slots:
     void prepareAudioData(uint length, char* data);
     void prepareVideoData(uint length, char* data);
 
+    void encoderSliderValueChanged(int value);
+    void setEncoderBitrate(QString encoderName, int bitrate);
+
 protected:
     bool eventFilter(QObject *obj, QEvent *ev);
 
