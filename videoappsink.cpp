@@ -3,6 +3,14 @@
 VideoAppSink::VideoAppSink(QObject *parent) :
     QObject(parent), QGst::Utils::ApplicationSink()
 {
+    width = 640;
+    height = 360;
+}
+
+void VideoAppSink::setDimensions(int width, int height)
+{
+    this->width = width;
+    this->height = height;
 }
 
 void VideoAppSink::eos()
@@ -16,7 +24,7 @@ QGst::FlowReturn VideoAppSink::newPreroll()
     QGst::MapInfo mapInfo;
     sample->buffer()->map(mapInfo, QGst::MapRead);
 
-    QImage image((uchar*) mapInfo.data(), 640, 360, QImage::Format_ARGB32);
+    QImage image((uchar*) mapInfo.data(), width, height, QImage::Format_ARGB32);
     sample->buffer()->unmap(mapInfo);
 
     emit newPrerollImage(image);
@@ -32,7 +40,7 @@ QGst::FlowReturn VideoAppSink::newSample()
     QGst::MapInfo mapInfo;
     sample->buffer()->map(mapInfo, QGst::MapRead);
 
-    QImage image((uchar*) mapInfo.data(), 640, 360, QImage::Format_ARGB32);
+    QImage image((uchar*) mapInfo.data(), width, height, QImage::Format_ARGB32);
     sample->buffer()->unmap(mapInfo);
 
     emit newImage(image);

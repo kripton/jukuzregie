@@ -3,6 +3,14 @@
 VideoAppSrc::VideoAppSrc(QObject *parent) :
     QObject(parent)
 {
+    this->width = width;
+    this->height = height;
+}
+
+void VideoAppSrc::setDimensions(int width, int height)
+{
+    this->width = width;
+    this->height = height;
 }
 
 void VideoAppSrc::needData(uint length)
@@ -15,7 +23,7 @@ void VideoAppSrc::needData(uint length)
     {
         buffer.clear();
     }
-    buffer = QGst::Buffer::create(640*360*4);
+    buffer = QGst::Buffer::create(width*height*4);
     buffer->map(mapInfo, QGst::MapWrite);
 
     emit sigNeedData(buffer->size(), (char*)mapInfo.data());

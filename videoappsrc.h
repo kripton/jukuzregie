@@ -13,6 +13,7 @@ class VideoAppSrc : public QObject, public QGst::Utils::ApplicationSource
     Q_OBJECT
 public:
     explicit VideoAppSrc(QObject *parent = 0);
+    void setDimensions(int width, int height);
 
     virtual void needData (uint length);
     virtual void enoughData();
@@ -20,6 +21,9 @@ public:
 private:
     QGst::BufferPtr buffer;
     QGst::MapInfo mapInfo;
+
+    int width;
+    int height;
 
 signals:
     void sigNeedData(uint length, char* data);

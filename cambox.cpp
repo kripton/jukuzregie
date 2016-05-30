@@ -62,9 +62,10 @@ void CamBox::onBusMessage(const QGst::MessagePtr &message)
     }
 }
 
-void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QString audiocaps)
+void CamBox::startCam(QHostAddress host, quint16 port, int width, int height, QString videocaps, QString audiocaps)
 {
     qDebug() << "Starting stream from" << QString("%1:%2").arg(host.toString()).arg(port) << id;
+
     QString dumpFileName = QString("%1/%2_%3.mkv")
             .arg(dumpDir)
             .arg(QDateTime::currentDateTime().toString("yyyy-mm-dd_hh-mm-ss"))
@@ -89,6 +90,7 @@ void CamBox::startCam(QHostAddress host, quint16 port, QString videocaps, QStrin
     m_tcpsrc.start(host.toString(), port, dumpFileName);
 
     videoSink.setElement(pipeline->getElementByName("videosink"));
+    videoSink.setDimensions(width, height);
 
     audioSink.setElement(pipeline->getElementByName("audiosink"));
 

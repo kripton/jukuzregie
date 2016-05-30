@@ -49,7 +49,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0, int width = 640, int height = 360, int fps = 25);
     ~MainWindow();
 
     JackThread* worker;
@@ -97,7 +97,10 @@ protected:
 private:
     Ui::MainWindow *ui;
     QProcess* process;
-    QStringList arguments;
+
+    int width;
+    int height;
+    int fps;
 
     QList<CamBox*> allCamBoxes;
     QList<MediaSourceBase*> allSources;

@@ -34,7 +34,7 @@ public:
 signals:
 
 public slots:
-    void startCam(QHostAddress host, quint16 port, QString videocaps, QString audiocaps); // start playing from a source
+    void startCam(QHostAddress host, quint16 port, int width, int height, QString videocaps, QString audiocaps); // start playing from a source
     void setDumpDir(QString dir);           // Specify in which directory the incoming stream should be archived to
     void disconnectSource();
 

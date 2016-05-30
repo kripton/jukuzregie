@@ -51,8 +51,10 @@ void VideoPlayer::setLoop(bool newState)
     ui->loopCheckBox->setChecked(newState);
 }
 
-void VideoPlayer::init(QString videocaps, QString audiocaps)
+void VideoPlayer::init(int width, int height, QString videocaps, QString audiocaps)
 {
+    this->videoWidth = width;
+    this->videoHeight = height;
     this->videocaps = videocaps;
     this->audiocaps = audiocaps;
 }
@@ -109,6 +111,7 @@ void VideoPlayer::newFileSelected(QString newFile)
     pipeline->bus()->addSignalWatch();
 
     videoSink.setElement(pipeline->getElementByName("videosink"));
+    videoSink.setDimensions(this->videoWidth, this->videoHeight);
 
     audioSink.setElement(pipeline->getElementByName("audiosink"));
 

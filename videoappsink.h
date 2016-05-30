@@ -15,6 +15,7 @@ class VideoAppSink : public QObject, public QGst::Utils::ApplicationSink
 
 public:
     explicit VideoAppSink(QObject *parent = 0);
+    void setDimensions(int width, int height);
 
 signals:
     void newPrerollImage(QImage image);
@@ -29,6 +30,9 @@ protected:
 
 private:
     QImage image2;
+
+    int width;
+    int height;
 };
 
 #endif // VIDEOAPPSINK_H

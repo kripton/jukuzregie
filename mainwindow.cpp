@@ -1,11 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent, int width, int height, int fps) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     startUp = QDateTime::currentDateTime();
+
+    this->width = width;
+    this->height = height;
+    this->fps = fps;
 
     //////////////////// UI ////////////////////
     ui->setupUi(this);
@@ -14,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowTitle(QString("%1 (instance id %2)").arg(windowTitle()).arg(startUp.toString("yyyy-MM-dd_hh-mm-ss")));
 
     logoLabel = new QLabel();
-    logoLabel->setGeometry(0, 0, 640, 360);
+    logoLabel->setGeometry(0, 0, width, height);
     logoLabel->setAttribute(Qt::WA_TranslucentBackground, true );
     logoItem = scene.addWidget(logoLabel);
     logoItem->setGraphicsEffect(&logoOpacityEffect);
@@ -22,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     logoOpacityEffect.setOpacity(0.0);
 
     textSpriteLabel = new QLabel();
-    textSpriteLabel->setGeometry(0, 0, 640, 360);
+    textSpriteLabel->setGeometry(0, 0, width, height);
     textSpriteLabel->setAttribute(Qt::WA_TranslucentBackground, true );
     textSpriteItem = scene.addWidget(textSpriteLabel);
     textSpriteItem->setGraphicsEffect(&textSpriteOpacityEffect);
@@ -150,16 +154,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //////////////////// Video scene and preview box ////////////////////
     QImage backgroundSprite;
-    backgroundSprite.load("/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png");
-    QGraphicsPixmapItem* item = scene.addPixmap(QPixmap::fromImage(backgroundSprite));
+    backgroundSprite.load(QString("/home/kripton/qtcreator/jukuzregie/sprites/pause-640x360.png"));
+    QPixmap pixmap = QPixmap::fromImage(backgroundSprite);
+    QGraphicsPixmapItem* item = scene.addPixmap(pixmap.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     item->setZValue(-0.1);
     ui->videoBox->setScene(&scene);
+    ui->videoBox->setGeometry(0, 0, width, height);
+    ui->dockWidget->setGeometry(0,0,width, height);
+    ui->dockWidget->setMinimumSize(width, height);
 
     //////////////////// GStreamer pipeline that handles the output and monitoring ////////////////////
-    rawvideocaps = QString("video/x-raw,format=BGRA,width=640,height=360,framerate=25/1,pixel-aspect-ratio=1/1");
+    rawvideocaps = QString("video/x-raw,format=BGRA,width=%1,height=%2,framerate=%3/1,pixel-aspect-ratio=1/1").arg(width).arg(height).arg(fps);
     rawaudiocaps = QString("audio/x-raw,format=F32LE,rate=48000,layout=interleaved,channels=2");
 
-    ui->videoPlayer->init(rawvideocaps, rawaudiocaps);
+    ui->videoPlayer->init(width, height, rawvideocaps, rawaudiocaps);
 
     QString dumpFileName = QString("%1/out.webm").arg(dumpDir);
 
@@ -183,7 +191,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
             .arg(rawaudiocaps)
             .arg(rawvideocaps)
-            .arg(640*360*4)
+            .arg(width*height*4)
             .arg(dumpFileName);
 
     outputPipe = QGst::Parse::launch(outputPipeDesc).dynamicCast<QGst::Pipeline>();
@@ -197,6 +205,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect (audioSrc_monitor, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareAudioData(uint, char*)));
 
     videoSrc = new VideoAppSrc(this);
+    videoSrc->setDimensions(width, height);
     connect(videoSrc, SIGNAL(sigNeedData(uint, char*)), this, SLOT(prepareVideoData(uint, char*)));
     videoSrc->setElement(outputPipe->getElementByName("videosrc"));
 
@@ -240,11 +249,11 @@ void MainWindow::processNotifyDatagram(QByteArray datagram, QHostAddress senderH
         {
             if (hash.value("host") != "")
             {
-                box->startCam(QHostAddress(hash.value("host")), hash.value("port").toUShort(), rawvideocaps, rawaudiocaps);
+                box->startCam(QHostAddress(hash.value("host")), hash.value("port").toUShort(), width, height, rawvideocaps, rawaudiocaps);
             }
             else
             {
-                box->startCam(senderHost, hash.value("port").toUShort(), rawvideocaps, rawaudiocaps);
+                box->startCam(senderHost, hash.value("port").toUShort(), width, height, rawvideocaps, rawaudiocaps);
             }
             break;
         }
@@ -308,7 +317,7 @@ void MainWindow::startCam(CamBox *cam, QHostAddress host, quint16 port)
     {
         return;
     }
-    cam->startCam(host, port, rawvideocaps, rawaudiocaps);
+    cam->startCam(host, port, width, height, rawvideocaps, rawaudiocaps);
 }
 
 void MainWindow::prepareAudioData(uint length, char* data)
@@ -371,7 +380,7 @@ void MainWindow::prepareAudioData(uint length, char* data)
 
 void MainWindow::prepareVideoData(uint length, char* data)
 {
-    QImage vidImg(640, 360, QImage::Format_ARGB32);
+    QImage vidImg(width, height, QImage::Format_ARGB32);
     QPainter painter(&vidImg);
     //painter.setRenderHint(QPainter::Antialiasing);
     scene.render(&painter);
@@ -539,9 +548,9 @@ void MainWindow::textButtonToggled(bool checked)
 
     if (checked) {
         textItem = scene.addText(ui->textEdit->toPlainText(), textFont);
-        textItem->setPos(ui->textPosX->value()*640, ui->textPosY->value()*360);
+        textItem->setPos(ui->textPosX->value()*width, ui->textPosY->value()*height);
         textItem->setZValue(0.95);
-        scene.setSceneRect(0, 0, 640, 360);
+        scene.setSceneRect(0, 0, width, height);
 
         QFileInfo fInfo(ui->textSpriteFilename->text());
 
@@ -559,7 +568,7 @@ void MainWindow::textButtonToggled(bool checked)
 
         oldMovie = textSpriteLabel->movie();
 
-        movie->setScaledSize(QSize(640,360));
+        movie->setScaledSize(QSize(width,height));
         movie->setCacheMode(QMovie::CacheAll);
         textSpriteLabel->setMovie(movie);
         movie->start();
@@ -598,7 +607,7 @@ void MainWindow::logoButtonToggled(bool checked)
 
         oldMovie = logoLabel->movie();
 
-        movie->setScaledSize(QSize(640,360));
+        movie->setScaledSize(QSize(width,height));
         movie->setCacheMode(QMovie::CacheAll);
         logoLabel->setMovie(movie);
         movie->start();

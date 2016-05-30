@@ -34,7 +34,7 @@ public:
     /// METHODS ///
     explicit VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
-    void init(QString videocaps, QString audiocaps);
+    void init(int width, int height, QString videocaps, QString audiocaps);
 
     void setPosition(const QTime & pos);
 
@@ -63,6 +63,8 @@ private:
     Ui::VideoPlayer *ui;
     QString currentDir;
 
+    int videoWidth;
+    int videoHeight;
     QString videocaps;
     QString audiocaps;
 
